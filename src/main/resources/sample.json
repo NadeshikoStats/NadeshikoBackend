@@ -1,0 +1,33 @@
+{
+    "success": true,
+    "name": "kittycatchloe",
+    "uuid": "03e08a601d174f4086cd33fe6001cf83",
+    "status": {
+        "online": false
+    },
+    "stats": {
+        "network": {
+            "level": 301.66,
+            "level_multiplier": 8,
+            "first_login": 	1448726950000,
+            "last_login": 0,
+            "general": {
+                "achievement_points": 7110,
+                "karma": 18053410,
+                "quests_completed": 814,
+                "ranks_gifted": 106
+            },
+            "guild": {
+                "name": "SBNOfficial",
+                "tag": "NERDS",
+                "color": "DARK_GREEN",
+                "level": 74,
+                "members": 42,
+                "joined": 0
+            },
+            "social": {
+                "discord": "chloe.dll"
+            }
+        }
+    }
+}
