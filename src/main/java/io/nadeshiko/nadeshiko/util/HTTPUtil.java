@@ -1,4 +1,4 @@
-package io.hystats.hystats.util;
+package io.nadeshiko.nadeshiko.util;
 
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;

@@ -1,8 +1,11 @@
-package io.hystats.hystats;
+package io.nadeshiko.nadeshiko;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
-import io.hystats.hystats.util.HTTPUtil;
+import io.nadeshiko.nadeshiko.stats.Cache;
+import io.nadeshiko.nadeshiko.stats.StatsController;
+import io.nadeshiko.nadeshiko.util.HTTPUtil;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Service;
@@ -13,17 +16,18 @@ import java.io.InputStreamReader;
 import java.util.Map;
 
 /**
- * Main class of the HyStats backend
+ * Main class of the Nadeshiko backend
  *
  * @author chloe
  * @since March 11, 2024
  */
-public class HyStats {
+public class Nadeshiko {
 
-	public static HyStats INSTANCE = null;
+	public static Nadeshiko INSTANCE = null;
 
 	public static Gson gson = new Gson();
-	public static Logger logger = LoggerFactory.getLogger(HyStats.class);
+	public static Logger logger = LoggerFactory.getLogger(Nadeshiko.class);
+	public static Cache cache = new Cache();
 
 	/**
 	 * The timestamp at which this instance began startup
@@ -38,11 +42,13 @@ public class HyStats {
 	/**
 	 * The Hypixel API key used by this instance
 	 */
+	@Getter
 	private String hypixelKey;
 
 	/**
 	 * The configuration stored as a map, loaded from config.json at startup
 	 */
+	@Getter
 	private Map<?, ?> config;
 
 	/**
@@ -89,7 +95,10 @@ public class HyStats {
 		this.spark.port(port);
 		this.spark.init();
 
-		logger.info("Started HyStats in {} seconds", ((System.currentTimeMillis() - startTime) / 1000f));
+		// Bind /stats endpoint to the controller
+		spark.get("/stats", StatsController.serveStatsEndpoint);
+
+		logger.info("Started Nadeshiko in {} seconds", ((System.currentTimeMillis() - startTime) / 1000f));
 	}
 
 	/**
@@ -104,7 +113,7 @@ public class HyStats {
 	 * @throws IOException If an exception was thrown reading the configuration file
 	 */
 	private void readConfig() throws IOException {
-		InputStream configStream = HyStats.class.getResourceAsStream("/config.json");
+		InputStream configStream = Nadeshiko.class.getResourceAsStream("/config.json");
 
 		if (configStream == null) {
 			logger.error("No config.json was found! Halting.");
@@ -127,6 +136,7 @@ public class HyStats {
 
 		try {
 			response = HTTPUtil.get(endpoint + "?key=" + hypixelKey);
+			logger.info("Got status {} from Hypixel", response.status());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -145,6 +155,7 @@ public class HyStats {
 
 		try {
 			response = HTTPUtil.get(endpoint);
+			logger.info("Got status {} from Mojang", response.status());
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
@@ -154,11 +165,11 @@ public class HyStats {
 	}
 
 	/**
-	 * Create the global HyStats instance and start it on port 8080
+	 * Create the global Nadeshiko instance and start it on port 8080
 	 * @param args ignored
 	 */
 	public static void main(String[] args) {
-		INSTANCE = new HyStats();
+		INSTANCE = new Nadeshiko();
 		INSTANCE.startup(8080);
 	}
 }
