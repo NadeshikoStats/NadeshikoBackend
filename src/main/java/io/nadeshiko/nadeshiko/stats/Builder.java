@@ -1,5 +1,6 @@
 package io.nadeshiko.nadeshiko.stats;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
@@ -30,6 +31,21 @@ public class Builder {
 
 		response.addProperty("name", mojangProfile.get("name").getAsString());
 		response.addProperty("uuid", mojangProfile.get("id").getAsString());
+
+		// Add the Hypixel status
+		final JsonObject hypixelStatus = this.fetchHypixelStatus(response.get("uuid").getAsString());
+		response.add("status", hypixelStatus);
+
+		// Add the Hypixel guild
+		final JsonObject hypixelGuild = this.fetchHypixelGuild(response.get("uuid").getAsString());
+		response.add("guild", hypixelGuild);
+
+		// Add the Hypixel stats
+		final JsonObject hypixelStats = this.fetchHypixelStats(response.get("uuid").getAsString());
+		if (hypixelStats != null) {
+			response.add("profile", this.buildHypixelProfile(hypixelStats));
+			response.add("stats", hypixelStats.get("stats").getAsJsonObject());
+		}
 
 		return response;
 	}
@@ -77,6 +93,124 @@ public class Builder {
 			}
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name);
+			Nadeshiko.logger.error("Stack trace:");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	// TODO error handling
+	private JsonObject fetchHypixelStatus(@NonNull String uuid) {
+		try {
+			HTTPUtil.Response response =
+				HTTPUtil.get("https://api.hypixel.net/v2/status?uuid=" + uuid +
+					"&key=" + Nadeshiko.INSTANCE.getHypixelKey());
+
+			JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
+			JsonObject session = jsonResponse.getAsJsonObject("session");
+			JsonObject object = new JsonObject();
+
+			object.addProperty("online", session.get("online").getAsBoolean());
+
+			if (session.has("gameType")) {
+				object.addProperty("game", session.get("gameType").getAsString());
+			}
+
+			if (session.has("mode")) {
+				object.addProperty("mode", session.get("mode").getAsString());
+			}
+
+			return object;
+
+		} catch (Exception e) {
+			Nadeshiko.logger.error("Encountered error while looking up Hypixel status for {}", uuid);
+			Nadeshiko.logger.error("Stack trace:");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	// TODO error handling
+	private JsonObject fetchHypixelGuild(@NonNull String uuid) {
+		try {
+			HTTPUtil.Response response =
+				HTTPUtil.get("https://api.hypixel.net/v2/guild?player=" + uuid +
+					"&key=" + Nadeshiko.INSTANCE.getHypixelKey());
+
+			JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
+			JsonObject guild = jsonResponse.getAsJsonObject("guild");
+			JsonObject object = new JsonObject();
+
+			long joined = 0;
+			JsonObject playerEntry;
+
+			for (JsonElement element : guild.getAsJsonArray("members")) {
+				JsonObject entry = (JsonObject) element;
+
+				if (entry.get("uuid").getAsString().equals(uuid.replace("-", ""))) {
+					playerEntry = entry;
+					joined = playerEntry.get("joined").getAsLong();
+					break;
+				}
+			}
+
+			object.addProperty("name", guild.get("name").getAsString());
+			object.addProperty("tag", guild.get("tag").getAsString());
+			object.addProperty("color", guild.get("tagColor").getAsString());
+			object.addProperty("members", guild.getAsJsonArray("members").size());
+			object.addProperty("joined", joined);
+
+			return object;
+
+		} catch (Exception e) {
+			Nadeshiko.logger.error("Encountered error while looking up Hypixel guild for {}", uuid);
+			Nadeshiko.logger.error("Stack trace:");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	// TODO error handling
+	private JsonObject fetchHypixelStats(@NonNull String uuid) {
+		try {
+			HTTPUtil.Response response =
+				HTTPUtil.get("https://api.hypixel.net/v2/player?uuid=" + uuid +
+					"&key=" + Nadeshiko.INSTANCE.getHypixelKey());
+
+			JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
+			return jsonResponse.get("player").getAsJsonObject();
+
+		} catch (Exception e) {
+			Nadeshiko.logger.error("Encountered error while looking up Hypixel stats for {}", uuid);
+			Nadeshiko.logger.error("Stack trace:");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private JsonObject buildHypixelProfile(@NonNull JsonObject playerObject) {
+		try {
+			JsonObject profile = new JsonObject();
+
+			profile.addProperty("first_login", playerObject.get("firstLogin").getAsLong());
+
+			// Players can disable the last login from their API
+			if (playerObject.has("lastLogin")) {
+				profile.addProperty("last_login", playerObject.get("lastLogin").getAsLong());
+			} else {
+				profile.addProperty("last_login", 0);
+			}
+
+			// Add social media
+			if (playerObject.has("socialMedia")) {
+				profile.add("social_media", playerObject.getAsJsonObject(
+					"socialMedia").getAsJsonObject("links"));
+			}
+
+			return profile;
+
+		} catch (Exception e) {
+			Nadeshiko.logger.error("Encountered error while building Hypixel profile");
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
 			return null;

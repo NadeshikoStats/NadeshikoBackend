@@ -5,6 +5,14 @@
     "status": {
         "online": false
     },
+    "guild": {
+        "name": "SBNOfficial",
+        "tag": "NERDS",
+        "color": "DARK_GREEN",
+        "level": 74,
+        "members": 42,
+        "joined": 0
+    },
     "stats": {
         "network": {
             "level": 301.66,
@@ -16,14 +24,6 @@
                 "karma": 18053410,
                 "quests_completed": 814,
                 "ranks_gifted": 106
-            },
-            "guild": {
-                "name": "SBNOfficial",
-                "tag": "NERDS",
-                "color": "DARK_GREEN",
-                "level": 74,
-                "members": 42,
-                "joined": 0
             },
             "social": {
                 "discord": "chloe.dll"
