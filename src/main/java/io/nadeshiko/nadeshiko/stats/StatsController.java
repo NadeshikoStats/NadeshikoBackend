@@ -9,11 +9,10 @@ import spark.Route;
 public class StatsController {
 	public static Route serveStatsEndpoint = (Request request, Response response) -> {
 
-		response.type("application/json");
-
 		// Ensure a name was provided
 		if (!request.queryParams().contains("name")) {
 			response.status(400);
+			response.type("application/json");
 			return "{\"success\":false,\"cause\":\"Missing name parameter\"}";
 		}
 
@@ -26,6 +25,7 @@ public class StatsController {
 			cached.remove("status");
 		}
 
+		response.type("application/json");
 		return cached;
 	};
 }

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
+import io.nadeshiko.nadeshiko.util.HypixelUtil;
 import lombok.NonNull;
 
 /**
@@ -188,22 +189,33 @@ public class Builder {
 		}
 	}
 
-	private JsonObject buildHypixelProfile(@NonNull JsonObject playerObject) {
+	private JsonObject buildHypixelProfile(@NonNull JsonObject playerObj) {
 		try {
 			JsonObject profile = new JsonObject();
 
-			profile.addProperty("first_login", playerObject.get("firstLogin").getAsLong());
+			profile.addProperty("first_login", playerObj.get("firstLogin").getAsLong());
 
 			// Players can disable the last login from their API
-			if (playerObject.has("lastLogin")) {
-				profile.addProperty("last_login", playerObject.get("lastLogin").getAsLong());
+			if (playerObj.has("lastLogin")) {
+				profile.addProperty("last_login", playerObj.get("lastLogin").getAsLong());
 			} else {
 				profile.addProperty("last_login", 0);
 			}
 
+			// Add basic stats
+			profile.addProperty("network_level", HypixelUtil.calculateNetworkLevel(
+				playerObj.get("networkExp").getAsInt()));
+			profile.addProperty("achievement_points", playerObj.get("achievementPoints").getAsString());
+			profile.addProperty("karma", playerObj.get("karma").getAsString());
+
+			if (playerObj.has("giftingMeta")) {
+				profile.addProperty("ranks_gifted", playerObj.getAsJsonObject(
+					"giftingMeta").get("ranksGiven").getAsInt());
+			}
+
 			// Add social media
-			if (playerObject.has("socialMedia")) {
-				profile.add("social_media", playerObject.getAsJsonObject(
+			if (playerObj.has("socialMedia")) {
+				profile.add("social_media", playerObj.getAsJsonObject(
 					"socialMedia").getAsJsonObject("links"));
 			}
 
