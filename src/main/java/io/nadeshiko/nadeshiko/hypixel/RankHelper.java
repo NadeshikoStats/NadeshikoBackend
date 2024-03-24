@@ -23,6 +23,10 @@ public class RankHelper {
 	private String superstarRankColor = "§6"; // default; fallback
 	private String superstarPlusColor = "§c"; // default; fallback
 
+	/**
+	 * Create a new RankHelper instance from a players API player object
+	 * @param playerObject The player object as provided by the Hypixel API
+	 */
 	public RankHelper(@NonNull JsonObject playerObject) {
 
 		// 1. Check if the player has a custom prefix
@@ -30,7 +34,7 @@ public class RankHelper {
 			String candidatePrefix = playerObject.get("prefix").getAsString();
 
 			// Apparently this will happen if the player once had a prefix and lost it. Can't verify
-			if (!candidatePrefix.equals("NONE")) {
+			if (!candidatePrefix.equals("NONE") && !candidatePrefix.isEmpty()) {
 				this.prefix = candidatePrefix;
 				return; // Nothing else matters
 			}
@@ -41,7 +45,7 @@ public class RankHelper {
 			String candidateRank = playerObject.get("rank").getAsString();
 
 			// Happens if the player once had a rank and lost it
-			if (!candidateRank.equals("NONE")) {
+			if (!candidateRank.equals("NONE") && !candidateRank.isEmpty()) {
 
 				// In case I'm forgetting about a rank or one gets added
 				try {
@@ -73,7 +77,7 @@ public class RankHelper {
 			String candidatePackageRank = playerObject.get("newPackageRank").getAsString();
 
 			// Happens if the player once had a rank and lost it - i.e. chargeback
-			if (!candidatePackageRank.equals("NONE")) {
+			if (!candidatePackageRank.equals("NONE") && !candidatePackageRank.isEmpty()) {
 
 				// MVP+ plus color
 				if (playerObject.has("rankPlusColor")) {
@@ -97,7 +101,7 @@ public class RankHelper {
 			String candidatePackageRank = playerObject.get("packageRank").getAsString();
 
 			// Happens if the player once had a rank and lost it - i.e. chargeback
-			if (!candidatePackageRank.equals("NONE")) {
+			if (!candidatePackageRank.equals("NONE") && !candidatePackageRank.isEmpty()) {
 
 				// MVP+ plus color (is MVP+ even possible as a legacy rank?)
 				if (playerObject.has("rankPlusColor")) {
@@ -117,20 +121,25 @@ public class RankHelper {
 	}
 
 	public String getTag() {
+
+		// Highest priority. If the player has a prefix, use it.
 		if (this.prefix != null) {
 			return this.prefix;
 		}
 
+		// Second-highest priority. If the player has a rank, use it.
 		if (this.rank != null) {
 			return this.rank.getFormattedTag();
 		}
 
+		// MVP++
 		if (this.hasSuperstar) {
 			return "y[MVPx++y]".
 				replace("y", this.superstarRankColor).
 				replace("x", this.superstarPlusColor);
 		}
 
+		// Lowest priority. Use the player's package rank.
 		if (this.packageRank != null) {
 
 			// If the player is MVP+, we must modify the prefix to use the custom + color

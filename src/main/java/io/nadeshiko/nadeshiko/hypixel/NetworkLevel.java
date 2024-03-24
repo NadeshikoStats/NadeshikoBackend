@@ -31,14 +31,9 @@ public class NetworkLevel {
 	 * This method returns the level of a player calculated by the current experience gathered. The result is
 	 * a precise level of the player. The value is not zero-indexed and represents the absolute visible level
 	 * for the player.
-	 * The result can't be smaller than 1 and negative experience results in level 1.
 	 * <p>
-	 * Examples:
-	 * -        0 XP = 1.0
-	 * -     5000 XP = 1.0
-	 * -    10000 XP = 2.0
-	 * -    50000 XP = 4.0
-	 * - 79342431 XP = 249.0
+	 *
+	 * The result can't be smaller than 1 and negative experience results in level 1.
 	 *
 	 * @param exp Total experience gathered by the player.
 	 * @return Absolute level of player (Smallest value is 1.0)
@@ -53,13 +48,6 @@ public class NetworkLevel {
 	 * a precise level of the player. The value is not zero-indexed and represents the visible level
 	 * for the player.
 	 * The result can't be smaller than 1 and negative experience results in level 1.
-	 * <p>
-	 * Examples:
-	 * -        0 XP = 1.0
-	 * -     5000 XP = 1.5
-	 * -    10000 XP = 2.0
-	 * -    50000 XP = 4.71...
-	 * - 79342431 XP = 249.46...
 	 *
 	 * @param exp Total experience gathered by the player.
 	 * @return Exact level of player (The smallest value is 1.0)
@@ -73,15 +61,6 @@ public class NetworkLevel {
 	 * you have to gather the amount of experience returned by this method. This method is precise, that means
 	 * you can pass any progress of a level to receive the experience to reach that progress. (5.764 to get
 	 * the experience to reach level 5 with 76.4% of level 6.
-	 * <p>
-	 * Examples:
-	 * -    1.0 =        0.0 XP
-	 * -    2.0 =    10000.0 XP
-	 * -    3.0 =    22500.0 XP
-	 * -    5.0 =    55000.0 XP
-	 * -  5.764 =    70280.0 XP
-	 * -  130.0 = 21930000.0 XP
-	 * - 250.43 = 79951975.0 XP
 	 *
 	 * @param level The level and progress of the level to reach
 	 * @return The experience required to reach that level and progress
@@ -107,12 +86,6 @@ public class NetworkLevel {
 	 * This method returns the current progress of this level to reach the next level. This method is as
 	 * precise as possible due to rounding errors on the mantissa. The first 10 decimals are totally
 	 * accurate.
-	 * <p>
-	 * Examples:
-	 * -     5000.0 XP   (Lv. 1) = 0.5                               (50 %)
-	 * -    22499.0 XP   (Lv. 2) = 0.99992                       (99.992 %)
-	 * -  5324224.0 XP  (Lv. 62) = 0.856763076923077   (85.6763076923077 %)
-	 * - 23422443.0 XP (Lv. 134) = 0.4304905109489051 (43.04905109489051 %)
 	 *
 	 * @param exp Current experience gathered by the player
 	 * @return Current progress to the next level

@@ -47,7 +47,13 @@ public class Builder {
 		final JsonObject hypixelStats = this.fetchHypixelStats(response.get("uuid").getAsString());
 		if (hypixelStats != null) {
 			response.add("profile", this.buildHypixelProfile(hypixelStats));
-			response.add("stats", hypixelStats.get("stats").getAsJsonObject());
+
+			// Some staff members have their stats disabled
+			if (hypixelStats.has("stats")) {
+				response.add("stats", hypixelStats.get("stats").getAsJsonObject());
+			} else {
+				response.add("stats", null);
+			}
 		}
 
 		return response;
@@ -142,7 +148,7 @@ public class Builder {
 			JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
 
 			// Check to see if the player actually has a guild
-			if (!jsonResponse.has("guild")) {
+			if (!jsonResponse.has("guild") || jsonResponse.get("guild").isJsonNull()) {
 				return null;
 			}
 
@@ -220,6 +226,7 @@ public class Builder {
 
 			profile.addProperty("first_login", playerObj.get("firstLogin").getAsLong());
 
+			// Add the last login
 			// Players can disable the last login from their API
 			if (playerObj.has("lastLogin")) {
 				profile.addProperty("last_login", playerObj.get("lastLogin").getAsLong());
@@ -227,13 +234,33 @@ public class Builder {
 				profile.addProperty("last_login", 0);
 			}
 
-			// Add basic stats
-			profile.addProperty("network_level", NetworkLevel.getExactLevel(
-				playerObj.get("networkExp").getAsInt()));
-			profile.addProperty("coin_multiplier",
-				NetworkLevel.getCoinMultiplier(playerObj.get("networkExp").getAsInt()));
-			profile.addProperty("achievement_points", playerObj.get("achievementPoints").getAsString());
-			profile.addProperty("karma", playerObj.get("karma").getAsString());
+			// Add the network level and coin multiplier
+			// Staff can disable network XP from their API
+			if (profile.has("networkExp")) {
+				profile.addProperty("network_level", NetworkLevel.getExactLevel(
+					playerObj.get("networkExp").getAsInt()));
+				profile.addProperty("coin_multiplier",
+					NetworkLevel.getCoinMultiplier(playerObj.get("networkExp").getAsInt()));
+			} else {
+				profile.addProperty("network_level", 0d);
+				profile.addProperty("coin_multiplier", 1d);
+			}
+
+			// Add the achievement points
+			// Staff can disable achievement points from their API
+			if (profile.has("achievementPoints")) {
+				profile.addProperty("achievement_points", playerObj.get("achievementPoints").getAsString());
+			} else {
+				profile.addProperty("achievement_points", 0);
+			}
+
+			// Add karma
+			// Staff can disable karma from their API
+			if (profile.has("karma")) {
+				profile.addProperty("karma", playerObj.get("karma").getAsString());
+			} else {
+				profile.addProperty("karma", 0);
+			}
 
 			// Add ranks gifted
 			if (playerObj.has("giftingMeta")) {

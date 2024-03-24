@@ -76,6 +76,8 @@ public class Nadeshiko {
 			logger.error("No API key was provided in the config! Halting.");
 			return;
 		} else {
+
+			// Censor the API key, except for the first section (8 characters)
 			String censoredKey = this.hypixelKey.replaceAll("[^-]", "*");
 			String compositeKey = this.hypixelKey.substring(0, 7) + censoredKey.substring(8);
 
@@ -101,6 +103,9 @@ public class Nadeshiko {
 		// Bind /stats endpoint to the controller
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 
+		// Set up the shutdown method on JVM stop
+		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
+
 		logger.info("Started Nadeshiko in {} seconds", ((System.currentTimeMillis() - startTime) / 1000f));
 	}
 
@@ -108,7 +113,12 @@ public class Nadeshiko {
 	 * Shuts down this instance of the backend, stopping the service
 	 */
 	public void shutdown() {
+		logger.info("Stopping!");
+
 		this.spark.stop();
+
+		logger.info("Nadeshiko was running for {} ms", System.currentTimeMillis() - this.startTime);
+		logger.info("Stopped Nadeshiko");
 	}
 
 	/**
