@@ -4,8 +4,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
+import io.nadeshiko.nadeshiko.hypixel.NetworkLevel;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
-import io.nadeshiko.nadeshiko.util.HypixelUtil;
+import io.nadeshiko.nadeshiko.util.MinecraftColors;
 import lombok.NonNull;
 
 /**
@@ -157,7 +158,12 @@ public class Builder {
 
 			object.addProperty("name", guild.get("name").getAsString());
 			object.addProperty("tag", guild.get("tag").getAsString());
-			object.addProperty("color", guild.get("tagColor").getAsString());
+			object.addProperty("formatted_tag",
+				String.format("%s[%s]",
+					MinecraftColors.getCodeFromName(guild.get("tagColor").getAsString()),
+					guild.get("tag").getAsString()
+				)
+			);
 			object.addProperty("members", guild.getAsJsonArray("members").size());
 			object.addProperty("joined", joined);
 
@@ -203,8 +209,10 @@ public class Builder {
 			}
 
 			// Add basic stats
-			profile.addProperty("network_level", HypixelUtil.calculateNetworkLevel(
+			profile.addProperty("network_level", NetworkLevel.getExactLevel(
 				playerObj.get("networkExp").getAsInt()));
+			profile.addProperty("coin_multiplier",
+				NetworkLevel.getCoinMultiplier(playerObj.get("networkExp").getAsInt()));
 			profile.addProperty("achievement_points", playerObj.get("achievementPoints").getAsString());
 			profile.addProperty("karma", playerObj.get("karma").getAsString());
 
