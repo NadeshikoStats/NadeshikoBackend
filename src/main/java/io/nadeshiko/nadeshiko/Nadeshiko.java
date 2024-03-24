@@ -76,7 +76,10 @@ public class Nadeshiko {
 			logger.error("No API key was provided in the config! Halting.");
 			return;
 		} else {
-			logger.info("Using Hypixel API key " + this.hypixelKey);
+			String censoredKey = this.hypixelKey.replaceAll("[^-]", "*");
+			String compositeKey = this.hypixelKey.substring(0, 7) + censoredKey.substring(8);
+
+			logger.info("Using Hypixel API key " + compositeKey);
 		}
 
 		// Test the Hypixel and Mojang APIs

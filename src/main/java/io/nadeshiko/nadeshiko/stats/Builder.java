@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.hypixel.NetworkLevel;
+import io.nadeshiko.nadeshiko.hypixel.RankHelper;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftColors;
 import lombok.NonNull;
@@ -132,7 +133,6 @@ public class Builder {
 		}
 	}
 
-	// TODO error handling
 	private JsonObject fetchHypixelGuild(@NonNull String uuid) {
 		try {
 			HTTPUtil.Response response =
@@ -140,6 +140,12 @@ public class Builder {
 					"&key=" + Nadeshiko.INSTANCE.getHypixelKey());
 
 			JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
+
+			// Check to see if the player actually has a guild
+			if (!jsonResponse.has("guild")) {
+				return null;
+			}
+
 			JsonObject guild = jsonResponse.getAsJsonObject("guild");
 			JsonObject object = new JsonObject();
 
@@ -157,13 +163,19 @@ public class Builder {
 			}
 
 			object.addProperty("name", guild.get("name").getAsString());
-			object.addProperty("tag", guild.get("tag").getAsString());
-			object.addProperty("formatted_tag",
-				String.format("%s[%s]",
-					MinecraftColors.getCodeFromName(guild.get("tagColor").getAsString()),
-					guild.get("tag").getAsString()
-				)
-			);
+
+			// Not all guilds have tags
+			if (guild.has("tag")) {
+				object.addProperty("tag",
+					String.format("%s[%s]",
+						MinecraftColors.getCodeFromName(guild.get("tagColor").getAsString()),
+						guild.get("tag").getAsString()
+					)
+				);
+			} else {
+				object.addProperty("tag", "");
+			}
+
 			object.addProperty("members", guild.getAsJsonArray("members").size());
 			object.addProperty("joined", joined);
 
@@ -177,7 +189,6 @@ public class Builder {
 		}
 	}
 
-	// TODO error handling
 	private JsonObject fetchHypixelStats(@NonNull String uuid) {
 		try {
 			HTTPUtil.Response response =
@@ -199,6 +210,14 @@ public class Builder {
 		try {
 			JsonObject profile = new JsonObject();
 
+			RankHelper rankHelper = new RankHelper(playerObj);
+			String tag = rankHelper.getTag();
+
+			profile.addProperty("tag", tag);
+			profile.addProperty("taggedName",
+				tag.replace("]", "] ") +
+					playerObj.get("displayname").getAsString());
+
 			profile.addProperty("first_login", playerObj.get("firstLogin").getAsLong());
 
 			// Players can disable the last login from their API
@@ -216,9 +235,18 @@ public class Builder {
 			profile.addProperty("achievement_points", playerObj.get("achievementPoints").getAsString());
 			profile.addProperty("karma", playerObj.get("karma").getAsString());
 
+			// Add ranks gifted
 			if (playerObj.has("giftingMeta")) {
-				profile.addProperty("ranks_gifted", playerObj.getAsJsonObject(
-					"giftingMeta").get("ranksGiven").getAsInt());
+
+				JsonObject giftingMeta = playerObj.getAsJsonObject("giftingMeta");
+
+				// Not everyone has gifted a rank
+				if (giftingMeta.has("ranksGiven")) {
+					profile.addProperty("ranks_gifted",
+						giftingMeta.get("ranksGiven").getAsInt());
+				} else {
+					profile.addProperty("ranks_gifted", 0);
+				}
 			}
 
 			// Add social media
@@ -230,7 +258,8 @@ public class Builder {
 			return profile;
 
 		} catch (Exception e) {
-			Nadeshiko.logger.error("Encountered error while building Hypixel profile");
+			Nadeshiko.logger.error("Encountered error while building Hypixel profile for {}!",
+				playerObj.get("displayname").getAsString());
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
 			return null;
