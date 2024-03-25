@@ -178,11 +178,11 @@ public class Nadeshiko {
 	}
 
 	/**
-	 * Create the global Nadeshiko instance and start it on port 8080
+	 * Create the global Nadeshiko instance and start it on port 641
 	 * @param args ignored
 	 */
 	public static void main(String[] args) {
 		INSTANCE = new Nadeshiko();
-		INSTANCE.startup(8080);
+		INSTANCE.startup(641);
 	}
 }
