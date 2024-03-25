@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
+import io.nadeshiko.nadeshiko.hypixel.GuildLevel;
 import io.nadeshiko.nadeshiko.hypixel.NetworkLevel;
 import io.nadeshiko.nadeshiko.hypixel.RankHelper;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
@@ -13,6 +14,7 @@ import lombok.NonNull;
 import java.util.Map;
 
 /**
+ * @since 0.0.1
  * @author chloe
  */
 public class Builder {
@@ -54,7 +56,7 @@ public class Builder {
 			if (hypixelStats.has("stats")) {
 				response.add("stats", hypixelStats.get("stats").getAsJsonObject());
 			} else {
-				response.add("stats", null);
+				response.add("stats", new JsonObject()); // Fallback if stats are off/missing
 			}
 		}
 
@@ -160,6 +162,7 @@ public class Builder {
 			long joined = 0;
 			JsonObject playerEntry;
 
+			// Iterate over all guild members to find the requested player by UUID
 			for (JsonElement element : guild.getAsJsonArray("members")) {
 				JsonObject entry = (JsonObject) element;
 
@@ -184,6 +187,7 @@ public class Builder {
 				object.addProperty("tag", "");
 			}
 
+			object.addProperty("level", GuildLevel.getExactLevel(guild.get("exp").getAsInt()));
 			object.addProperty("members", guild.getAsJsonArray("members").size());
 			object.addProperty("joined", joined);
 

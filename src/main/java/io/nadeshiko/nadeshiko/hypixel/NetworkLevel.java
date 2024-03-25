@@ -6,26 +6,26 @@ import lombok.experimental.UtilityClass;
  * Utility class for the conversion and handling of network level and EXP. Based strongly on the official Hypixel API
  * Java implementation.
  *
+ * @since 0.0.1
  * @author Plancke, chloe
  */
 @UtilityClass
 public class NetworkLevel {
 
-	public static final double BASE = 10_000;
-	public static final double GROWTH = 2_500;
+	public final double BASE = 10_000;
+	public final double GROWTH = 2_500;
 
 	/**
 	 * Constants to generate the total amount of XP to complete a level
 	 */
-	public static final double HALF_GROWTH = 0.5 * GROWTH;
+	public final double HALF_GROWTH = 0.5 * GROWTH;
 
 	/**
 	 * Constants to look up the level from the total amount of XP
 	 */
-	public static final double REVERSE_PQ_PREFIX = -(BASE - 0.5 * GROWTH) / GROWTH;
-	public static final double REVERSE_CONST = REVERSE_PQ_PREFIX * REVERSE_PQ_PREFIX;
-	public static final double GROWTH_DIVIDES_2 = 2 / GROWTH;
-
+	public final double REVERSE_PQ_PREFIX = -(BASE - 0.5 * GROWTH) / GROWTH;
+	public final double REVERSE_CONST = REVERSE_PQ_PREFIX * REVERSE_PQ_PREFIX;
+	public final double GROWTH_DIVIDES_2 = 2 / GROWTH;
 
 	/**
 	 * This method returns the level of a player calculated by the current experience gathered. The result is
@@ -78,7 +78,7 @@ public class NetworkLevel {
 	 * @param level Level to receive the amount of experience to
 	 * @return Experience to reach the given level
 	 */
-	static double getTotalExpToFullLevel(double level) {
+	public double getTotalExpToFullLevel(double level) {
 		return (HALF_GROWTH * (level - 2) + BASE) * (level - 1);
 	}
 

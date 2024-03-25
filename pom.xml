@@ -6,7 +6,7 @@
 
     <groupId>io.nadeshiko</groupId>
     <artifactId>Nadeshiko</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
 
     <build>
         <plugins>
@@ -81,12 +81,12 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
-            <version>1.2.10</version>
+            <version>1.4.14</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.10</version>
+            <version>1.4.14</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
