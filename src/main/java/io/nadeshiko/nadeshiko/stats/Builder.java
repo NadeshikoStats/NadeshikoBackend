@@ -10,6 +10,8 @@ import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftColors;
 import lombok.NonNull;
 
+import java.util.Map;
+
 /**
  * @author chloe
  */
@@ -231,35 +233,35 @@ public class Builder {
 			if (playerObj.has("lastLogin")) {
 				profile.addProperty("last_login", playerObj.get("lastLogin").getAsLong());
 			} else {
-				profile.addProperty("last_login", 0);
+				profile.addProperty("last_login", 0); // Default
 			}
 
 			// Add the network level and coin multiplier
 			// Staff can disable network XP from their API
-			if (profile.has("networkExp")) {
+			if (playerObj.has("networkExp")) {
 				profile.addProperty("network_level", NetworkLevel.getExactLevel(
 					playerObj.get("networkExp").getAsInt()));
 				profile.addProperty("coin_multiplier",
 					NetworkLevel.getCoinMultiplier(playerObj.get("networkExp").getAsInt()));
 			} else {
-				profile.addProperty("network_level", 0d);
-				profile.addProperty("coin_multiplier", 1d);
+				profile.addProperty("network_level", 0d); // Default
+				profile.addProperty("coin_multiplier", 1d); // Default
 			}
 
 			// Add the achievement points
 			// Staff can disable achievement points from their API
-			if (profile.has("achievementPoints")) {
-				profile.addProperty("achievement_points", playerObj.get("achievementPoints").getAsString());
+			if (playerObj.has("achievementPoints")) {
+				profile.addProperty("achievement_points", playerObj.get("achievementPoints").getAsInt());
 			} else {
-				profile.addProperty("achievement_points", 0);
+				profile.addProperty("achievement_points", 0); // Default
 			}
 
 			// Add karma
 			// Staff can disable karma from their API
-			if (profile.has("karma")) {
-				profile.addProperty("karma", playerObj.get("karma").getAsString());
+			if (playerObj.has("karma")) {
+				profile.addProperty("karma", playerObj.get("karma").getAsInt());
 			} else {
-				profile.addProperty("karma", 0);
+				profile.addProperty("karma", 0); // Default
 			}
 
 			// Add ranks gifted
@@ -272,14 +274,26 @@ public class Builder {
 					profile.addProperty("ranks_gifted",
 						giftingMeta.get("ranksGiven").getAsInt());
 				} else {
-					profile.addProperty("ranks_gifted", 0);
+					profile.addProperty("ranks_gifted", 0); // Default
 				}
+			} else {
+				profile.addProperty("ranks_gifted", 0); // Default
+			}
+
+			// Add quests completed
+			if (playerObj.has("quests")) {
+				profile.addProperty("quests_completed",
+					countQuests(playerObj.getAsJsonObject("quests")));
+			} else {
+				profile.addProperty("quests_completed", 0); // Default
 			}
 
 			// Add social media
 			if (playerObj.has("socialMedia")) {
 				profile.add("social_media", playerObj.getAsJsonObject(
 					"socialMedia").getAsJsonObject("links"));
+			} else {
+				profile.add("social_media", new JsonObject()); // Default
 			}
 
 			return profile;
@@ -291,5 +305,26 @@ public class Builder {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	/**
+	 * Count the number of completed quests a player has given the quests object from the API
+	 * @param questsObject The /player/quests object as returned by the /player endpoint of the Hypixel API
+	 * @return The number of completed quests the player has
+	 */
+	private int countQuests(@NonNull JsonObject questsObject) {
+
+		int quests = 0;
+
+		// Iterate over members of the JsonObject
+		for (Map.Entry<String, JsonElement> entry : questsObject.entrySet()) {
+			JsonObject entryObj = entry.getValue().getAsJsonObject();
+
+			if (entryObj.has("completions")) {
+				quests += entryObj.getAsJsonArray("completions").size();
+			}
+		}
+
+		return quests;
 	}
 }
