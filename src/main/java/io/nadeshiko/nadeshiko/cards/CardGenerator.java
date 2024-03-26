@@ -33,7 +33,7 @@ public class CardGenerator {
 		}
 	}
 
-	public byte[] generateCard(CardGame game, String name) throws IOException {
+	public byte[] generateCard(CardGame game, String name) throws Exception {
 
 		BufferedImage card;
 		Graphics graphics;
@@ -84,7 +84,7 @@ public class CardGenerator {
 			profileObject.get("tagged_name").getAsString(), 300, 120, 40);
 
 		// Populate the template using the game's provider
-		game.getProvider().generate(card);
+		game.getProvider().newInstance().generate(card, statsResponse.getAsJsonObject("stats"));
 
 		return getBytesFromImage(card);
 	}

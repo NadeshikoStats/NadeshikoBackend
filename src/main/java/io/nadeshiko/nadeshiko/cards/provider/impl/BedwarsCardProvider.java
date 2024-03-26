@@ -1,5 +1,6 @@
 package io.nadeshiko.nadeshiko.cards.provider.impl;
 
+import com.google.gson.JsonObject;
 import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
 
@@ -12,7 +13,7 @@ public class BedwarsCardProvider extends CardProvider {
 	}
 
 	@Override
-	public void generate(BufferedImage image) {
+	public void generate(BufferedImage image, JsonObject stats) {
 
 	}
 }

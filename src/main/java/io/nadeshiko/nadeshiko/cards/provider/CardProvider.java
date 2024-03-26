@@ -41,5 +41,14 @@ public abstract class CardProvider {
 		}
 	}
 
-	public abstract void generate(BufferedImage image);
+	protected void drawProgress(Graphics g, int x, int y, int max, double progress) {
+		Color originalColor = g.getColor();
+		g.setColor(this.color);
+
+		g.fillRoundRect(x, y, (int) (progress * max), 8, 8, 8);
+
+		g.setColor(originalColor);
+	}
+
+	public abstract void generate(BufferedImage image, JsonObject stats);
 }

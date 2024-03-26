@@ -12,7 +12,6 @@ import io.nadeshiko.nadeshiko.util.MinecraftColors;
 import lombok.NonNull;
 
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -40,7 +39,38 @@ public class StatsBuilder {
 
 		response.addProperty("name", mojangProfile.get("name").getAsString());
 		response.addProperty("uuid", mojangProfile.get("id").getAsString());
-		response.addProperty("skin", fetchSkin(mojangProfile.get("id").getAsString()));
+//		response.addProperty("skin", fetchSkin(mojangProfile.get("id").getAsString()));
+
+		// Crack open the Mojang profile mess
+		final JsonObject textures = this.fetchTextures(mojangProfile.get("id").getAsString());
+
+		// Add the skin and model
+		if (textures != null && textures.has("SKIN")) {
+			final JsonObject skinObject = textures.getAsJsonObject("SKIN");
+
+			if (skinObject.has("url")) {
+				response.addProperty("skin", skinObject.get("url").getAsString());
+			}
+
+			// Read the metadata to get the model
+			if (skinObject.has("metadata")) {
+				final JsonObject metadata = skinObject.getAsJsonObject("metadata");
+
+				if (metadata.has("model")) {
+					boolean slim = metadata.get("model").getAsString().equals("slim");
+					response.addProperty("slim", slim);
+				}
+			}
+		}
+
+		// Add the cape
+		if (textures != null && textures.has("CAPE")) {
+			final JsonObject capeObject = textures.getAsJsonObject("CAPE");
+
+			if (capeObject.has("url")) {
+				response.addProperty("cape", capeObject.get("url").getAsString());
+			}
+		}
 
 		// Add the Hypixel status
 		final JsonObject hypixelStatus = this.fetchHypixelStatus(response.get("uuid").getAsString());
@@ -115,16 +145,30 @@ public class StatsBuilder {
 		}
 	}
 
-	private String fetchSkin(@NonNull String uuid) {
+	private JsonObject fetchTextures(@NonNull String uuid) {
 		try {
-			byte[] skinBytes = HTTPUtil.getRaw("https://visage.surgeplay.com/processedskin/" + uuid + ".png",
-				new HashMap<>() {{
-					put("User-Agent", "nadeshiko.io (+https://nadeshiko.io; contact@nadeshiko.io)");
-				}}).response();
+			HTTPUtil.Response response =
+				HTTPUtil.get("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
 
-			return Base64.getEncoder().encodeToString(skinBytes);
+			// If the API responded OK
+			if (response.status() == 200) {
+				JsonObject profile = JsonParser.parseString(response.response()).getAsJsonObject();
+				JsonObject outerTexturesObject = profile.getAsJsonArray("properties").get(0).getAsJsonObject();
+
+				String texturesPropertyEncoded = outerTexturesObject.get("value").getAsString();
+				String texturesPropertyDecoded = new String(Base64.getDecoder().decode(texturesPropertyEncoded));
+
+				JsonObject texturesProperty = JsonParser.parseString(texturesPropertyDecoded).getAsJsonObject();
+
+				return texturesProperty.getAsJsonObject("textures");
+			}
+
+			// If something went wrong, return the response, since we want to know what happened
+			else {
+				return JsonParser.parseString(response.response()).getAsJsonObject();
+			}
 		} catch (Exception e) {
-			Nadeshiko.logger.error("Encountered error while fetching skin for {}", uuid);
+			Nadeshiko.logger.error("Encountered error while looking up Minecraft textures for {}", uuid);
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
 			return null;
@@ -263,9 +307,9 @@ public class StatsBuilder {
 			// Staff can disable network XP from their API
 			if (playerObj.has("networkExp")) {
 				profile.addProperty("network_level", NetworkLevel.getExactLevel(
-					playerObj.get("networkExp").getAsInt()));
+					playerObj.get("networkExp").getAsLong()));
 				profile.addProperty("coin_multiplier",
-					NetworkLevel.getCoinMultiplier(playerObj.get("networkExp").getAsInt()));
+					NetworkLevel.getCoinMultiplier(playerObj.get("networkExp").getAsLong()));
 			} else {
 				profile.addProperty("network_level", 0d); // Default
 				profile.addProperty("coin_multiplier", 1d); // Default

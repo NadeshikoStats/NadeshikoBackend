@@ -8,8 +8,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum CardGame {
-	BEDWARS(new BedwarsCardProvider()),
-	DUELS(new DuelsCardProvider());
+	BEDWARS(BedwarsCardProvider.class),
+	DUELS(DuelsCardProvider.class);
 
-	public final CardProvider provider;
+	public final Class<? extends CardProvider> provider;
 }
