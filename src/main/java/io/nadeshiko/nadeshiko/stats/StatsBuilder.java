@@ -11,6 +11,8 @@ import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftColors;
 import lombok.NonNull;
 
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,6 +40,7 @@ public class StatsBuilder {
 
 		response.addProperty("name", mojangProfile.get("name").getAsString());
 		response.addProperty("uuid", mojangProfile.get("id").getAsString());
+		response.addProperty("skin", fetchSkin(mojangProfile.get("id").getAsString()));
 
 		// Add the Hypixel status
 		final JsonObject hypixelStatus = this.fetchHypixelStatus(response.get("uuid").getAsString());
@@ -106,6 +109,22 @@ public class StatsBuilder {
 			}
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name);
+			Nadeshiko.logger.error("Stack trace:");
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private String fetchSkin(@NonNull String uuid) {
+		try {
+			byte[] skinBytes = HTTPUtil.getRaw("https://visage.surgeplay.com/processedskin/" + uuid + ".png",
+				new HashMap<>() {{
+					put("User-Agent", "nadeshiko.io (+https://nadeshiko.io; contact@nadeshiko.io)");
+				}}).response();
+
+			return Base64.getEncoder().encodeToString(skinBytes);
+		} catch (Exception e) {
+			Nadeshiko.logger.error("Encountered error while fetching skin for {}", uuid);
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
 			return null;
