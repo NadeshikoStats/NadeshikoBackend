@@ -2,8 +2,10 @@ package io.nadeshiko.nadeshiko;
 
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
-import io.nadeshiko.nadeshiko.stats.Cache;
-import io.nadeshiko.nadeshiko.stats.StatsController;
+import io.nadeshiko.nadeshiko.api.CardController;
+import io.nadeshiko.nadeshiko.cards.CardGenerator;
+import io.nadeshiko.nadeshiko.stats.StatsCache;
+import io.nadeshiko.nadeshiko.api.StatsController;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -27,7 +29,12 @@ public class Nadeshiko {
 
 	public static Gson gson = new Gson();
 	public static Logger logger = LoggerFactory.getLogger(Nadeshiko.class);
-	public static Cache cache = new Cache();
+
+	@Getter
+	private final StatsCache statsCache = new StatsCache();
+
+	@Getter
+	private final CardGenerator cardGenerator = new CardGenerator();
 
 	/**
 	 * The timestamp at which this instance began startup
@@ -100,8 +107,9 @@ public class Nadeshiko {
 		this.spark.port(port);
 		this.spark.init();
 
-		// Bind /stats endpoint to the controller
+		// Bind endpoints to their controllers
 		spark.get("/stats", StatsController.serveStatsEndpoint);
+		spark.get("/card", CardController.serveCardEndpoint);
 
 		// Set up the shutdown method on JVM stop
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));

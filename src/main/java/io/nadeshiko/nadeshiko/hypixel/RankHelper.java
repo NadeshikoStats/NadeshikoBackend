@@ -156,7 +156,7 @@ public class RankHelper {
 	@Getter
 	@AllArgsConstructor
 	public enum PackageRank {
-		NONE("", "§7"),
+		NONE("§7", "§7"),
 		VIP("§a[VIP]", "§a"),
 		VIP_PLUS("§a[VIP§6+§a]", "§a"),
 		MVP("§b[MVP]", "§b"),
