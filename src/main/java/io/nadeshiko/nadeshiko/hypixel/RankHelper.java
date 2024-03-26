@@ -9,7 +9,26 @@ import lombok.Getter;
 import lombok.NonNull;
 
 /**
- * Utility class for the parsing and formatting of ranks on the network.
+ * Class for the parsing and formatting of ranks on the network.
+ * <p>
+ *
+ * This class can be instantiated with the use of a player object as returned from the Hypixel API in the form of a
+ * {@code JsonObject}. Upon instantiation, the player object will automatically be analyzed to grab the relevant data.
+ * <br><br>
+ *
+ * Layers to the rank system on Hypixel, in order of priority:
+ * <ul>
+ *         <li><b>Prefix: </b>Used for custom titles such as Hypixel and Rezzus' [OWNER] ranks. Other known examples
+ *              include Technoblade's [PIG+++], and HypixelEvent's [EVENTS].</li>
+ *         <li><b>Rank: </b>Non-paid, non-custom ranks, such as admin. An enum of Ranks exists at {@link Rank}.</li>
+ *         <li><b>Monthly Package Rank: </b>Currently only Superstar (MVP++) exists.</li>
+ *         <li><b>Package Rank: </b>Normal, paid ranks. An enum of Package Ranks exists at {@link PackageRank}.</li>
+ * </ul>
+ *
+ * If the player has a prefix, it is displayed as their tag. Otherwise, if the player has a Rank, it is displayed
+ * instead. This continues through all four layers in the above order, finally reaching no-rank status.
+ *
+ * @since 0.0.1
  * @author chloe
  */
 @Getter
@@ -20,7 +39,14 @@ public class RankHelper {
 	private boolean hasSuperstar = false;
 	private PackageRank packageRank = PackageRank.NONE;
 
+	/**
+	 * The rank color for MVP++ players, toggleable between aqua and gold. Defaults to gold.
+	 */
 	private String superstarRankColor = "§6"; // default; fallback
+
+	/**
+	 * The rank plus color for MVP+ and MVP++ players. Defaults to light red.
+	 */
 	private String superstarPlusColor = "§c"; // default; fallback
 
 	/**
@@ -63,10 +89,16 @@ public class RankHelper {
 			if (playerObject.get("monthlyPackageRank").getAsString().equals("SUPERSTAR")) {
 				this.hasSuperstar = true;
 
-				this.superstarRankColor = MinecraftColors.getCodeFromName(
-					playerObject.get("monthlyRankColor").getAsString());
-				this.superstarPlusColor = MinecraftColors.getCodeFromName(
-					playerObject.get("rankPlusColor").getAsString());
+				// I've seen this missing from some profiles for unknown reasons
+				if (playerObject.has("monthlyRankColor")) {
+					this.superstarRankColor = MinecraftColors.getCodeFromName(
+						playerObject.get("monthlyRankColor").getAsString());
+				}
+
+				if (playerObject.has("rankPlusColor")) {
+					this.superstarPlusColor = MinecraftColors.getCodeFromName(
+						playerObject.get("rankPlusColor").getAsString());
+				}
 
 				return; // Nothing else matters
 			}
@@ -120,6 +152,10 @@ public class RankHelper {
 		}
 	}
 
+	/**
+	 * Create the full tag/rank prefix of the player, complete with Minecraft formatting codes
+	 * @return The rank prefix of the player including color codes. i.e. {@code §6[MVP§d++§6]}
+	 */
 	public String getTag() {
 
 		// Highest priority. If the player has a prefix, use it.
