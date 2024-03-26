@@ -24,6 +24,9 @@ public class CardGenerator {
 	public CardGenerator() {
 		try {
 			registerFont("/cards/fonts/Minecraft.otf");
+			registerFont("/cards/fonts/Unifont.otf");
+			registerFont("/cards/fonts/Inter-Bold.ttf");
+			registerFont("/cards/fonts/Inter-Medium.ttf");
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Exception while registering fonts!");
 			e.printStackTrace();
@@ -74,12 +77,14 @@ public class CardGenerator {
 
 		// Draw the name tag
 		int width = MinecraftRenderer.width(graphics, profileObject.get("tagged_name").getAsString(), 40);
-
 		graphics.setColor(new Color(0, 0, 0, 128));
 		graphics.fillRect(300 - (width / 2) - 10, 83, width + 20, 50);
 
 		MinecraftRenderer.drawCenterString(graphics,
 			profileObject.get("tagged_name").getAsString(), 300, 120, 40);
+
+		// Populate the template using the game's provider
+		game.getProvider().generate(card);
 
 		return getBytesFromImage(card);
 	}
