@@ -1,20 +1,19 @@
 package io.nadeshiko.nadeshiko;
 
 import com.google.gson.Gson;
-import com.google.gson.stream.JsonReader;
 import io.nadeshiko.nadeshiko.api.CardController;
+import io.nadeshiko.nadeshiko.api.StatsController;
 import io.nadeshiko.nadeshiko.cards.CardGenerator;
 import io.nadeshiko.nadeshiko.stats.StatsCache;
-import io.nadeshiko.nadeshiko.api.StatsController;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import spark.Service;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.file.Files;
 import java.util.Map;
 
 /**
@@ -25,9 +24,14 @@ import java.util.Map;
  */
 public class Nadeshiko {
 
+	/**
+	 * Global Nadeshiko instance, created by the {@link Nadeshiko#main(String[])} entry point
+	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static Gson gson = new Gson();
+	/**
+	 * Global static logger
+	 */
 	public static Logger logger = LoggerFactory.getLogger(Nadeshiko.class);
 
 	@Getter
@@ -63,7 +67,7 @@ public class Nadeshiko {
 	 * the Hypixel and Mojang APIs, and verifies the Hypixel API key. After this, starts the service on the
 	 * provided port.
 	 */
-	public void startup(int port) {
+	public void startup() {
 		this.startTime = System.currentTimeMillis();
 
 		// Read config file
@@ -102,6 +106,15 @@ public class Nadeshiko {
 			return;
 		}
 
+		int port = 2000; // Default port
+
+		// If a port was provided, use it instead!
+		if (this.config.get("port") != null) {
+			port = (int) ((double) this.config.get("port")); // No idea why this double cast is needed
+		} else {
+			logger.warn("No port was provided! Defaulting to {}!", port);
+		}
+
 		// Ignite the spark instance on the provided port
 		logger.info("Starting service on port {}", port);
 		this.spark.port(port);
@@ -134,17 +147,14 @@ public class Nadeshiko {
 	 * @throws IOException If an exception was thrown reading the configuration file
 	 */
 	private void readConfig() throws IOException {
-		InputStream configStream = Nadeshiko.class.getResourceAsStream("/config.json");
+		File configFile = new File("config.json");
 
-		if (configStream == null) {
+		if (!configFile.exists()) {
 			logger.error("No config.json was found! Halting.");
 			return;
 		}
 
-		JsonReader reader = new JsonReader(new InputStreamReader(configStream));
-		this.config = gson.fromJson(reader, Map.class);
-
-		configStream.close();
+		this.config = (new Gson()).fromJson(Files.readString(configFile.toPath()), Map.class);
 	}
 
 	/**
@@ -186,11 +196,11 @@ public class Nadeshiko {
 	}
 
 	/**
-	 * Create the global Nadeshiko instance and start it on port 2000
+	 * Create the global Nadeshiko instance and start it
 	 * @param args ignored
 	 */
 	public static void main(String[] args) {
 		INSTANCE = new Nadeshiko();
-		INSTANCE.startup(2000);
+		INSTANCE.startup();
 	}
 }

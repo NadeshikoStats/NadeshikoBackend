@@ -2,4 +2,4 @@
 /target/
 /.idea/
 
-/src/main/resources/config.json
+/run/config.json
