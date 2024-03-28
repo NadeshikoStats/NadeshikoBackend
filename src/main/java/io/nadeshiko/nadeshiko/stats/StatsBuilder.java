@@ -25,24 +25,52 @@ public class StatsBuilder {
 		JsonObject response = new JsonObject();
 		response.addProperty("success", true);
 
-		final JsonObject mojangProfile = this.fetchMojangProfile(name);
+		JsonObject textures = null;
 
-		// If the Mojang profile was null, the player couldn't be found
-		if (mojangProfile == null) {
-			return error("No player by the name \"" + name + "\" could be found.", 404);
+		// If the query is a username
+		if (name.length() < 30) {
+
+			final JsonObject mojangProfile = this.fetchMojangProfile(name);
+
+			// If the Mojang profile was null, the player couldn't be found
+			if (mojangProfile == null) {
+				return error("No player by the name \"" + name + "\" could be found.", 404);
+			}
+
+			// If something else with the Mojang request went wrong
+			else if (mojangProfile.has("errorMessage")) {
+				return error(mojangProfile.get("errorMessage").getAsString(), 520);
+			}
+
+			response.addProperty("name", mojangProfile.get("name").getAsString());
+			response.addProperty("uuid", mojangProfile.get("id").getAsString());
+
+			textures = this.fetchTextures(mojangProfile.get("id").getAsString());
 		}
 
-		// If something else with the Mojang request went wrong
-		else if (mojangProfile.has("errorMessage")) {
-			return error(mojangProfile.get("errorMessage").getAsString(), 520);
-		}
+		// If the query is a UUID
+		else {
+			try {
+				HTTPUtil.Response mojangResponse = HTTPUtil.
+					get("https://sessionserver.mojang.com/session/minecraft/profile/" + name);
+				JsonObject mojangJson = JsonParser.parseString(mojangResponse.response()).getAsJsonObject();
 
-		response.addProperty("name", mojangProfile.get("name").getAsString());
-		response.addProperty("uuid", mojangProfile.get("id").getAsString());
-//		response.addProperty("skin", fetchSkin(mojangProfile.get("id").getAsString()));
+				// The UUID couldn't be found
+				if (mojangResponse.status() == 404) {
+					return error("No player by the UUID \"" + name + "\" could be found.", 404);
+				}
+
+				response.addProperty("name", mojangJson.get("name").getAsString());
+				response.addProperty("uuid", mojangJson.get("id").getAsString());
+
+				textures = this.fetchTextures(mojangJson.get("id").getAsString());
+			} catch (Exception e) {
+				Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name);
+				Nadeshiko.logger.error("Stack trace:");
+			}
+		}
 
 		// Crack open the Mojang profile mess
-		final JsonObject textures = this.fetchTextures(mojangProfile.get("id").getAsString());
 
 		// Add the skin and model
 		if (textures != null && textures.has("SKIN")) {

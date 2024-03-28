@@ -5,6 +5,7 @@ import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -26,6 +27,15 @@ public class DuelsCardProvider extends CardProvider {
 		int wins = duels.get("wins").getAsInt();
 		int losses = duels.get("losses").getAsInt();
 
+		int winstreak = 0;
+		int best_winstreak = 0;
+
+		// Winstreaks can be disabled from the API
+		if (duels.has("current_winstreak")) {
+			winstreak = duels.get("current_winstreak").getAsInt();
+			best_winstreak = duels.get("best_overall_winstreak").getAsInt();
+		}
+
 		// Set up the stat font
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
@@ -42,13 +52,40 @@ public class DuelsCardProvider extends CardProvider {
 		g.drawString(wlr, 1007 - (g.getFontMetrics().stringWidth(wlr) / 2), 158);
 		this.drawProgress(g, 921, 173, 177, wins / (double) (wins + losses));
 
+		// Draw wins and winstreak
+		g.setColor(new Color(138, 138, 138));
+		g.setFont(new Font("Inter Medium", Font.PLAIN, 18));
+
+		int winsWidth = g.getFontMetrics().stringWidth("Wins");
+		int winstreakWidth = g.getFontMetrics().stringWidth("Winstreak");
+		int bestWinstreakWidth = g.getFontMetrics().stringWidth("Best Winstreak");
+
+		g.drawString("Wins", 1175, 140);
+		g.drawString("Winstreak", 1175, 178);
+		g.drawString("Best Winstreak", 1175, 208);
+
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Inter Medium", Font.BOLD, 18));
+		g.drawString(String.format("%,d", wins), 1175 + winsWidth + 10, 140);
+
+		// Winstreaks might be disabled on the API
+		if (duels.has("current_winstreak")) {
+			g.drawString(String.format("%,d", winstreak), 1175 + winstreakWidth + 10, 178);
+			g.drawString(String.format("%,d", best_winstreak), 1175 + bestWinstreakWidth + 10, 208);
+		} else {
+			g.setColor(new Color(138, 138, 138));
+			g.setFont(new Font("Inter Medium", Font.PLAIN, 18));
+			g.drawString("Unknown", 1175 + winstreakWidth + 5, 178);
+			g.drawString("Unknown", 1175 + bestWinstreakWidth + 5, 208);
+		}
+
 		// Draw top duels
 		ArrayList<Duels> topDuels = this.getTopDuels(duels);
 		this.drawTopDuel(g, topDuels.get(0), duels);
 		this.drawSecondDuel(g, topDuels.get(1), duels);
 	}
 
-	private void drawTopDuel(Graphics g, Duels duel, JsonObject duelsStats) {
+	private void drawTopDuel(Graphics g, @NonNull Duels duel, @NonNull JsonObject duelsStats) {
 
 		int kills = duelsStats.get(duel.getApiName() + "_duel_kills").getAsInt();
 		int deaths = duelsStats.get(duel.getApiName() + "_duel_deaths").getAsInt();
