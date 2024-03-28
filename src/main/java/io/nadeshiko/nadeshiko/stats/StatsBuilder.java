@@ -109,7 +109,7 @@ public class StatsBuilder {
 
 		// Add the Hypixel stats
 		final JsonObject hypixelStats = this.fetchHypixelStats(response.get("uuid").getAsString());
-		if (hypixelStats != null) {
+		if (hypixelStats != null) { // Null if the player has no stats (never logged in)
 			response.add("profile", this.buildHypixelProfile(hypixelStats));
 
 			// Some staff members have their stats disabled
@@ -306,7 +306,13 @@ public class StatsBuilder {
 					"&key=" + Nadeshiko.INSTANCE.getHypixelKey());
 
 			JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
-			return jsonResponse.get("player").getAsJsonObject();
+
+			// If the player hasn't even been on Hypixel before, player will be null
+			if (jsonResponse.has("player") && !jsonResponse.get("player").isJsonNull()) {
+				return jsonResponse.get("player").getAsJsonObject();
+			} else {
+				return null; // The player exists but has never been on Hypixel before
+			}
 
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Encountered error while looking up Hypixel stats for {}", uuid);
