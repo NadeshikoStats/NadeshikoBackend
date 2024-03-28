@@ -70,7 +70,6 @@ public class StatsBuilder {
 			}
 		}
 
-		// Crack open the Mojang profile mess
 
 		// Add the skin and model
 		if (textures != null && textures.has("SKIN")) {
@@ -268,12 +267,20 @@ public class StatsBuilder {
 
 			// Not all guilds have tags
 			if (guild.has("tag")) {
-				object.addProperty("tag",
-					String.format("%s[%s]",
-						MinecraftColors.getCodeFromName(guild.get("tagColor").getAsString()),
-						guild.get("tag").getAsString()
-					)
-				);
+
+				// Not all guilds have tag colors, apparently
+				if (guild.has("tagColor")) {
+					object.addProperty("tag",
+						String.format("%s[%s]",
+							MinecraftColors.getCodeFromName(guild.get("tagColor").getAsString()),
+							guild.get("tag").getAsString()
+						)
+					);
+				} else {
+					object.addProperty("tag",
+						String.format("%s[%s]", "§7", guild.get("tag").getAsString()));
+				}
+
 			} else {
 				object.addProperty("tag", "");
 			}
