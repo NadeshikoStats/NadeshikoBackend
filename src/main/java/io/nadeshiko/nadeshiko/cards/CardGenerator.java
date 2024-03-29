@@ -90,12 +90,12 @@ public class CardGenerator {
 		return getBytesFromImage(card);
 	}
 
-	private BufferedImage createImageFromBytes(byte[] imageData) throws IOException {
+	public BufferedImage createImageFromBytes(byte[] imageData) throws IOException {
 		ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
 		return ImageIO.read(inputStream);
 	}
 
-	private byte[] getBytesFromImage(BufferedImage image) throws IOException {
+	public byte[] getBytesFromImage(BufferedImage image) throws IOException {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		ImageIO.write(image, "png", outputStream);
 		return outputStream.toByteArray();
