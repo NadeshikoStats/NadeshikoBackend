@@ -6,6 +6,7 @@ import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.cards.CardGenerator;
 import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
 import io.nadeshiko.nadeshiko.util.MinecraftRenderer;
+import io.nadeshiko.nadeshiko.util.RomanNumerals;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class DuelsCardProvider extends CardProvider {
 
@@ -126,8 +128,38 @@ public class DuelsCardProvider extends CardProvider {
 		}
 
 		String activeTitle = duelsStats.get("active_cosmetictitle").getAsString();
+		String finalTitle = "";
 
-		MinecraftRenderer.drawString(g, activeTitle, 845, 65, 30);
+		Title title = Title.get(activeTitle);
+		Duels duel = Duels.getFromTitle(activeTitle);
+
+		if (title == null || duel == null) {
+			return; // The player doesn't have a wins-based title
+		}
+
+		// Draw the hyphen after "Duels Stats"
+		g.setColor(Color.WHITE);
+		g.fillRect(808, 56, 16, 4);
+
+		finalTitle += title.getColor();
+		finalTitle += duel.getDisplayName();
+
+		// If the title is overall, there is no game name and the space shouldn't be there
+		if (!duel.getDisplayName().isEmpty()) {
+			finalTitle += " ";
+		}
+
+		finalTitle += title.getName() + " ";
+
+		int level = duelsStats.get(duel.getTitleName() + "_" +
+			title.getName().toLowerCase() + "_title_prestige").getAsInt();
+
+		// Hypixel doesn't draw the number if it's only 1. Sumo Legend I is displayed as Sumo Legend
+		if (level > 1) {
+			finalTitle += RomanNumerals.arabicToRoman(level);
+		}
+
+		MinecraftRenderer.drawString(g, finalTitle, 845, 67, 30);
 	}
 
 	private void drawTopDuel(Graphics g, @NonNull Duels duel, @NonNull JsonObject duelsStats) {
@@ -136,14 +168,14 @@ public class DuelsCardProvider extends CardProvider {
 
 		if (duelsStats.has(duel.getApiName() + "_kills")) {
 			kills = duelsStats.get(duel.getApiName() + "_kills").getAsInt();
-		} else if (duel.equals(Duels.BRIDGE_SOLO)) {
+		} else if (duel.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_kills")) {
 			// Inconsistent API naming breaks with bridge duels...
 			kills = duelsStats.get("bridge_kills").getAsInt();
 		}
 
 		if (duelsStats.has(duel.getApiName() + "_deaths")) {
 			deaths = duelsStats.get(duel.getApiName() + "_deaths").getAsInt();
-		} else if (duel.equals(Duels.BRIDGE_SOLO)) {
+		} else if (duel.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_deaths")) {
 			// Inconsistent API naming breaks with bridge duels...
 			deaths = duelsStats.get("bridge_deaths").getAsInt();
 		}
@@ -161,8 +193,8 @@ public class DuelsCardProvider extends CardProvider {
 		g.setFont(new Font("Inter Medium", Font.BOLD, 22));
 
 		// Draw duel name
-		int nameWidth = g.getFontMetrics().stringWidth(duel.name());
-		g.drawString(duel.getDisplayName(), 635, 290);
+		int nameWidth = g.getFontMetrics().stringWidth(duel.getDisplayName().toUpperCase());
+		g.drawString(duel.getDisplayName().toUpperCase(Locale.ROOT), 635, 290);
 
 		// Draw duel icon
 		g.drawImage(this.iconMap.get(duel), 635 + nameWidth + 15, 265, null);
@@ -218,14 +250,14 @@ public class DuelsCardProvider extends CardProvider {
 
 		if (duelsStats.has(duel.getApiName() + "_kills")) {
 			kills = duelsStats.get(duel.getApiName() + "_kills").getAsInt();
-		} else if (duel.equals(Duels.BRIDGE_SOLO)) {
+		} else if (duel.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_kills")) {
 			// Inconsistent API naming breaks with bridge duels...
 			kills = duelsStats.get("bridge_kills").getAsInt();
 		}
 
 		if (duelsStats.has(duel.getApiName() + "_deaths")) {
 			deaths = duelsStats.get(duel.getApiName() + "_deaths").getAsInt();
-		} else if (duel.equals(Duels.BRIDGE_SOLO)) {
+		} else if (duel.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_deaths")) {
 			// Inconsistent API naming breaks with bridge duels...
 			deaths = duelsStats.get("bridge_deaths").getAsInt();
 		}
@@ -242,8 +274,8 @@ public class DuelsCardProvider extends CardProvider {
 		g.setFont(new Font("Inter Medium", Font.BOLD, 22));
 
 		// Draw duel name
-		int nameWidth = g.getFontMetrics().stringWidth(duel.name());
-		g.drawString(duel.getDisplayName(), 1068, 290);
+		int nameWidth = g.getFontMetrics().stringWidth(duel.getDisplayName().toUpperCase());
+		g.drawString(duel.getDisplayName().toUpperCase(Locale.ROOT), 1068, 290);
 
 		// Draw duel icon
 		g.drawImage(this.iconMap.get(duel), 1068 + nameWidth + 15, 265, null);
@@ -326,27 +358,89 @@ public class DuelsCardProvider extends CardProvider {
 	@Getter
 	@AllArgsConstructor
 	private enum Duels {
-		ARENA("duel_arena", "ARENA", "ARENA"),
-		BLITZ("blitz_duel", "BLITZ", "BLITZ"),
-		BOW("bow_duel", "BOW", "BOW"),
-		BOWSPLEEF("bowspleef_duel", "BOW SPLEEF", "BOWSPLEEF"),
-		BOXING("boxing_duel", "BOXING", "BOXING"),
-		BRIDGE_SOLO("bridge_duel", "BRIDGE SOLO", "BRIDGE"),
+		ARENA("duel_arena", "Arena", "ARENA", null),
+		BLITZ("blitz_duel", "Blitz", "BLITZ", "blitz"),
+		BOW("bow_duel", "Bow", "BOW", "bow"),
+		BOWSPLEEF("bowspleef_duel", "Bow Spleef", "BOWSPLEEF", "bowspleef"),
+		BOXING("boxing_duel", "Boxing", "BOXING", "boxing"),
+		BRIDGE_SOLO("bridge_duel", "Bridge Solo", "BRIDGE", null),
 		// TODO bridge 2s, very malformed api names
-		CLASSIC("classic_duel", "CLASSIC", "CLASSIC"),
-		COMBO("combo_duel", "COMBO", "COMBO"),
-		MEGAWALLS("mw_duel", "MEGA WALLS", "MEGAWALLS"),
-		NODEBUFF("potion_duel", "NODEBUFF", "NODEBUFF"),
-		OP("op_duel", "OP", "OP"),
-		PARKOUR("parkour_eight", "PARKOUR", "PARKOUR"),
-		SKYWARS_SOLO("sw_duel", "SKYWARS SOLO", "SKYWARS"),
-		SKYWARS_DOUBLES("sw_doubles", "SKYWARS 2S", "SKYWARS"),
-		SUMO("sumo_duel", "SUMO", "SUMO"),
-		UHC_SOLO("uhc_duel", "UHC SOLO", "UHC"),
-		UHC_DOUBLES("uhc_doubles", "UHC 2S", "UHC");
+		// TODO bridge 3v3, 4v4, 2v2v2v2, 3v3v3v3, CTF 3s
+		CLASSIC("classic_duel", "Classic", "CLASSIC", "classic"),
+		COMBO("combo_duel", "Combo", "COMBO", "combo"),
+		MEGAWALLS_SOLO("mw_duel", "Mega Walls Solo", "MEGAWALLS", null),
+		MEGAWALLS_DOUBLES("mw_doubles", "Mega Walls 2s", "MEGAWALLS", null),
+		NODEBUFF("potion_duel", "Nodebuff", "NODEBUFF", "nodebuff"),
+		OP_SOLO("op_duel", "OP Solo", "OP", null),
+		OP_DOUBLES("op_doubles", "OP 2s", "OP", null),
+		PARKOUR("parkour_eight", "Parkour", "PARKOUR", "parkour"),
+		SKYWARS_SOLO("sw_duel", "SkyWars Solo", "SKYWARS", null),
+		SKYWARS_DOUBLES("sw_doubles", "SkyWars 2s", "SKYWARS", null),
+		SUMO("sumo_duel", "Sumo", "SUMO", "sumo"),
+		UHC_SOLO("uhc_duel", "UHC Solo", "UHC", null),
+		UHC_DOUBLES("uhc_doubles", "UHC 2s", "UHC", null),
+		UHC_FOURS("uhc_four", "UHC 4s", "UHC", null),
+		UHC_EIGHTS("uhc_meetup", "UHC Deathmatch", "UHC", null),
+
+		// Special ones for titles
+		ALL(null, "", null, "all_modes"),
+		BRIDGE_OVERALL(null, "Bridge", "BRIDGE", "bridge"),
+		MEGAWALLS_OVERALL(null, "Mega Walls", "MEGAWALLS", "mega_walls"),
+		SKYWARS_OVERALL(null, "SkyWars", "SKYWARS", "skywars"),
+		OP_OVERALL(null, "OP", "OP", "op"),
+		UHC_OVERALL(null, "UHC", "UHC", "uhc");
 
 		private final String apiName;
 		private final String displayName;
 		private final String textureName;
+		private final String titleName;
+
+		public static Duels getFromTitle(String fullTitle) {
+			String titleString = fullTitle.split("_")[0];
+			String duelString = fullTitle.substring(titleString.length() + 1);
+
+			for (Duels duel : Duels.values()) {
+				if (duel.getTitleName() == null) {
+					continue;
+				}
+
+				if (duel.getTitleName().equalsIgnoreCase(duelString)) {
+					return duel;
+				}
+			}
+
+			return null;
+		}
+	}
+
+	@Getter
+	@AllArgsConstructor
+	private enum Title {
+		ROOKIE("Rookie", "§7"),
+		IRON("Iron", "§f"),
+		GOLD("Gold", "§6"),
+		DIAMOND("Diamond", "§3"),
+		MASTER("Master", "§2"),
+		LEGEND("Legend", "§l§4"),
+		GRANDMASTER("Grandmaster", "§l§e"),
+		GODLIKE("Godlike", "§l§5"),
+		CELESTIAL("CELESTIAL", "§l§b"),
+		DIVINE("DIVINE", "§l§d"),
+		ASCENDED("ASCENDED", "§l§c");
+
+		private final String name;
+		private final String color;
+
+		public static Title get(String fullTitle) {
+			String titleString = fullTitle.split("_")[0];
+
+			for (Title title : Title.values()) {
+				if (title.name().equalsIgnoreCase(titleString)) {
+					return title;
+				}
+			}
+
+			return null;
+		}
 	}
 }

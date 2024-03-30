@@ -15,6 +15,7 @@ public class MinecraftRenderer {
 	public void drawString(Graphics graphics, String string, int x, int y, int size) {
 
 		Font minecraftFont = new Font("Minecraft Regular", Font.PLAIN, size);
+		Font minecraftBold = new Font("Minecraft Bold", Font.BOLD, size);
 		graphics.setFont(minecraftFont);
 
 		char[] array = string.toCharArray();
@@ -24,9 +25,16 @@ public class MinecraftRenderer {
 
 		for (int character = 0; character < string.length(); character++) {
 
-			if (array[character] == MinecraftColors.SECTION) {
-				currentColor = MinecraftColors.getColorFromCode(array[character + 1]);
-				currentShadowColor = MinecraftColors.getShadowColorFromCode(array[character + 1]);
+			while (array[character] == MinecraftColors.SECTION) {
+				char nextChar = array[character + 1];
+
+				if (nextChar == 'l') {
+					graphics.setFont(minecraftBold);
+				} else {
+					currentColor = MinecraftColors.getColorFromCode(nextChar);
+					currentShadowColor = MinecraftColors.getShadowColorFromCode(nextChar);
+				}
+
 				character += 2;
 			}
 
@@ -39,7 +47,7 @@ public class MinecraftRenderer {
 			graphics.drawString(Character.toString(array[character]), x, y);
 
 
-			x += graphics.getFontMetrics(minecraftFont).charWidth(array[character]);
+			x += graphics.getFontMetrics().charWidth(array[character]);
 		}
 	}
 

@@ -24,6 +24,7 @@ public class CardGenerator {
 	public CardGenerator() {
 		try {
 			registerFont("/cards/fonts/Minecraft.otf");
+			registerFont("/cards/fonts/MinecraftBold.otf");
 			registerFont("/cards/fonts/Unifont.otf");
 			registerFont("/cards/fonts/Inter-Bold.ttf");
 			registerFont("/cards/fonts/Inter-Medium.ttf");
