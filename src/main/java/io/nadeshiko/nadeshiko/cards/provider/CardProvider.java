@@ -17,6 +17,9 @@ public abstract class CardProvider {
 
 	private Color color = Color.WHITE;
 
+	protected final Font smallLight = new Font("Inter Medium", Font.PLAIN, 18);
+	protected final Font smallBold = new Font("Inter Medium", Font.BOLD, 18);
+
 	public CardProvider(CardGame game) {
 		try (InputStream stream = CardProvider.class.getResourceAsStream("/cards/templates/colors.json")) {
 

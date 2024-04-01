@@ -16,6 +16,7 @@ public class MinecraftRenderer {
 
 		Font minecraftFont = new Font("Minecraft Regular", Font.PLAIN, size);
 		Font minecraftBold = new Font("Minecraft Bold", Font.BOLD, size);
+		Font unifont = new Font("Unifont", Font.PLAIN, size);
 		graphics.setFont(minecraftFont);
 
 		char[] array = string.toCharArray();
@@ -38,16 +39,37 @@ public class MinecraftRenderer {
 				character += 2;
 			}
 
-			// Draw the character's shadow
-			graphics.setColor(currentShadowColor);
-			graphics.drawString(Character.toString(array[character]), x + size / 8 - 1, y + size / 8 - 1);
+			// Minecraft font
+			if (array[character] < 128) {
 
-			// Draw the character
-			graphics.setColor(currentColor);
-			graphics.drawString(Character.toString(array[character]), x, y);
+				// Draw the character's shadow
+				graphics.setColor(currentShadowColor);
+				graphics.drawString(Character.toString(array[character]),
+					x + size / 8 - 1, y + size / 8 - 1);
 
+				// Draw the character
+				graphics.setColor(currentColor);
+				graphics.drawString(Character.toString(array[character]), x, y);
+				x += graphics.getFontMetrics().charWidth(array[character]);
+			}
 
-			x += graphics.getFontMetrics().charWidth(array[character]);
+			// Unifont fallback
+			else {
+				Font currentFont = graphics.getFont();
+
+				// Draw the character's shadow
+				graphics.setFont(unifont);
+				graphics.setColor(currentShadowColor);
+				graphics.drawString(Character.toString(array[character]),
+					x + size / 8 - 1, y + size / 8 + 1);
+
+				// Draw the character
+				graphics.setColor(currentColor);
+				graphics.drawString(Character.toString(array[character]), x, y + 2);
+				x += graphics.getFontMetrics().charWidth(array[character]);
+
+				graphics.setFont(currentFont);
+			}
 		}
 	}
 

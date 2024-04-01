@@ -46,9 +46,6 @@ public class DuelsCardProvider extends CardProvider {
 
 	private final HashMap<Duels, BufferedImage> iconMap = new HashMap<>();
 
-	private final Font smallLight = new Font("Inter Medium", Font.PLAIN, 18);
-	private final Font smallBold = new Font("Inter Medium", Font.BOLD, 18);
-
 	@Override
 	public void generate(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
@@ -116,8 +113,8 @@ public class DuelsCardProvider extends CardProvider {
 
 		// Draw top duels
 		ArrayList<Duels> topDuels = this.getTopDuels(duels);
-		this.drawTopDuel(g, topDuels.get(0), duels);
-		this.drawSecondDuel(g, topDuels.get(1), duels);
+		this.drawDuel(g, topDuels.get(0), duels, 635);
+		this.drawDuel(g, topDuels.get(1), duels, 1068);
 	}
 
 	private void drawTitle(Graphics g, @NonNull JsonObject duelsStats) {
@@ -162,9 +159,9 @@ public class DuelsCardProvider extends CardProvider {
 		MinecraftRenderer.drawString(g, finalTitle, 845, 67, 30);
 	}
 
-	private void drawTopDuel(Graphics g, @NonNull Duels duel, @NonNull JsonObject duelsStats) {
+	private void drawDuel(Graphics g, @NonNull Duels duel, @NonNull JsonObject duelsStats, int baseX) {
 
-		int kills = 0, deaths = 0, wins = 0, losses = 0;
+		int kills = 0, deaths = 1, wins = 0, losses = 1;
 
 		if (duelsStats.has(duel.getApiName() + "_kills")) {
 			kills = duelsStats.get(duel.getApiName() + "_kills").getAsInt();
@@ -194,14 +191,14 @@ public class DuelsCardProvider extends CardProvider {
 
 		// Draw duel name
 		int nameWidth = g.getFontMetrics().stringWidth(duel.getDisplayName().toUpperCase());
-		g.drawString(duel.getDisplayName().toUpperCase(Locale.ROOT), 635, 290);
+		g.drawString(duel.getDisplayName().toUpperCase(Locale.ROOT), baseX, 290);
 
 		// Draw duel icon
-		g.drawImage(this.iconMap.get(duel), 635 + nameWidth + 15, 265, null);
+		g.drawImage(this.iconMap.get(duel), baseX + nameWidth + 15, 265, null);
 
 		// Draw the line beside the duel name
 		g.setColor(this.getColor());
-		g.fillRect(635 + nameWidth + 60, 280, 350 - nameWidth - 60, 2);
+		g.fillRect(baseX + nameWidth + 60, 280, 350 - nameWidth - 60, 2);
 		g.setColor(Color.WHITE);
 
 		// Set up the stat font
@@ -209,19 +206,19 @@ public class DuelsCardProvider extends CardProvider {
 
 		// Draw K/D ratio
 		String kdr = (Math.round((kills / (double) deaths) * 100) / 100d) + "";
-		g.drawString(kdr, 713 - (g.getFontMetrics().stringWidth(kdr) / 2), 340);
-		this.drawProgress(g, 641, 354, 146, kills / (double) (kills + deaths));
+		g.drawString(kdr, baseX + 78 - (g.getFontMetrics().stringWidth(kdr) / 2), 340);
+		this.drawProgress(g, baseX + 6, 354, 146, kills / (double) (kills + deaths));
 
 		// Draw W/L ratio
 		String wlr = (Math.round((wins / (double) losses) * 100) / 100d) + "";
-		g.drawString(wlr, 896 - (g.getFontMetrics().stringWidth(wlr) / 2), 340);
-		this.drawProgress(g, 824, 354, 146, wins / (double) (wins + losses));
+		g.drawString(wlr, baseX + 261 - (g.getFontMetrics().stringWidth(wlr) / 2), 340);
+		this.drawProgress(g, baseX + 189, 354, 146, wins / (double) (wins + losses));
 
 		// Draw kills
 		int killsWidth = g.getFontMetrics(smallLight).stringWidth("Kills  ");
 		int killsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", kills));
 		int killsTotalWidth = killsWidth + killsCountWidth;
-		int killsLeftX = 715 - (killsTotalWidth / 2);
+		int killsLeftX = baseX + 80 - (killsTotalWidth / 2);
 
 		g.setColor(new Color(138, 138, 138));
 		g.setFont(smallLight);
@@ -234,88 +231,7 @@ public class DuelsCardProvider extends CardProvider {
 		int winsWidth = g.getFontMetrics(smallLight).stringWidth("Wins  ");
 		int winsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", wins));
 		int winsTotalWidth = winsWidth + winsCountWidth;
-		int winsLeftX = 898 - (winsTotalWidth / 2);
-
-		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
-		g.drawString("Wins", winsLeftX, 425);
-		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
-		g.drawString(String.format("%,d", wins), winsLeftX + winsWidth, 425);
-	}
-
-	private void drawSecondDuel(Graphics g, Duels duel, JsonObject duelsStats) {
-
-		int kills = 0, deaths = 0, wins = 0, losses = 0;
-
-		if (duelsStats.has(duel.getApiName() + "_kills")) {
-			kills = duelsStats.get(duel.getApiName() + "_kills").getAsInt();
-		} else if (duel.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_kills")) {
-			// Inconsistent API naming breaks with bridge duels...
-			kills = duelsStats.get("bridge_kills").getAsInt();
-		}
-
-		if (duelsStats.has(duel.getApiName() + "_deaths")) {
-			deaths = duelsStats.get(duel.getApiName() + "_deaths").getAsInt();
-		} else if (duel.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_deaths")) {
-			// Inconsistent API naming breaks with bridge duels...
-			deaths = duelsStats.get("bridge_deaths").getAsInt();
-		}
-
-		if (duelsStats.has(duel.getApiName() + "_wins")) {
-			wins = duelsStats.get(duel.getApiName() + "_wins").getAsInt();
-		}
-
-		if (duelsStats.has(duel.getApiName() + "_losses")) {
-			losses = duelsStats.get(duel.getApiName() + "_losses").getAsInt();
-		}
-
-		// Set up the name font
-		g.setFont(new Font("Inter Medium", Font.BOLD, 22));
-
-		// Draw duel name
-		int nameWidth = g.getFontMetrics().stringWidth(duel.getDisplayName().toUpperCase());
-		g.drawString(duel.getDisplayName().toUpperCase(Locale.ROOT), 1068, 290);
-
-		// Draw duel icon
-		g.drawImage(this.iconMap.get(duel), 1068 + nameWidth + 15, 265, null);
-
-		// Draw the line beside the duel name
-		g.setColor(this.getColor());
-		g.fillRect(1068 + nameWidth + 60, 280, 350 - nameWidth - 60, 2);
-		g.setColor(Color.WHITE);
-
-		// Set up the stat font
-		g.setFont(new Font("Inter Bold", Font.BOLD, 24));
-
-		// Draw K/D ratio
-		String kdr = (Math.round((kills / (double) deaths) * 100) / 100d) + "";
-		g.drawString(kdr, 1146 - (g.getFontMetrics().stringWidth(kdr) / 2), 340);
-		this.drawProgress(g, 1074, 355, 146, kills / (double) (kills + deaths));
-
-		// Draw W/L ratio
-		String wlr = (Math.round((wins / (double) losses) * 100) / 100d) + "";
-		g.drawString(wlr, 1329 - (g.getFontMetrics().stringWidth(wlr) / 2), 340);
-		this.drawProgress(g, 1257, 355, 146, wins / (double) (wins + losses));
-
-		// Draw kills
-		int killsWidth = g.getFontMetrics(smallLight).stringWidth("Kills  ");
-		int killsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", kills));
-		int killsTotalWidth = killsWidth + killsCountWidth;
-		int killsLeftX = 1150 - (killsTotalWidth / 2);
-
-		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
-		g.drawString("Kills", killsLeftX, 425);
-		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
-		g.drawString(String.format("%,d", kills), killsLeftX + killsWidth, 425);
-
-		// Draw wins
-		int winsWidth = g.getFontMetrics(smallLight).stringWidth("Wins  ");
-		int winsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", wins));
-		int winsTotalWidth = winsWidth + winsCountWidth;
-		int winsLeftX = 1332 - (winsTotalWidth / 2);
+		int winsLeftX = baseX + 263 - (winsTotalWidth / 2);
 
 		g.setColor(new Color(138, 138, 138));
 		g.setFont(smallLight);
