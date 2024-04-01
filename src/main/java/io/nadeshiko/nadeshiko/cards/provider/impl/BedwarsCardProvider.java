@@ -238,10 +238,22 @@ public class BedwarsCardProvider extends CardProvider {
 	@Getter
 	@AllArgsConstructor
 	private enum Prestige {
+
+		// 0 - 9000
 		STONE(0, star -> "§7[" + star + "✫]"),
 		IRON(100, star -> "§f[" + star + "✫]"),
 		GOLD(200, star -> "§6[" + star + "✫]"),
-		DIAMOND(300, star -> "§b[" + star + "✫]");
+		DIAMOND(300, star -> "§b[" + star + "✫]"),
+		EMERALD(400, star -> "§2[" + star + "✫]"),
+		SAPPHIRE(500, star -> "§3[" + star + "✫]"),
+		RUBY(600, star -> "§c[" + star + "✫]"),
+		CRYSTAL(700, star -> "§d[" + star + "✫]"),
+		OPAL(800, star -> "§9[" + star + "✫]"),
+		AMETHYST(900, star -> "§5[" + star + "✫]"),
+
+		// 1000 - 1900
+		RAINBOW(1000, star -> String.format("§c[§6%s§e%s§a%s§b%s§d✫§5]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3)));
 
 		private final int requirement;
 		private final Function<String, String> format;
@@ -261,7 +273,7 @@ public class BedwarsCardProvider extends CardProvider {
 				}
 			}
 
-			return null;
+			return currentPrestige;
 		}
 	}
 }
