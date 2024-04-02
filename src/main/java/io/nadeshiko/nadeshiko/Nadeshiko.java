@@ -3,7 +3,7 @@ package io.nadeshiko.nadeshiko;
 import com.google.gson.Gson;
 import io.nadeshiko.nadeshiko.api.CardController;
 import io.nadeshiko.nadeshiko.api.StatsController;
-import io.nadeshiko.nadeshiko.cards.CardGenerator;
+import io.nadeshiko.nadeshiko.cards.CardsCache;
 import io.nadeshiko.nadeshiko.stats.StatsCache;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import lombok.Getter;
@@ -38,7 +38,7 @@ public class Nadeshiko {
 	private final StatsCache statsCache = new StatsCache();
 
 	@Getter
-	private final CardGenerator cardGenerator = new CardGenerator();
+	private final CardsCache cardsCache = new CardsCache();
 
 	/**
 	 * The timestamp at which this instance began startup

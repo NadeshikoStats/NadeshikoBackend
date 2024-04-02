@@ -54,6 +54,6 @@ public class CardController {
 			request.queryParams("game"), request.queryParams("name"));
 
 		response.type("image/png");
-		return Nadeshiko.INSTANCE.getCardGenerator().generateCard(game, request.queryParams("name"));
+		return Nadeshiko.INSTANCE.getCardsCache().get(request.queryParams("name"), game);
 	};
 }

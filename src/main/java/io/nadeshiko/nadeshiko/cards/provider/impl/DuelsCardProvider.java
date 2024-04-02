@@ -5,6 +5,7 @@ import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.cards.CardGenerator;
 import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
+import io.nadeshiko.nadeshiko.util.ImageUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftRenderer;
 import io.nadeshiko.nadeshiko.util.RomanNumerals;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,7 @@ public class DuelsCardProvider extends CardProvider {
 				}
 
 				byte[] iconBytes = iconStream.readAllBytes();
-				BufferedImage icon = Nadeshiko.INSTANCE.getCardGenerator().createImageFromBytes(iconBytes);
+				BufferedImage icon = ImageUtil.createImageFromBytes(iconBytes);
 
 				this.iconMap.put(duel, icon);
 			} catch (IOException e) {

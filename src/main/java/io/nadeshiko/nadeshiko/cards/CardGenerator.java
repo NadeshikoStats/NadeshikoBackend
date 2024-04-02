@@ -4,14 +4,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
+import io.nadeshiko.nadeshiko.util.ImageUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftRenderer;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
@@ -47,7 +44,7 @@ public class CardGenerator {
 
 			if (templateStream != null) {
 				cardTemplateBytes = templateStream.readAllBytes();
-				card = createImageFromBytes(cardTemplateBytes);
+				card = ImageUtil.createImageFromBytes(cardTemplateBytes);
 				graphics = card.getGraphics();
 			} else {
 				Nadeshiko.logger.error("Failed reading card template for {}!", game.name());
@@ -71,7 +68,7 @@ public class CardGenerator {
 			new HashMap<>() {{
 				put("User-Agent", "nadeshiko.io (+https://nadeshiko.io; contact@nadeshiko.io)");
 			}}).response();
-		BufferedImage playerImage = createImageFromBytes(playerBytes);
+		BufferedImage playerImage = ImageUtil.createImageFromBytes(playerBytes);
 
 		// Draw the player
 		graphics.drawImage(playerImage, 138, 165, null);
@@ -88,18 +85,7 @@ public class CardGenerator {
 		game.getProvider().getDeclaredConstructor().newInstance().
 			generate(card, statsResponse.getAsJsonObject("stats"));
 
-		return getBytesFromImage(card);
-	}
-
-	public BufferedImage createImageFromBytes(byte[] imageData) throws IOException {
-		ByteArrayInputStream inputStream = new ByteArrayInputStream(imageData);
-		return ImageIO.read(inputStream);
-	}
-
-	public byte[] getBytesFromImage(BufferedImage image) throws IOException {
-		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		ImageIO.write(image, "png", outputStream);
-		return outputStream.toByteArray();
+		return ImageUtil.getBytesFromImage(card);
 	}
 
 	private void registerFont(String filename) throws Exception {
