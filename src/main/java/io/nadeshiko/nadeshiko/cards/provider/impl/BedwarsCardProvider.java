@@ -239,7 +239,7 @@ public class BedwarsCardProvider extends CardProvider {
 	@AllArgsConstructor
 	private enum Prestige {
 
-		// 0 - 9000
+		// 0 - 900
 		STONE(0, star -> "§7[" + star + "✫]"),
 		IRON(100, star -> "§f[" + star + "✫]"),
 		GOLD(200, star -> "§6[" + star + "✫]"),
@@ -253,6 +253,92 @@ public class BedwarsCardProvider extends CardProvider {
 
 		// 1000 - 1900
 		RAINBOW(1000, star -> String.format("§c[§6%s§e%s§a%s§b%s§d✫§5]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		IRON_PRIME(1100, star -> String.format("§7[§f%s%s%s%s§7✪]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		GOLD_PRIME(1200, star -> String.format("§7[§e%s%s%s%s§6✪§7]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		DIAMOND_PRIME(1300, star -> String.format("§7[§b%s%s%s%s§5✪§7]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		EMERALD_PRIME(1400, star -> String.format("§7[§a%s%s%s%s§2✪§7]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		SAPPHIRE_PRIME(1500, star -> String.format("§7[§5%s%s%s%s§9✪§7]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		RUBY_PRIME(1600, star -> String.format("§7[§c%s%s%s%s§4✪§7]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		CRYSTAL_PRIME(1700, star -> String.format("§7[§d%s%s%s%s§5✪§7]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		OPAL_PRIME(1800, star -> String.format("§7[§9%s%s%s%s§1✪§7]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		AMETHYST_PRIME(1900, star -> String.format("§7[§5%s%s%s%s§8✪§7]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+
+		// 2000 - 2900
+		MIRROR(2000, star -> String.format("§8[§7%s§f%s%s§7%s✪§8]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		LIGHT(2100, star -> String.format("§f[%s§e%s%s§6%s⚝]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		DAWN(2200, star -> String.format("§6[%s§f%s%s§b%s§5⚝]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		DUSK(2300, star -> String.format("§5[%s§d%s%s§6%s§f⚝]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		AIR(2400, star -> String.format("§b[%s§f%s%s§7%s⚝§8]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		WIND(2500, star -> String.format("§f[%s§a%s%s§2%s⚝]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		NEBULA(2600, star -> String.format("§4[%s§c%s%s§d%s⚝§5]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		THUNDER(2700, star -> String.format("§e[%s§f%s%s§8%s⚝]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		EARTH(2800, star -> String.format("§a[%s§2%s%s§6%s⚝§e]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		WATER(2900, star -> String.format("§b[%s§5%s%s§9%s⚝§1]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+
+		// 3000 - 3900
+		FIRE(3000, star -> String.format("§f[%s§6%s%s§c%s⚝§4]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		SUNRISE(3100, star -> String.format("§9[%s§5%s%s§6%s✥§e]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		ECLIPSE(3200, star -> String.format("§c[§4%s§7%s%s§4%s§c✥]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		GAMMA(3300, star -> String.format("§9[%s%s§d%s§c%s✥§4]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		MAJESTIC(3400, star -> String.format("§2[§a%s§d%s%s§5%s✥§2]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		ANDESINE(3500, star -> String.format("§c[%s§4%s%s§2%s§a✥]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		MARINE(3600, star -> String.format("§a[%s%s§b%s§9%s✥§1]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		ELEMENT(3700, star -> String.format("§4[%s§c%s%s§b%s§3✥]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		GALAXY(3800, star -> String.format("§1[%s§b%s§5%s%s§d✥§1]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		ATOMIC(3900, star -> String.format("§c[%s§a%s%s§3%s§9✥]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+
+		// 4000 - 5000
+		SUNSET(4000, star -> String.format("§5[%s§c%s%s§6%s✥§e]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		TIME(4100, star -> String.format("§e[%s§6%s§c%s§d%s✥§5]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		WINTER(4200, star -> String.format("§1[§9%s§3%s§b%s§f%s§7✥]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		OBSIDIAN(4300, star -> String.format("§0[§5%s§8%s%s§5%s✥§0]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		SPRING(4400, star -> String.format("§2[%s§a%s§e%s§6%s§5✥§d]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		ICE(4500, star -> String.format("§f[%s§b%s%s§3%s✥]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		SUMMER(4600, star -> String.format("§3[§b%s§e%s%s§6%s§d✥§5]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		SPINEL(4700, star -> String.format("§f[§4%s§c%s%s§9%s§1✥§9]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		AUTUMN(4800, star -> String.format("§5[%s§c%s§6%s§f%s§b✥§5]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		MYSTIC(4900, star -> String.format("§2[§a%s§f%s%s§a%s✥§2]",
+			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+		ETERNAL(5000, star -> String.format("§c[%s§5%s§9%s%s§1✥§0]",
 			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3)));
 
 		private final int requirement;
@@ -262,6 +348,11 @@ public class BedwarsCardProvider extends CardProvider {
 			return this.format.apply(Integer.toString(star));
 		}
 
+		/**
+		 * Get the prestige a given star belongs to by iterating over prestiges until the requirement is not met
+		 * @param star The star count to analyze
+		 * @return The prestige that the given star count belongs to
+		 */
 		public static Prestige get(int star) {
 			Prestige currentPrestige = STONE;
 
