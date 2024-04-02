@@ -122,7 +122,7 @@ public class Nadeshiko {
 
 		// Bind endpoints to their controllers
 		spark.get("/stats", StatsController.serveStatsEndpoint);
-		spark.get("/card", CardController.serveCardEndpoint);
+		spark.get("/card/:data", CardController.serveCardEndpoint);
 
 		// Set up the shutdown method on JVM stop
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));

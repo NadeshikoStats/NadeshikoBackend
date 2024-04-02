@@ -1,5 +1,6 @@
 package io.nadeshiko.nadeshiko.cards;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +16,8 @@ import java.util.HashMap;
  * <p>
  *
  * The /card endpoint controller ({@link io.nadeshiko.nadeshiko.api.CardController}) utilizes the
- * {@link CardsCache#get(String, CardGame)} method to fetch the card for a given player. If the card is not in the cache, it
- * relies upon the {@link CardGenerator} instance to draw a new card, which is then cached and returned.
+ * {@link CardsCache#get(JsonObject, CardGame)} method to fetch the card for a given data set. If the card is not
+ * in the cache, it relies upon the {@link CardGenerator} instance to draw a new card, which is then cached and returned.
  *
  * @see CardGenerator
  * @author chloe
@@ -24,10 +25,10 @@ import java.util.HashMap;
 public class CardsCache {
 
 	/**
-	 * The cache of player data, using usernames + games as keys. Example: {@code Minikloon:BEDWARS}
+	 * The cache of player data, using data as keys.
 	 * @see CacheEntry
 	 */
-	private final HashMap<String, CacheEntry> cache = new HashMap<>();
+	private final HashMap<JsonObject, CacheEntry> cache = new HashMap<>();
 
 	/**
 	 * The Card Generator instance used to generate cards
@@ -36,31 +37,30 @@ public class CardsCache {
 	private final CardGenerator generator = new CardGenerator();
 
 	/**
-	 * Gets the specified card for the provided player.
+	 * Gets the specified card
 	 * <p>
 	 *
-	 * If the player is already in the cache, return the cached version. If the player is not in the cache, or
+	 * If the card is already in the cache, return the cached version. If the card is not in the cache, or
 	 * the cached response is over five minutes old, generate a new response, update the cache, and return
 	 * that instead.
 	 *
-	 * @param name The name of the player to look up
+	 * @param data The data passed along, including the player and any custom settings.
 	 * @return The response for the given player
 	 */
-	public byte[] get(@NonNull String name, @NonNull CardGame game) throws Exception {
+	public byte[] get(@NonNull JsonObject data, @NonNull CardGame game) throws Exception {
 
 		// Take this opportunity to remove all outdated cache entries to save memory
 		this.cache.entrySet().removeIf(entry -> entry.getValue().isExpired());
 
-		// If the player + game combination is already in the cache,
-		//   and the cache isn't outdated, use that instead
-		if (this.cache.containsKey(name + ":" + game)) {
-			return this.cache.get(name + ":" + game).getCard();
+		// If the data is already in the cache, and the cache isn't outdated, use that instead
+		if (this.cache.containsKey(data)) {
+			return this.cache.get(data).getCard();
 		}
 
 		// The player either isn't in the cache, or the cache is outdated. Build a new response
-		final byte[] card = this.generator.generateCard(game, name);
+		final byte[] card = this.generator.generateCard(game, data);
 
-		this.cache.put(name + ":" + game, new CacheEntry(card));
+		this.cache.put(data, new CacheEntry(card));
 
 		return card;
 	}

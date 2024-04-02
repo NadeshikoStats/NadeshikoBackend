@@ -31,7 +31,9 @@ public class CardGenerator {
 		}
 	}
 
-	public byte[] generateCard(CardGame game, String name) throws Exception {
+	public byte[] generateCard(CardGame game, JsonObject data) throws Exception {
+
+		String name = data.get("name").getAsString();
 
 		BufferedImage card;
 		Graphics graphics;
