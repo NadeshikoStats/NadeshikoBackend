@@ -49,7 +49,7 @@ public class CardGenerator {
 				card = ImageUtil.createImageFromBytes(cardTemplateBytes);
 				graphics = card.getGraphics();
 			} else {
-				Nadeshiko.logger.error("Failed reading card template for {}!", game.name());
+				Nadeshiko.INSTANCE.alert("Failed reading card template for %s!", game.name());
 				return null;
 			}
 		}
@@ -61,7 +61,7 @@ public class CardGenerator {
 
 		// Ensure the player is valid and fetching stats succeeded
 		if (!statsResponse.has("success") || !statsResponse.get("success").getAsBoolean()) {
-			Nadeshiko.logger.error("Failed generating {} card for {}!", game.name(), name);
+			Nadeshiko.INSTANCE.alert("Failed generating %s card for %s!", game.name(), name);
 			return statsResponse.toString().getBytes();
 		}
 
@@ -96,7 +96,7 @@ public class CardGenerator {
 
 			// Ensure the font exists
 			if (fontStream == null) {
-				Nadeshiko.logger.error("Tried to register non-existent font {}!", filename);
+				Nadeshiko.INSTANCE.alert("Tried to register non-existent font %s!", filename);
 				return;
 			}
 

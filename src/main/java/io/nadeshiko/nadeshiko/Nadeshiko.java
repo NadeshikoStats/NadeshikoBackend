@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import io.nadeshiko.nadeshiko.api.CardController;
 import io.nadeshiko.nadeshiko.api.StatsController;
 import io.nadeshiko.nadeshiko.cards.CardsCache;
+import io.nadeshiko.nadeshiko.monitoring.DiscordMonitor;
 import io.nadeshiko.nadeshiko.stats.StatsCache;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import lombok.Getter;
@@ -29,10 +30,15 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
+	public static String VERSION = "0.3.0";
+
 	/**
 	 * Global static logger
 	 */
 	public static Logger logger = LoggerFactory.getLogger(Nadeshiko.class);
+
+	@Getter
+	private DiscordMonitor discordMonitor;
 
 	@Getter
 	private final StatsCache statsCache = new StatsCache();
@@ -79,14 +85,23 @@ public class Nadeshiko {
 			return;
 		}
 
+		// Start the Discord monitor, if enabled
+		this.igniteDiscordMonitor();
+		discordMonitor.log("Igniting Nadeshiko...");
+
 		// Read the API key from the config file
 		this.hypixelKey = (String) this.config.get("hypixel_key");
 
-		// Verify that an API key was provided
+		// Verify that a valid API key was provided
 		if (this.hypixelKey == null) {
-			logger.error("No API key was provided in the config! Halting.");
+			this.alert("No Hypixel API key was provided in the config! Halting.");
 			return;
 		} else {
+
+			if (this.hypixelKey.length() < 32) {
+				this.alert("A Hypixel API key was provided, but it's malformed! Halting.");
+				return;
+			}
 
 			// Censor the API key, except for the first section (8 characters)
 			String censoredKey = this.hypixelKey.replaceAll("[^-]", "*");
@@ -97,12 +112,12 @@ public class Nadeshiko {
 
 		// Test the Hypixel and Mojang APIs
 		if (!this.testHypixel()) {
-			logger.error("Failed to connect to the Hypixel API! Verify the connection and API key.");
+			this.alert("Failed to connect to the Hypixel API! Verify the connection and API key. Halting.");
 			return;
 		}
 
 		if (!this.testMojang()) {
-			logger.error("Failed to connect to the Mojang API! Verify the connection.");
+			this.alert("Failed to connect to the Mojang API! Verify the connection. Halting.");
 			return;
 		}
 
@@ -127,7 +142,9 @@ public class Nadeshiko {
 		// Set up the shutdown method on JVM stop
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
 
-		logger.info("Started Nadeshiko in {} seconds", ((System.currentTimeMillis() - startTime) / 1000f));
+		double startSeconds = ((System.currentTimeMillis() - startTime) / 1000f);
+		logger.info("Nadeshiko is now up! Took {} seconds to ignite!", startSeconds);
+		discordMonitor.ok("Nadeshiko is now up! Took %f seconds to ignite!", startSeconds);
 	}
 
 	/**
@@ -140,6 +157,8 @@ public class Nadeshiko {
 
 		logger.info("Nadeshiko was running for {} ms", System.currentTimeMillis() - this.startTime);
 		logger.info("Stopped Nadeshiko");
+
+		discordMonitor.log("Stopped! Nadeshiko was running since <t:%d:f>", this.startTime / 1000);
 	}
 
 	/**
@@ -155,6 +174,22 @@ public class Nadeshiko {
 		}
 
 		this.config = (new Gson()).fromJson(Files.readString(configFile.toPath()), Map.class);
+	}
+
+	private void igniteDiscordMonitor() {
+		Map<?, ?> discordConfig = (Map<?, ?>) this.config.get("discord");
+
+		// Disable the discord monitor if it is set to "disabled", or is missing from the config entirely
+		if (discordConfig == null || !((boolean) discordConfig.get("enabled"))) {
+			this.discordMonitor = new DiscordMonitor(null, null);
+			logger.info("Disabling Discord monitor!");
+			return;
+		}
+
+		String logUrl = (String) discordConfig.get("log_url");
+		String alertUrl = (String) discordConfig.get("alert_url");
+
+		this.discordMonitor = new DiscordMonitor(logUrl, alertUrl);
 	}
 
 	/**
@@ -193,6 +228,12 @@ public class Nadeshiko {
 		}
 
 		return response.status() == 200;
+	}
+
+	public void alert(Object message, Object... args) {
+		String formatted = String.format(message.toString(), args);
+		Nadeshiko.logger.error(formatted);
+		discordMonitor.alert(formatted);
 	}
 
 	/**

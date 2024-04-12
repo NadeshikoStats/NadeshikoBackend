@@ -65,8 +65,13 @@ public class StatsBuilder {
 
 				textures = this.fetchTextures(mojangJson.get("id").getAsString());
 			} catch (Exception e) {
+
 				Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name);
 				Nadeshiko.logger.error("Stack trace:");
+				e.printStackTrace();
+
+				Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+					"Encountered error while looking up Minecraft profile for %s", name);
 			}
 		}
 
@@ -168,6 +173,10 @@ public class StatsBuilder {
 			Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name);
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
+
+			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+				"Encountered error while looking up Minecraft profile for %s", name);
+
 			return null;
 		}
 	}
@@ -198,6 +207,10 @@ public class StatsBuilder {
 			Nadeshiko.logger.error("Encountered error while looking up Minecraft textures for {}", uuid);
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
+
+			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+				"Encountered error while looking up Minecraft textures for %s", uuid);
+
 			return null;
 		}
 	}
@@ -229,6 +242,10 @@ public class StatsBuilder {
 			Nadeshiko.logger.error("Encountered error while looking up Hypixel status for {}", uuid);
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
+
+			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+				"Encountered error while looking up Hypixel status for %s", uuid);
+
 			return null;
 		}
 	}
@@ -295,6 +312,10 @@ public class StatsBuilder {
 			Nadeshiko.logger.error("Encountered error while looking up Hypixel guild for {}", uuid);
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
+
+			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+				"Encountered error while looking up Hypixel guild for %s", uuid);
+
 			return null;
 		}
 	}
@@ -318,6 +339,10 @@ public class StatsBuilder {
 			Nadeshiko.logger.error("Encountered error while looking up Hypixel stats for {}", uuid);
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
+
+			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+				"Encountered error while looking up Hypixel stats for %s", uuid);
+
 			return null;
 		}
 	}
@@ -411,6 +436,11 @@ public class StatsBuilder {
 				playerObj.get("displayname").getAsString());
 			Nadeshiko.logger.error("Stack trace:");
 			e.printStackTrace();
+
+			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+				"Encountered error while building Hypixel profile for %s",
+				playerObj.get("displayname").getAsString());
+
 			return null;
 		}
 	}

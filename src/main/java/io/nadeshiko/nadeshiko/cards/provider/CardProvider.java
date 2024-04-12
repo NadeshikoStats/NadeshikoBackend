@@ -25,7 +25,7 @@ public abstract class CardProvider {
 
 			// Ensure colors.json exists
 			if (stream == null) {
-				Nadeshiko.logger.error("cards/templates/colors.json was not found!");
+				Nadeshiko.INSTANCE.alert("cards/templates/colors.json was not found!");
 				return;
 			}
 
@@ -40,7 +40,7 @@ public abstract class CardProvider {
 			color = Color.decode(json.get(game.name()).getAsString());
 
 		} catch (IOException e) {
-			Nadeshiko.logger.error("Error while creating CardProvider for {}!", game.name());
+			Nadeshiko.INSTANCE.alert("Error while creating CardProvider for %s!", game.name());
 		}
 	}
 

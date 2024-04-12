@@ -31,7 +31,7 @@ public class DuelsCardProvider extends CardProvider {
 				getResourceAsStream("/cards/duels/" + duel.getTextureName() + ".png")) {
 
 				if (iconStream == null) {
-					Nadeshiko.logger.error("Missing duel icon for {}!", duel.name());
+					Nadeshiko.INSTANCE.alert("Missing duel icon for %s!", duel.name());
 					continue;
 				}
 
@@ -40,7 +40,7 @@ public class DuelsCardProvider extends CardProvider {
 
 				this.iconMap.put(duel, icon);
 			} catch (IOException e) {
-				Nadeshiko.logger.error("Failed reading duel icon for {}!", duel.name());
+				Nadeshiko.INSTANCE.alert("Failed reading duel icon for %s!", duel.name());
 			}
 		}
 	}
