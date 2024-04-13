@@ -30,7 +30,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.3.0";
+	public static String VERSION = "0.3.1";
 
 	/**
 	 * Global static logger

@@ -27,6 +27,11 @@ public class DuelsCardProvider extends CardProvider {
 
 		// Read the duel icons from resources into the cache
 		for (Duels duel : Duels.values()) {
+
+			if (duel.getTextureName() == null) {
+				continue; // If the duel has no texture, skip it
+			}
+
 			try (InputStream iconStream =  CardGenerator.class.
 				getResourceAsStream("/cards/duels/" + duel.getTextureName() + ".png")) {
 

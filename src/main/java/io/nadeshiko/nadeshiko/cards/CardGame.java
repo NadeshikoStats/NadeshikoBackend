@@ -2,14 +2,24 @@ package io.nadeshiko.nadeshiko.cards;
 
 import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
 import io.nadeshiko.nadeshiko.cards.provider.impl.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
-@Getter
-@AllArgsConstructor
+@RequiredArgsConstructor
 public enum CardGame {
 	BEDWARS(BedwarsCardProvider.class),
 	DUELS(DuelsCardProvider.class);
 
-	public final Class<? extends CardProvider> provider;
+	private final Class<? extends CardProvider> providerClass;
+
+	private CardProvider provider = null;
+
+	@SneakyThrows
+	public CardProvider getProvider() {
+		if (this.provider == null) {
+			this.provider = this.providerClass.getDeclaredConstructor().newInstance();
+		}
+
+		return this.provider;
+	}
 }

@@ -31,7 +31,7 @@ public class CardController {
 			return "{\"success\":false,\"cause\":\"Missing card data\"}";
 		}
 
-		String decodedData = new String(Base64.getDecoder().decode(request.params("data")));
+		String decodedData = new String(Base64.getUrlDecoder().decode(request.params("data")));
 		JsonObject data = JsonParser.parseString(decodedData).getAsJsonObject();
 
 		// Ensure a name was provided
