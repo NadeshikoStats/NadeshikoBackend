@@ -19,6 +19,8 @@ public abstract class CardProvider {
 
 	protected final Font smallLight = new Font("Inter Medium", Font.PLAIN, 18);
 	protected final Font smallBold = new Font("Inter Medium", Font.BOLD, 18);
+	protected final Font mediumLight = new Font("Inter Medium", Font.PLAIN, 20);
+	protected final Font mediumBold = new Font("Inter Medium", Font.BOLD, 20);
 
 	public CardProvider(CardGame game) {
 		try (InputStream stream = CardProvider.class.getResourceAsStream("/cards/templates/colors.json")) {
@@ -44,11 +46,15 @@ public abstract class CardProvider {
 		}
 	}
 
-	protected void drawProgress(Graphics g, int x, int y, int max, double progress) {
+	protected void drawProgress(Graphics g, int x, int y, int maxWidth, double progress) {
+		this.drawProgress(g, x, y, maxWidth, 8, progress);
+	}
+
+	protected void drawProgress(Graphics g, int x, int y, int maxWidth, int height, double progress) {
 		Color originalColor = g.getColor();
 		g.setColor(this.color);
 
-		g.fillRoundRect(x, y, (int) (progress * max), 8, 8, 8);
+		g.fillRoundRect(x, y, (int) (progress * maxWidth), height, 8, 8);
 
 		g.setColor(originalColor);
 	}

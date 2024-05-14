@@ -8,7 +8,8 @@ import lombok.SneakyThrows;
 @RequiredArgsConstructor
 public enum CardGame {
 	BEDWARS(BedwarsCardProvider.class),
-	DUELS(DuelsCardProvider.class);
+	DUELS(DuelsCardProvider.class),
+	NETWORK(NetworkCardProvider.class);
 
 	private final Class<? extends CardProvider> providerClass;
 

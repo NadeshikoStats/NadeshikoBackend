@@ -155,6 +155,8 @@ public class StatsBuilder {
 			HTTPUtil.Response response =
 				HTTPUtil.get("https://api.mojang.com/users/profiles/minecraft/" + name);
 
+			System.out.println(response.response());
+
 			// If the API responded OK
 			if (response.status() == 200) {
 				return JsonParser.parseString(response.response()).getAsJsonObject();

@@ -84,7 +84,7 @@ public class CardGenerator {
 			profileObject.get("tagged_name").getAsString(), 300, 120, 40);
 
 		// Populate the template using the game's provider
-		game.getProvider().generate(card, statsResponse.getAsJsonObject("stats"));
+		game.getProvider().generate(card, statsResponse);
 
 		return ImageUtil.getBytesFromImage(card);
 	}

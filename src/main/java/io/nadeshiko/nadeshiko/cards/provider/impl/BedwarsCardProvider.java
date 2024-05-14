@@ -23,7 +23,10 @@ public class BedwarsCardProvider extends CardProvider {
 	@Override
 	public void generate(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
-		JsonObject bedwars = stats.getAsJsonObject("Bedwars");
+		JsonObject bedwars = stats.getAsJsonObject("stats").getAsJsonObject("Bedwars");
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
 		int finalKills = bedwars.get("final_kills_bedwars").getAsInt();
 		int finalDeaths = bedwars.get("final_deaths_bedwars").getAsInt();
@@ -41,8 +44,6 @@ public class BedwarsCardProvider extends CardProvider {
 		this.drawStar(g, bedwars);
 
 		// Set up the stat font
-		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
 
@@ -100,7 +101,7 @@ public class BedwarsCardProvider extends CardProvider {
 			return;
 		}
 
-		MinecraftRenderer.drawString(g, prestige.format(star), 900, 67, 30);
+		MinecraftRenderer.drawMinecraftString(g, prestige.format(star), 900, 67, 30);
 	}
 
 	private void drawMode(Graphics g, @NonNull Mode mode, @NonNull JsonObject bedwarsStats, int baseX) {

@@ -55,7 +55,10 @@ public class DuelsCardProvider extends CardProvider {
 	@Override
 	public void generate(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
-		JsonObject duels = stats.getAsJsonObject("Duels");
+		JsonObject duels = stats.getAsJsonObject("stats").getAsJsonObject("Duels");
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
 		int kills = duels.get("kills").getAsInt();
 		int deaths = duels.get("deaths").getAsInt();
@@ -75,8 +78,6 @@ public class DuelsCardProvider extends CardProvider {
 		this.drawTitle(g, duels);
 
 		// Set up the stat font
-		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
 
@@ -162,7 +163,7 @@ public class DuelsCardProvider extends CardProvider {
 			finalTitle += RomanNumerals.arabicToRoman(level);
 		}
 
-		MinecraftRenderer.drawString(g, finalTitle, 845, 67, 30);
+		MinecraftRenderer.drawMinecraftString(g, finalTitle, 845, 67, 30);
 	}
 
 	private void drawDuel(Graphics g, @NonNull Duels duel, @NonNull JsonObject duelsStats, int baseX) {

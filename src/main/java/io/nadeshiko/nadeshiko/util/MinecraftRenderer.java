@@ -9,10 +9,51 @@ public class MinecraftRenderer {
 
 	public void drawCenterString(Graphics graphics, String string, int x, int y, int size) {
 		int width = width(graphics, string, size);
-		drawString(graphics, string, x - (width / 2), y, size);
+		drawMinecraftString(graphics, string, x - (width / 2), y, size);
 	}
 
-	public void drawString(Graphics graphics, String string, int x, int y, int size) {
+	public void drawCustomString(Graphics graphics, String string, int x, int y) {
+
+		Font unifont = new Font("Unifont", Font.PLAIN, graphics.getFont().getSize());
+
+		char[] array = string.toCharArray();
+
+		Color currentColor = graphics.getColor();
+
+		for (int character = 0; character < string.length(); character++) {
+
+			while (array[character] == MinecraftColors.SECTION) {
+				char nextChar = array[character + 1];
+
+				currentColor = MinecraftColors.getColorFromCode(nextChar);
+				character += 2;
+			}
+
+			// Custom font
+			if (array[character] < 128) {
+
+				// Draw the character
+				graphics.setColor(currentColor);
+				graphics.drawString(Character.toString(array[character]), x, y);
+				x += graphics.getFontMetrics().charWidth(array[character]);
+			}
+
+			// Unifont fallback
+			else {
+				Font currentFont = graphics.getFont();
+
+				// Draw the character
+				graphics.setFont(unifont);
+				graphics.setColor(currentColor);
+				graphics.drawString(Character.toString(array[character]), x, y + 2);
+				x += graphics.getFontMetrics().charWidth(array[character]);
+
+				graphics.setFont(currentFont);
+			}
+		}
+	}
+
+	public void drawMinecraftString(Graphics graphics, String string, int x, int y, int size) {
 
 		Font minecraftFont = new Font("Minecraft Regular", Font.PLAIN, size);
 		Font minecraftBold = new Font("Minecraft Bold", Font.BOLD, size);
