@@ -166,7 +166,7 @@ public class DuelsCardProvider extends CardProvider {
 		MinecraftRenderer.drawMinecraftString(g, finalTitle, 845, 67, 30);
 	}
 
-	private void drawDuel(Graphics g, @NonNull Duels duel, @NonNull JsonObject duelsStats, int baseX) {
+	private void drawDuel(Graphics2D g, @NonNull Duels duel, @NonNull JsonObject duelsStats, int baseX) {
 
 		int kills = 0, deaths = 1, wins = 0, losses = 1;
 

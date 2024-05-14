@@ -89,7 +89,7 @@ public class BedwarsCardProvider extends CardProvider {
 		this.drawMode(g, topModes.get(1), bedwars, 1068);
 	}
 
-	private void drawStar(Graphics g, @NonNull JsonObject bedwarsStats) {
+	private void drawStar(Graphics2D g, @NonNull JsonObject bedwarsStats) {
 		if (!bedwarsStats.has("Experience")) {
 			return;
 		}
@@ -104,7 +104,7 @@ public class BedwarsCardProvider extends CardProvider {
 		MinecraftRenderer.drawMinecraftString(g, prestige.format(star), 900, 67, 30);
 	}
 
-	private void drawMode(Graphics g, @NonNull Mode mode, @NonNull JsonObject bedwarsStats, int baseX) {
+	private void drawMode(Graphics2D g, @NonNull Mode mode, @NonNull JsonObject bedwarsStats, int baseX) {
 
 		int finalKills = 0, finalDeaths = 1, wins = 0, losses = 1;
 
