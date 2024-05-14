@@ -1,5 +1,6 @@
 package io.nadeshiko.nadeshiko.cards.provider.impl;
 
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
@@ -22,7 +23,7 @@ public class NetworkCardProvider extends CardProvider {
 	public void generate(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		JsonObject profile = stats.getAsJsonObject("profile");
-		JsonObject guild = stats.getAsJsonObject("guild");
+		JsonObject guild = stats.get("guild") instanceof JsonNull ? null : stats.getAsJsonObject("guild");
 
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
@@ -68,6 +69,14 @@ public class NetworkCardProvider extends CardProvider {
 	}
 
 	private void drawGuild(Graphics2D g, JsonObject guild) {
+
+		// Ensure the user is in a guild
+		if (guild == null) {
+			g.setColor(Color.DARK_GRAY);
+			g.setFont(smallLight);
+			g.drawString("None", 1220, 370);
+			return;
+		}
 
 		// Draw guild name and tag manually since we need to support color codes
 		g.setColor(LIGHT_GRAY);
