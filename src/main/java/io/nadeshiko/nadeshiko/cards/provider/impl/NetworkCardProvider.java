@@ -37,6 +37,12 @@ public class NetworkCardProvider extends CardProvider {
 		g.setFont(mediumBold);
 		g.drawString(Integer.toString(networkLevel), 695, 140);
 
+		// Draw the network multiplier
+		int levelWidth = g.getFontMetrics().stringWidth(Integer.toString(networkLevel));
+		g.setColor(Color.GRAY);
+		g.setFont(mediumLight);
+		g.drawString("(" + profile.get("coin_multiplier") + "x)", 700 + levelWidth, 140);
+
 		// Draw the network level progress bar
 		this.drawProgress(g, 636, 153, 780, 14, networkLevelProgress);
 

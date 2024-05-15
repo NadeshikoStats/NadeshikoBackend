@@ -30,7 +30,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.3.2";
+	public static String VERSION = "0.3.3";
 
 	/**
 	 * Global static logger
@@ -198,17 +198,24 @@ public class Nadeshiko {
 	 */
 	private boolean testHypixel() {
 		String endpoint = "https://api.hypixel.net/v2/counts";
-		HTTPUtil.Response response;
 
 		try {
-			response = HTTPUtil.get(endpoint + "?key=" + hypixelKey);
+			HTTPUtil.Response response = HTTPUtil.get(endpoint + "?key=" + hypixelKey);
 			logger.info("Got status {} from Hypixel", response.status());
+
+			// Log the response if it wasn't 200, and return the success of the request
+			if (response.status() != 200) {
+				logger.warn("Hypixel response: {}", response.response());
+				this.alert("Failed to connect to Hypixel API, got response " + response.status() + "!");
+				return false;
+			} else {
+				return true;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 
-		return response.status() == 200;
+		return false;
 	}
 
 	/**
@@ -217,17 +224,24 @@ public class Nadeshiko {
 	 */
 	private boolean testMojang() {
 		String endpoint = "https://api.mojang.com/users/profiles/minecraft/hypixel";
-		HTTPUtil.Response response;
 
 		try {
-			response = HTTPUtil.get(endpoint);
+			HTTPUtil.Response response = HTTPUtil.get(endpoint);
 			logger.info("Got status {} from Mojang", response.status());
+
+			// Log the response if it wasn't 200, and return the success of the request
+			if (response.status() != 200) {
+				logger.warn("Mojang response: {}", response.response());
+				this.alert("Failed to connect to Mojang API, got response " + response.status() + "!");
+				return false;
+			} else {
+				return true;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			return false;
 		}
 
-		return response.status() == 200;
+		return false;
 	}
 
 	public void alert(Object message, Object... args) {

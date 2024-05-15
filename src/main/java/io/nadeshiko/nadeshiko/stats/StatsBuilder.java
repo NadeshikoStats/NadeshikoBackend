@@ -155,8 +155,6 @@ public class StatsBuilder {
 			HTTPUtil.Response response =
 				HTTPUtil.get("https://api.mojang.com/users/profiles/minecraft/" + name);
 
-			System.out.println(response.response());
-
 			// If the API responded OK
 			if (response.status() == 200) {
 				return JsonParser.parseString(response.response()).getAsJsonObject();
@@ -425,8 +423,16 @@ public class StatsBuilder {
 
 			// Add social media
 			if (playerObj.has("socialMedia")) {
-				profile.add("social_media", playerObj.getAsJsonObject(
-					"socialMedia").getAsJsonObject("links"));
+
+				// Some players have a slightly differently formatted social media, for some reason...
+				if (playerObj.getAsJsonObject("socialMedia").has("links")) {
+					profile.add("social_media", playerObj.getAsJsonObject(
+						"socialMedia").getAsJsonObject("links"));
+				} else {
+					profile.add("social_media", playerObj.getAsJsonObject("socialMedia"));
+				}
+
+
 			} else {
 				profile.add("social_media", new JsonObject()); // Default
 			}
