@@ -25,56 +25,25 @@ public class StatsBuilder {
 		JsonObject response = new JsonObject();
 		response.addProperty("success", true);
 
-		JsonObject textures = null;
+		JsonObject textures;
 
-		// If the query is a username
-		if (name.length() < 30) {
+		final JsonObject minecraftProfile = this.fetchMinecraftProfile(name);
 
-			final JsonObject mojangProfile = this.fetchMojangProfile(name);
-
-			// If the Mojang profile was null, the player couldn't be found
-			if (mojangProfile == null) {
-				return error("No player by the name \"" + name + "\" could be found.", 404);
-			}
-
-			// If something else with the Mojang request went wrong
-			else if (mojangProfile.has("errorMessage")) {
-				return error(mojangProfile.get("errorMessage").getAsString(), 520);
-			}
-
-			response.addProperty("name", mojangProfile.get("name").getAsString());
-			response.addProperty("uuid", mojangProfile.get("id").getAsString());
-
-			textures = this.fetchTextures(mojangProfile.get("id").getAsString());
+		// Ensure the request succeeded
+		if (minecraftProfile == null) {
+			return error("Couldn't fetch data from PlayerDB!", 500);
 		}
 
-		// If the query is a UUID
-		else {
-			try {
-				HTTPUtil.Response mojangResponse = HTTPUtil.
-					get("https://sessionserver.mojang.com/session/minecraft/profile/" + name);
-				JsonObject mojangJson = JsonParser.parseString(mojangResponse.response()).getAsJsonObject();
-
-				// The UUID couldn't be found
-				if (mojangResponse.status() == 404) {
-					return error("No player by the UUID \"" + name + "\" could be found.", 404);
-				}
-
-				response.addProperty("name", mojangJson.get("name").getAsString());
-				response.addProperty("uuid", mojangJson.get("id").getAsString());
-
-				textures = this.fetchTextures(mojangJson.get("id").getAsString());
-			} catch (Exception e) {
-
-				Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name);
-				Nadeshiko.logger.error("Stack trace:");
-				e.printStackTrace();
-
-				Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
-					"Encountered error while looking up Minecraft profile for %s", name);
-			}
+		// If the Mojang profile was null, the player couldn't be found
+		if (minecraftProfile.get("code").getAsString().equals("minecraft.invalid_username")) {
+			return error("No player by the name \"" + name + "\" could be found.", 404);
 		}
 
+		JsonObject playerData = minecraftProfile.getAsJsonObject("data").getAsJsonObject("player");
+		response.addProperty("name", playerData.get("username").getAsString());
+		response.addProperty("uuid", playerData.get("id").getAsString());
+
+		textures = this.fetchTextures(playerData.get("id").getAsString());
 
 		// Add the skin and model
 		if (textures != null && textures.has("SKIN")) {
@@ -145,30 +114,17 @@ public class StatsBuilder {
 	}
 
 	/**
-	 * Fetch the Mojang profile from the {@code api.mojang.com/users/profiles/minecraft/} endpoint, grabbing the
-	 * players UUID and properly capitalized name
+	 * Fetch the Minecraft profile from PlayerDB, grabbing the
+	 * players UUID, properly capitalized name, and textures
 	 * @param name The name of the player to look up
-	 * @return The response from the Mojang API
+	 * @return The response from PlayerDB
 	 */
-	private JsonObject fetchMojangProfile(@NonNull String name) {
+	private JsonObject fetchMinecraftProfile(@NonNull String name) {
 		try {
 			HTTPUtil.Response response =
-				HTTPUtil.get("https://api.mojang.com/users/profiles/minecraft/" + name);
+				HTTPUtil.get("https://playerdb.co/api/player/minecraft/" + name);
 
-			// If the API responded OK
-			if (response.status() == 200) {
-				return JsonParser.parseString(response.response()).getAsJsonObject();
-			}
-
-			// If the profile wasn't found
-			else if (response.status() == 404) {
-				return null;
-			}
-
-			// If something else went wrong, return the response, since we want to know what happened
-			else {
-				return JsonParser.parseString(response.response()).getAsJsonObject();
-			}
+			return JsonParser.parseString(response.response()).getAsJsonObject();
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name);
 			Nadeshiko.logger.error("Stack trace:");
