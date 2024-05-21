@@ -1,12 +1,25 @@
+/*
+ * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ *
+ * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
+ * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
+ * included in all copies or substantial portions of this software.
+ *
+ * These works are provided "AS IS" with absolutely no warranty of any kind, either expressed or implied.
+ *
+ * You should have received a copy of the MIT License alongside this software; refer to LICENSE for information.
+ * If not, refer to https://mit-license.org.
+ */
+
 package io.nadeshiko.nadeshiko.stats;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
-import io.nadeshiko.nadeshiko.hypixel.GuildLevel;
-import io.nadeshiko.nadeshiko.hypixel.NetworkLevel;
-import io.nadeshiko.nadeshiko.hypixel.RankHelper;
+import io.nadeshiko.nadeshiko.util.hypixel.GuildLevel;
+import io.nadeshiko.nadeshiko.util.hypixel.NetworkLevel;
+import io.nadeshiko.nadeshiko.util.hypixel.RankHelper;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftColors;
 import lombok.NonNull;
@@ -81,7 +94,7 @@ public class StatsBuilder {
 		final JsonObject hypixelGuild = this.fetchHypixelGuild(response.get("uuid").getAsString());
 		response.add("guild", hypixelGuild);
 
-		// Add the Hypixel stats
+		// Add the Hypixel stats and achievements
 		final JsonObject hypixelStats = this.fetchHypixelStats(response.get("uuid").getAsString());
 		if (hypixelStats != null) { // Null if the player has no stats (never logged in)
 			response.add("profile", this.buildHypixelProfile(hypixelStats));
@@ -91,6 +104,12 @@ public class StatsBuilder {
 				response.add("stats", hypixelStats.get("stats").getAsJsonObject());
 			} else {
 				response.add("stats", new JsonObject()); // Fallback if stats are off/missing
+			}
+
+			if (hypixelStats.has("achievements")) {
+				response.add("achievements", hypixelStats.get("achievements").getAsJsonObject());
+			} else {
+				response.add("achievements", new JsonObject()); // Fallback if achievements are missing
 			}
 		}
 
@@ -331,7 +350,7 @@ public class StatsBuilder {
 				profile.addProperty("network_level", NetworkLevel.getExactLevel(
 					playerObj.get("networkExp").getAsLong()));
 				profile.addProperty("coin_multiplier",
-					NetworkLevel.getCoinMultiplier(playerObj.get("networkExp").getAsLong()));
+					NetworkLevel.getCoinMultiplier(profile.get("network_level").getAsInt()));
 			} else {
 				profile.addProperty("network_level", 0d); // Default
 				profile.addProperty("coin_multiplier", 1d); // Default

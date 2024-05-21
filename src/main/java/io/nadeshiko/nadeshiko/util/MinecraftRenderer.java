@@ -1,17 +1,61 @@
+/*
+ * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ *
+ * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
+ * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
+ * included in all copies or substantial portions of this software.
+ *
+ * These works are provided "AS IS" with absolutely no warranty of any kind, either expressed or implied.
+ *
+ * You should have received a copy of the MIT License alongside this software; refer to LICENSE for information.
+ * If not, refer to https://mit-license.org.
+ */
+
 package io.nadeshiko.nadeshiko.util;
 
 import lombok.experimental.UtilityClass;
 
 import java.awt.*;
 
+/**
+ * A basic Minecraft font text renderer
+ * @author chloe
+ */
 @UtilityClass
 public class MinecraftRenderer {
 
-	public void drawCenterString(Graphics graphics, String string, int x, int y, int size) {
-		int width = width(graphics, string, size);
+	/**
+	 * Draw a centered string in a custom font, using {@code graphics}' current font
+	 * @param graphics The {@link Graphics} instance to draw to
+	 * @param string The text to draw
+	 * @param x The x-position to draw the text at
+	 * @param y The y-position to draw the text at
+	 */
+	public void drawCenterCustomString(Graphics graphics, String string, int x, int y) {
+		int width = customWidth(graphics, string);
+		drawCustomString(graphics, string, x - (width / 2), y);
+	}
+
+	/**
+	 * Draw a centered string in the Minecraft font
+	 * @param graphics The {@link Graphics} instance to draw to
+	 * @param string The text to draw
+	 * @param x The x-position to draw the text at
+	 * @param y The y-position to draw the text at
+	 * @param size The size to draw the text at
+	 */
+	public void drawCenterMinecraftString(Graphics graphics, String string, int x, int y, int size) {
+		int width = minecraftWidth(graphics, string, size);
 		drawMinecraftString(graphics, string, x - (width / 2), y, size);
 	}
 
+	/**
+	 * Draw a string in a custom font, using {@code graphics}' current font
+	 * @param graphics The {@link Graphics} instance to draw to
+	 * @param string The text to draw
+	 * @param x The x-position to draw the text at
+	 * @param y The y-position to draw the text at
+	 */
 	public void drawCustomString(Graphics graphics, String string, int x, int y) {
 
 		Font unifont = new Font("Unifont", Font.PLAIN, graphics.getFont().getSize());
@@ -20,6 +64,7 @@ public class MinecraftRenderer {
 
 		Color currentColor = graphics.getColor();
 
+		// Iterate over characters in the string
 		for (int character = 0; character < string.length(); character++) {
 
 			while (array[character] == MinecraftColors.SECTION) {
@@ -53,6 +98,14 @@ public class MinecraftRenderer {
 		}
 	}
 
+	/**
+	 * Draw a string in the Minecraft font
+	 * @param graphics The {@link Graphics} instance to draw to
+	 * @param string The text to draw
+	 * @param x The x-position to draw the text at
+	 * @param y The y-position to draw the text at
+	 * @param size The size to draw the text at
+	 */
 	public void drawMinecraftString(Graphics graphics, String string, int x, int y, int size) {
 
 		Font minecraftFont = new Font("Minecraft Regular", Font.PLAIN, size);
@@ -62,9 +115,10 @@ public class MinecraftRenderer {
 
 		char[] array = string.toCharArray();
 
-		Color currentColor = Color.WHITE;
-		Color currentShadowColor = Color.DARK_GRAY;
+		Color currentColor = MinecraftColors.getColorFromCode('f');
+		Color currentShadowColor = MinecraftColors.getShadowColorFromCode('f');
 
+		// Iterate over characters in the string
 		for (int character = 0; character < string.length(); character++) {
 
 			while (array[character] == MinecraftColors.SECTION) {
@@ -72,6 +126,10 @@ public class MinecraftRenderer {
 
 				if (nextChar == 'l') {
 					graphics.setFont(minecraftBold);
+				} else if (nextChar == 'r') {
+					graphics.setFont(minecraftFont);
+					currentColor = MinecraftColors.getColorFromCode('f');
+					currentShadowColor = MinecraftColors.getShadowColorFromCode('f');
 				} else {
 					currentColor = MinecraftColors.getColorFromCode(nextChar);
 					currentShadowColor = MinecraftColors.getShadowColorFromCode(nextChar);
@@ -114,19 +172,54 @@ public class MinecraftRenderer {
 		}
 	}
 
-	public int width(Graphics graphics, String string, int size) {
+	/**
+	 * Calculate the pixel width of the provided string
+	 * @param graphics The {@link Graphics} instance
+	 * @param string The string to calculate the width of
+	 * @return The pixel width of {@code string} in {@code graphics}' current font
+	 */
+	public int customWidth(Graphics graphics, String string) {
 
-		Font minecraftFont = new Font("Minecraft Regular", Font.PLAIN, size);
 		int width = 0;
-
 		char[] array = string.toCharArray();
 
+		// Iterate over characters in the string
 		for (int character = 0; character < string.length(); character++) {
 
+			// Skip the next two characters if we find a section symbol
 			if (array[character] == MinecraftColors.SECTION) {
 				character += 2;
 			}
 
+			// Add this character's width
+			width += graphics.getFontMetrics().charWidth(array[character]);
+		}
+
+		return width;
+	}
+
+	/**
+	 * Calculate the pixel width of the provided string in the Minecraft font
+	 * @param graphics The {@link Graphics} instance
+	 * @param string The string to calculate the width of
+	 * @param size The size of the font to consider
+	 * @return The pixel width of {@code string} in the Minecraft font at the provided size
+	 */
+	public int minecraftWidth(Graphics graphics, String string, int size) {
+
+		Font minecraftFont = new Font("Minecraft Regular", Font.PLAIN, size);
+		int width = 0;
+		char[] array = string.toCharArray();
+
+		// Iterate over characters in the string
+		for (int character = 0; character < string.length(); character++) {
+
+			// Skip the next two characters if we find a section symbol
+			if (array[character] == MinecraftColors.SECTION) {
+				character += 2;
+			}
+
+			// Add this character's width
 			width += graphics.getFontMetrics(minecraftFont).charWidth(array[character]);
 		}
 

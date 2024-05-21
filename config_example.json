@@ -2,7 +2,7 @@
     "hypixel_key": "your_api_key",
     "port": 2000,
     "discord": {
-        "enabled": false,
+        "enabled": true,
         "log_url": "https://discord.com/api/webhooks/foo/bar",
         "alert_url": "https://discord.com/api/webhooks/foo/bar"
     }

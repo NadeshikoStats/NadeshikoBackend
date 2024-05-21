@@ -1,3 +1,16 @@
+/*
+ * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ *
+ * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
+ * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
+ * included in all copies or substantial portions of this software.
+ *
+ * These works are provided "AS IS" with absolutely no warranty of any kind, either expressed or implied.
+ *
+ * You should have received a copy of the MIT License alongside this software; refer to LICENSE for information.
+ * If not, refer to https://mit-license.org.
+ */
+
 package io.nadeshiko.nadeshiko.monitoring;
 
 import io.nadeshiko.nadeshiko.Nadeshiko;
@@ -7,22 +20,39 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+/**
+ * A class to support rich logging to a Discord webhook for remote monitoring
+ * @author chloe
+ */
 public class DiscordMonitor {
 
 	private static final Color COLOR_OK = new Color(128, 255, 128);
 	private static final Color COLOR_LOG = new Color(128, 128, 128);
 	private static final Color COLOR_ALERT = new Color(255, 128, 128);
 
+	/**
+	 * The webhook URL to log to for most messages
+	 */
 	private final String logUrl;
+
+	/**
+	 * The webhook URL to log to for severe messages/alerts
+	 */
 	private final String alertUrl;
 
 	/**
-	 * The Discord monitor is optional, and is disabled automatically if either webhook URL is null
+	 * Whether the Discord monitor is enabled or not
 	 */
 	private boolean enabled;
 
+	/**
+	 * Constructs a new DiscordMonitor from the provided webhook URLs
+	 * @param logUrl The webhook URL to log to for most messages
+	 * @param alertUrl The webhook URL to log to for severe messages/alerts
+	 */
 	public DiscordMonitor(String logUrl, String alertUrl) {
 
+		// Disable the monitor if either URL is missing
 		this.enabled = logUrl != null && alertUrl != null;
 
 		this.logUrl = logUrl;

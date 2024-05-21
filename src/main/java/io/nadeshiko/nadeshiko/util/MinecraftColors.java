@@ -1,3 +1,16 @@
+/*
+ * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ *
+ * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
+ * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
+ * included in all copies or substantial portions of this software.
+ *
+ * These works are provided "AS IS" with absolutely no warranty of any kind, either expressed or implied.
+ *
+ * You should have received a copy of the MIT License alongside this software; refer to LICENSE for information.
+ * If not, refer to https://mit-license.org.
+ */
+
 package io.nadeshiko.nadeshiko.util;
 
 import lombok.experimental.UtilityClass;
@@ -14,7 +27,10 @@ public class MinecraftColors {
 
 	public final char SECTION = '§';
 
-	public final HashMap<String, String> nameToCode = new HashMap<>() {{
+	/**
+	 * A map of Minecraft color names, used by the Hypixel API, to their color codes
+	 */
+	private final HashMap<String, String> NAME_TO_CODE = new HashMap<>() {{
 		put("BLACK", SECTION + "0");
 		put("DARK_BLUE", SECTION + "1");
 		put("DARK_GREEN", SECTION + "2");
@@ -33,7 +49,10 @@ public class MinecraftColors {
 		put("WHITE", SECTION + "f");
 	}};
 
-	public final HashMap<Character, Color> codeToColor = new HashMap<>() {{
+	/**
+	 * A map of Minecraft color codes to AWT {@link Color}s, used for rendering
+	 */
+	private final HashMap<Character, Color> CODE_TO_COLOR = new HashMap<>() {{
 		put('0', new Color(0, 0, 0)); // Black
 		put('1', new Color(0, 0, 170)); // Dark Blue
 		put('2', new Color(0, 170, 0)); // Dark Green
@@ -52,7 +71,10 @@ public class MinecraftColors {
 		put('f', new Color(255, 255, 255)); // White
 	}};
 
-	public final HashMap<Character, Color> codeToShadowColor = new HashMap<>() {{
+	/**
+	 * A map of Minecraft color codes to their text shadow AWT {@link Color}s, used for rendering
+	 */
+	private final HashMap<Character, Color> CODE_TO_SHADOW_COLOR = new HashMap<>() {{
 		put('0', new Color(0, 0, 0)); // Black shadow
 		put('1', new Color(0, 0, 42)); // Dark Blue shadow
 		put('2', new Color(0, 42, 0)); // Dark Green shadow
@@ -71,16 +93,34 @@ public class MinecraftColors {
 		put('f', new Color(63, 63, 63)); // White shadow
 	}};
 
+	/**
+	 * Fetch the Minecraft color code, including the section symbol, from its name
+	 * @param colorName The name of the color
+	 * @return The Minecraft color code of the color, including the prefix
+	 * @see MinecraftColors#NAME_TO_CODE
+	 */
 	public String getCodeFromName(String colorName) {
-		return nameToCode.get(colorName);
+		return NAME_TO_CODE.get(colorName);
 	}
 
+	/**
+	 * Fetch the AWT {@link Color} of a Minecraft color code
+	 * @param code The color code, without the section symbol
+	 * @return The AWT {@link Color} corresponding to the color code
+	 * @see MinecraftColors#CODE_TO_COLOR
+	 */
 	public Color getColorFromCode(char code) {
-		return codeToColor.get(code);
+		return CODE_TO_COLOR.get(code);
 	}
 
+	/**
+	 * Fetch the AWT {@link Color} of a Minecraft color code's text shadow color
+	 * @param code The color code, without the section symbol
+	 * @return The AWT {@link Color} corresponding to the color code's text shadow color
+	 * @see MinecraftColors#CODE_TO_SHADOW_COLOR
+	 */
 	public Color getShadowColorFromCode(char code) {
-		return codeToShadowColor.get(code);
+		return CODE_TO_SHADOW_COLOR.get(code);
 	}
 
 }

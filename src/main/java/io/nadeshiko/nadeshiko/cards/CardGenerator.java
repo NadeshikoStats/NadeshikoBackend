@@ -1,3 +1,16 @@
+/*
+ * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ *
+ * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
+ * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
+ * included in all copies or substantial portions of this software.
+ *
+ * These works are provided "AS IS" with absolutely no warranty of any kind, either expressed or implied.
+ *
+ * You should have received a copy of the MIT License alongside this software; refer to LICENSE for information.
+ * If not, refer to https://mit-license.org.
+ */
+
 package io.nadeshiko.nadeshiko.cards;
 
 import com.google.gson.JsonObject;
@@ -76,11 +89,11 @@ public class CardGenerator {
 		graphics.drawImage(playerImage, 138, 165, null);
 
 		// Draw the name tag
-		int width = MinecraftRenderer.width(graphics, profileObject.get("tagged_name").getAsString(), 40);
+		int width = MinecraftRenderer.minecraftWidth(graphics, profileObject.get("tagged_name").getAsString(), 40);
 		graphics.setColor(new Color(0, 0, 0, 128));
 		graphics.fillRect(300 - (width / 2) - 10, 83, width + 20, 50);
 
-		MinecraftRenderer.drawCenterString(graphics,
+		MinecraftRenderer.drawCenterMinecraftString(graphics,
 			profileObject.get("tagged_name").getAsString(), 300, 120, 40);
 
 		// Populate the template using the game's provider

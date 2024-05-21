@@ -1,3 +1,16 @@
+/*
+ * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ *
+ * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
+ * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
+ * included in all copies or substantial portions of this software.
+ *
+ * These works are provided "AS IS" with absolutely no warranty of any kind, either expressed or implied.
+ *
+ * You should have received a copy of the MIT License alongside this software; refer to LICENSE for information.
+ * If not, refer to https://mit-license.org.
+ */
+
 package io.nadeshiko.nadeshiko;
 
 import com.google.gson.Gson;
@@ -30,19 +43,29 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.4.0";
+	public static String VERSION = "0.4.1";
+	public static int DEFAULT_PORT = 2000;
 
 	/**
 	 * Global static logger
 	 */
 	public static Logger logger = LoggerFactory.getLogger(Nadeshiko.class);
 
+	/**
+	 * The {@link DiscordMonitor} instance of this backend instance
+	 */
 	@Getter
 	private DiscordMonitor discordMonitor;
 
+	/**
+	 * The {@link StatsCache} instance of this backend instance
+	 */
 	@Getter
 	private final StatsCache statsCache = new StatsCache();
 
+	/**
+	 * The {@link CardsCache} instance of this backend instance
+	 */
 	@Getter
 	private final CardsCache cardsCache = new CardsCache();
 
@@ -52,7 +75,7 @@ public class Nadeshiko {
 	private long startTime;
 
 	/**
-	 * The Spark instance associated with this server instance
+	 * The Spark instance of this backend instance
 	 */
 	private final Service spark = Service.ignite();
 
@@ -69,21 +92,22 @@ public class Nadeshiko {
 	private Map<?, ?> config;
 
 	/**
-	 * Start this instance of backend. Reads and verifies the configuration file, verifies connections to both
-	 * the Hypixel and Mojang APIs, and verifies the Hypixel API key. After this, starts the service on the
-	 * provided port.
+	 * The port that this backend instance is operating on
+	 */
+	@Getter
+	private int port = DEFAULT_PORT;
+
+	/**
+	 * Start this instance of backend.
+	 * <p>
+	 * Reads and verifies the configuration file, verifies connections to both the Hypixel and Mojang APIs, and
+	 * verifies the Hypixel API key. After this, starts the service on the provided port.
 	 */
 	public void startup() {
 		this.startTime = System.currentTimeMillis();
 
 		// Read config file
-		try {
-			this.readConfig();
-		} catch (IOException e) {
-			logger.error("Failed to read configuration file! Halting.");
-			logger.error(e.toString());
-			return;
-		}
+		this.readConfig();
 
 		// Start the Discord monitor, if enabled
 		this.igniteDiscordMonitor();
@@ -96,43 +120,28 @@ public class Nadeshiko {
 		if (this.hypixelKey == null) {
 			this.alert("No Hypixel API key was provided in the config! Halting.");
 			return;
-		} else {
-
-			if (this.hypixelKey.length() < 32) {
-				this.alert("A Hypixel API key was provided, but it's malformed! Halting.");
-				return;
-			}
-
-			// Censor the API key, except for the first section (8 characters)
-			String censoredKey = this.hypixelKey.replaceAll("[^-]", "*");
-			String compositeKey = this.hypixelKey.substring(0, 7) + censoredKey.substring(8);
-
-			logger.info("Using Hypixel API key " + compositeKey);
-		}
-
-		// Test the Hypixel and Mojang APIs
-		if (!this.testHypixel()) {
-			this.alert("Failed to connect to the Hypixel API! Verify the connection and API key. Halting.");
+		} else if (this.hypixelKey.length() < 32) {
+			this.alert("A Hypixel API key was provided, but it's malformed! Halting.");
 			return;
 		}
 
-		if (!this.testMojang()) {
-			this.alert("Failed to connect to the Mojang API! Verify the connection. Halting.");
-			return;
-		}
+		String censoredKey = this.hypixelKey.replaceAll("[^-]", "*");
+		String compositeKey = this.hypixelKey.substring(0, 7) + censoredKey.substring(8);
+		logger.info("Using Hypixel API key " + compositeKey);
 
-		int port = 2000; // Default port
+		// Test the connections to the APIs used
+		this.testApiConnections();
 
-		// If a port was provided, use it instead!
+		// If a port was provided, use it instead of the default!
 		if (this.config.get("port") != null) {
-			port = (int) ((double) this.config.get("port")); // No idea why this double cast is needed
+			this.port = (int) ((double) this.config.get("port")); // No idea why this double cast is needed
 		} else {
-			logger.warn("No port was provided! Defaulting to {}!", port);
+			logger.warn("No port was provided! Defaulting to {}!", DEFAULT_PORT);
 		}
 
 		// Ignite the spark instance on the provided port
 		logger.info("Starting service on port {}", port);
-		this.spark.port(port);
+		this.spark.port(this.port);
 		this.spark.init();
 
 		// Bind endpoints to their controllers
@@ -153,30 +162,60 @@ public class Nadeshiko {
 	public void shutdown() {
 		logger.info("Stopping!");
 
+		// Stop the Spark instance
 		this.spark.stop();
 
 		logger.info("Nadeshiko was running for {} ms", System.currentTimeMillis() - this.startTime);
 		logger.info("Stopped Nadeshiko");
-
 		discordMonitor.log("Stopped! Nadeshiko was running since <t:%d:f>", this.startTime / 1000);
 	}
 
 	/**
-	 * Reads the configuration file into the {@code config} map
-	 * @throws IOException If an exception was thrown reading the configuration file
+	 * Reads the configuration file into the {@code config} map. If the process fails, the server is terminated
 	 */
-	private void readConfig() throws IOException {
+	private void readConfig() {
 		File configFile = new File("config.json");
 
+		// Verify that the config file exists
 		if (!configFile.exists()) {
 			logger.error("No config.json was found! Halting.");
-			return;
+			System.exit(1);
 		}
 
-		this.config = (new Gson()).fromJson(Files.readString(configFile.toPath()), Map.class);
+		// Read the config file, parse it, and store it in memory
+		try {
+			this.config = (new Gson()).fromJson(Files.readString(configFile.toPath()), Map.class);
+		} catch (IOException e) {
+			logger.error("Failed to read configuration file! Halting.");
+			System.exit(1);
+		}
 	}
 
+	/**
+	 * Tests the connection to the various APIs used by the backend. If any connections fail, the server is
+	 * terminated
+	 */
+	private void testApiConnections() {
+
+		// Test the connection to the Hypixel API and the API key
+		if (!this.testHypixel()) {
+			this.alert("Failed to connect to the Hypixel API! Verify the connection and API key. Halting.");
+			System.exit(2);
+		}
+
+		// Test the connection to the Mojang API
+		else if (!this.testMojang()) {
+			this.alert("Failed to connect to the Mojang API! Verify the connection. Halting.");
+			System.exit(2);
+		}
+	}
+
+	/**
+	 * Ignite the {@link DiscordMonitor} instance if enabled in the configuration file
+	 */
 	private void igniteDiscordMonitor() {
+
+		// The "discord" section of the configuration file
 		Map<?, ?> discordConfig = (Map<?, ?>) this.config.get("discord");
 
 		// Disable the discord monitor if it is set to "disabled", or is missing from the config entirely
@@ -188,7 +227,6 @@ public class Nadeshiko {
 
 		String logUrl = (String) discordConfig.get("log_url");
 		String alertUrl = (String) discordConfig.get("alert_url");
-
 		this.discordMonitor = new DiscordMonitor(logUrl, alertUrl);
 	}
 
@@ -207,15 +245,14 @@ public class Nadeshiko {
 			if (response.status() != 200) {
 				logger.warn("Hypixel response: {}", response.response());
 				this.alert("Failed to connect to Hypixel API, got response " + response.status() + "!");
-				return false;
+				return false; // Request failed
 			} else {
-				return true;
+				return true; // Request succeeded
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false; // Request failed
 		}
-
-		return false;
 	}
 
 	/**
@@ -233,17 +270,21 @@ public class Nadeshiko {
 			if (response.status() != 200) {
 				logger.warn("Mojang response: {}", response.response());
 				this.alert("Failed to connect to Mojang API, got response " + response.status() + "!");
-				return false;
+				return false; // Request failed
 			} else {
-				return true;
+				return true; // Request succeeded
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false; // Request failed
 		}
-
-		return false;
 	}
 
+	/**
+	 * Raises an alert that is logged to both the logger and, optionally, the Discord monitor
+	 * @param message The message to log, including {@link String#format(String, Object...)} formatting codes
+	 * @param args Optional arguments for the formatting codes provided in {@code message}
+	 */
 	public void alert(Object message, Object... args) {
 		String formatted = String.format(message.toString(), args);
 		Nadeshiko.logger.error(formatted);
