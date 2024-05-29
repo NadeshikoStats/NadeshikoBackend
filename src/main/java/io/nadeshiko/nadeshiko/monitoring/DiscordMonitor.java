@@ -31,14 +31,9 @@ public class DiscordMonitor {
 	private static final Color COLOR_ALERT = new Color(255, 128, 128);
 
 	/**
-	 * The webhook URL to log to for most messages
+	 * The webhook URL to log to
 	 */
 	private final String logUrl;
-
-	/**
-	 * The webhook URL to log to for severe messages/alerts
-	 */
-	private final String alertUrl;
 
 	/**
 	 * Whether the Discord monitor is enabled or not
@@ -46,17 +41,15 @@ public class DiscordMonitor {
 	private boolean enabled;
 
 	/**
-	 * Constructs a new DiscordMonitor from the provided webhook URLs
-	 * @param logUrl The webhook URL to log to for most messages
-	 * @param alertUrl The webhook URL to log to for severe messages/alerts
+	 * Constructs a new DiscordMonitor from the provided webhook URL
+	 * @param logUrl The webhook URL to log to
 	 */
-	public DiscordMonitor(String logUrl, String alertUrl) {
+	public DiscordMonitor(String logUrl) {
 
-		// Disable the monitor if either URL is missing
-		this.enabled = logUrl != null && alertUrl != null;
+		// Disable the monitor if the logging target URL is null
+		this.enabled = logUrl != null;
 
 		this.logUrl = logUrl;
-		this.alertUrl = alertUrl;
 	}
 
 	/**
@@ -87,7 +80,7 @@ public class DiscordMonitor {
 
 		// Send the embed to the webhook
 		try {
-			DiscordWebhook logWebhook = new DiscordWebhook(logUrl);
+			DiscordWebhook logWebhook = new DiscordWebhook(this.logUrl);
 			logWebhook.addEmbed(embed);
 			logWebhook.execute();
 		} catch (IOException e) {
@@ -124,7 +117,7 @@ public class DiscordMonitor {
 
 		// Send the embed to the webhook
 		try {
-			DiscordWebhook logWebhook = new DiscordWebhook(logUrl);
+			DiscordWebhook logWebhook = new DiscordWebhook(this.logUrl);
 			logWebhook.addEmbed(embed);
 			logWebhook.execute();
 		} catch (IOException e) {
@@ -162,17 +155,17 @@ public class DiscordMonitor {
 
 		// Send the embed to the webhook
 		try {
-			DiscordWebhook alertWebhook = new DiscordWebhook(alertUrl);
+			DiscordWebhook alertWebhook = new DiscordWebhook(this.logUrl);
 			alertWebhook.addEmbed(embed);
 			alertWebhook.execute();
-		} catch (IOException e2) {
+		} catch (IOException exception) {
 			Nadeshiko.logger.error("Failed to log to the alert webhook! Is the URL valid?");
 			this.enabled = false; // Disable the monitor if we find it to be using an invalid URL
 		}
 	}
 
 	/**
-	 * Sends a negative message to the webhook defined by {@code alertWebhook}
+	 * Sends a negative message to the webhook defined by {@code logWebhook}
 	 *
 	 * @param message The message to log, including {@link String#format(String, Object...)} formatting codes
 	 * @param args Optional arguments for the formatting codes provided in {@code message}
@@ -199,7 +192,7 @@ public class DiscordMonitor {
 
 		// Send the embed to the webhook
 		try {
-			DiscordWebhook alertWebhook = new DiscordWebhook(alertUrl);
+			DiscordWebhook alertWebhook = new DiscordWebhook(this.logUrl);
 			alertWebhook.addEmbed(embed);
 			alertWebhook.execute();
 		} catch (IOException e) {

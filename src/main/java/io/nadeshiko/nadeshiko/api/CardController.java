@@ -83,8 +83,13 @@ public class CardController {
 			return String.format("{\"success\":false,\"cause\":\"%s\"}", cause);
 		}
 
+		// Log the request
 		Nadeshiko.logger.info("Serving {} card for {}", data.get("game"), data.get("name"));
 
+		// Register the request with the stats service
+		Nadeshiko.INSTANCE.getStatsService().registerCardRequest(data.get("name").getAsString(), game);
+
+		// Return the data as provided from the cache
 		response.type("image/png");
 		return Nadeshiko.INSTANCE.getCardsCache().get(data, game);
 	};

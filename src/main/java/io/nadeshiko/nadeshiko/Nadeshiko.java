@@ -18,6 +18,7 @@ import io.nadeshiko.nadeshiko.api.CardController;
 import io.nadeshiko.nadeshiko.api.StatsController;
 import io.nadeshiko.nadeshiko.cards.CardsCache;
 import io.nadeshiko.nadeshiko.monitoring.DiscordMonitor;
+import io.nadeshiko.nadeshiko.monitoring.StatisticsService;
 import io.nadeshiko.nadeshiko.stats.StatsCache;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import lombok.Getter;
@@ -43,7 +44,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.4.1";
+	public static String VERSION = "0.5.0";
 	public static int DEFAULT_PORT = 2000;
 
 	/**
@@ -68,6 +69,12 @@ public class Nadeshiko {
 	 */
 	@Getter
 	private final CardsCache cardsCache = new CardsCache();
+
+	/**
+	 * The {@link StatisticsService} of this backend instance
+	 */
+	@Getter
+	private final StatisticsService statsService = new StatisticsService();
 
 	/**
 	 * The timestamp at which this instance began startup
@@ -147,6 +154,7 @@ public class Nadeshiko {
 		// Bind endpoints to their controllers
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/card/:data", CardController.serveCardEndpoint);
+		spark.get("/", (request, response) -> "Nadeshiko backend version " + VERSION);
 
 		// Set up the shutdown method on JVM stop
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
@@ -220,14 +228,15 @@ public class Nadeshiko {
 
 		// Disable the discord monitor if it is set to "disabled", or is missing from the config entirely
 		if (discordConfig == null || !((boolean) discordConfig.get("enabled"))) {
-			this.discordMonitor = new DiscordMonitor(null, null);
+			this.discordMonitor = new DiscordMonitor(null);
 			logger.info("Disabling Discord monitor!");
 			return;
 		}
 
 		String logUrl = (String) discordConfig.get("log_url");
-		String alertUrl = (String) discordConfig.get("alert_url");
-		this.discordMonitor = new DiscordMonitor(logUrl, alertUrl);
+		this.discordMonitor = new DiscordMonitor(logUrl);
+
+		this.getStatsService().setWebhookUrl((String) discordConfig.get("stats_url"));
 	}
 
 	/**

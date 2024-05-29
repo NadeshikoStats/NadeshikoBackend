@@ -38,8 +38,6 @@ public class StatsController {
 			return "{\"success\":false,\"cause\":\"Missing name parameter\"}";
 		}
 
-		Nadeshiko.logger.info("Serving stats for {}", request.queryParams("name"));
-
 		// Fetch the API response from the cache. If the cache doesn't already contain an up-to-date entry
 		//   for this player, one will be created and stored by the cache.
 		JsonObject cached = Nadeshiko.INSTANCE.getStatsCache().get(request.queryParams("name"));
@@ -54,6 +52,13 @@ public class StatsController {
 			cached.remove("status");
 		}
 
+		// Log the request
+		Nadeshiko.logger.info("Serving stats for {}", request.queryParams("name"));
+
+		// Register the request with the stats service
+		Nadeshiko.INSTANCE.getStatsService().registerStatsRequest(request.queryParams("name"));
+
+		// Return the data as provided from the cache
 		response.type("application/json");
 		return cached;
 	};
