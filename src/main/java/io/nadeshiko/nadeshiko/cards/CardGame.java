@@ -22,7 +22,8 @@ import lombok.SneakyThrows;
 public enum CardGame {
 	BEDWARS(BedwarsCardProvider.class),
 	DUELS(DuelsCardProvider.class),
-	NETWORK(NetworkCardProvider.class);
+	NETWORK(NetworkCardProvider.class),
+	SKYWARS(SkywarsCardProvider.class);
 
 	private final Class<? extends CardProvider> providerClass;
 

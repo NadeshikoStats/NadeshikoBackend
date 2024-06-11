@@ -15,11 +15,10 @@ package io.nadeshiko.nadeshiko.stats;
 
 import com.google.gson.JsonObject;
 import io.nadeshiko.nadeshiko.api.StatsController;
+import io.nadeshiko.nadeshiko.util.Cache;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
-import java.util.HashMap;
 
 /**
  * Simple cache implementation to save API responses for five minutes before invalidating them.
@@ -36,13 +35,7 @@ import java.util.HashMap;
  * @see StatsBuilder
  * @author chloe
  */
-public class StatsCache {
-
-	/**
-	 * The cache of player data, using usernames as keys
-	 * @see CacheEntry
-	 */
-	private final HashMap<String, CacheEntry> cache = new HashMap<>();
+public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 
 	/**
 	 * The Builder instance used to generate responses
@@ -88,7 +81,7 @@ public class StatsCache {
 	 */
 	@Getter
 	@RequiredArgsConstructor
-	private static class CacheEntry {
+	public static class CacheEntry {
 
 		/**
 		 * The time at which this cache entry was generated

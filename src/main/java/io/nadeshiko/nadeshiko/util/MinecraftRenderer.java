@@ -130,7 +130,8 @@ public class MinecraftRenderer {
 					graphics.setFont(minecraftFont);
 					currentColor = MinecraftColors.getColorFromCode('f');
 					currentShadowColor = MinecraftColors.getShadowColorFromCode('f');
-				} else {
+				} else if ((nextChar >= '0' && nextChar <= '9') || (nextChar >= 'a' && nextChar <= 'f')) {
+					graphics.setFont(minecraftFont); // Color codes remove bold
 					currentColor = MinecraftColors.getColorFromCode(nextChar);
 					currentShadowColor = MinecraftColors.getShadowColorFromCode(nextChar);
 				}

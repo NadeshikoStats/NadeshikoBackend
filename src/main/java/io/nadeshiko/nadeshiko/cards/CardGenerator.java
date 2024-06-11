@@ -39,8 +39,7 @@ public class CardGenerator {
 			registerFont("/cards/fonts/Inter-Bold.ttf");
 			registerFont("/cards/fonts/Inter-Medium.ttf");
 		} catch (Exception e) {
-			Nadeshiko.logger.error("Exception while registering fonts!");
-			e.printStackTrace();
+			Nadeshiko.logger.error("Exception while registering fonts!", e);
 		}
 	}
 

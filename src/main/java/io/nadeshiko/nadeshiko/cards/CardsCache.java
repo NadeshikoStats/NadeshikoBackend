@@ -14,11 +14,10 @@
 package io.nadeshiko.nadeshiko.cards;
 
 import com.google.gson.JsonObject;
+import io.nadeshiko.nadeshiko.util.Cache;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
-import java.util.HashMap;
 
 /**
  * Simple cache implementation to save API responses for fifteen minutes before invalidating them.
@@ -35,13 +34,7 @@ import java.util.HashMap;
  * @see CardGenerator
  * @author chloe
  */
-public class CardsCache {
-
-	/**
-	 * The cache of player data, using data as keys.
-	 * @see CacheEntry
-	 */
-	private final HashMap<JsonObject, CacheEntry> cache = new HashMap<>();
+public class CardsCache extends Cache<JsonObject, CardsCache.CacheEntry> {
 
 	/**
 	 * The Card Generator instance used to generate cards
@@ -84,7 +77,7 @@ public class CardsCache {
 	 */
 	@Getter
 	@RequiredArgsConstructor
-	private static class CacheEntry {
+	public static class CacheEntry {
 
 		/**
 		 * The time at which this cache entry was generated
