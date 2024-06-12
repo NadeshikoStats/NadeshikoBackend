@@ -21,6 +21,7 @@ import lombok.SneakyThrows;
 @RequiredArgsConstructor
 public enum CardGame {
 	BEDWARS(BedwarsCardProvider.class),
+	BUILD_BATTLE(BuildBattleCardProvider.class),
 	DUELS(DuelsCardProvider.class),
 	NETWORK(NetworkCardProvider.class),
 	SKYWARS(SkywarsCardProvider.class);
