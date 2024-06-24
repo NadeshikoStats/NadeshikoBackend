@@ -44,7 +44,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.5.2";
+	public static String VERSION = "0.5.3";
 	public static int DEFAULT_PORT = 2000;
 
 	/**
@@ -259,7 +259,7 @@ public class Nadeshiko {
 				return true; // Request succeeded
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Failed to test Hypixel API", e);
 			return false; // Request failed
 		}
 	}
@@ -284,7 +284,7 @@ public class Nadeshiko {
 				return true; // Request succeeded
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Failed to test Mojang API", e);
 			return false; // Request failed
 		}
 	}

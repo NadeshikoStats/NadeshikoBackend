@@ -145,10 +145,7 @@ public class StatsBuilder {
 
 			return JsonParser.parseString(response.response()).getAsJsonObject();
 		} catch (Exception e) {
-			Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name);
-			Nadeshiko.logger.error("Stack trace:");
-			e.printStackTrace();
-
+			Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name, e);
 			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
 				"Encountered error while looking up Minecraft profile for %s", name);
 
@@ -179,10 +176,7 @@ public class StatsBuilder {
 				return JsonParser.parseString(response.response()).getAsJsonObject();
 			}
 		} catch (Exception e) {
-			Nadeshiko.logger.error("Encountered error while looking up Minecraft textures for {}", uuid);
-			Nadeshiko.logger.error("Stack trace:");
-			e.printStackTrace();
-
+			Nadeshiko.logger.error("Encountered error while looking up Minecraft textures for {}", uuid, e);
 			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
 				"Encountered error while looking up Minecraft textures for %s", uuid);
 
@@ -214,10 +208,7 @@ public class StatsBuilder {
 			return object;
 
 		} catch (Exception e) {
-			Nadeshiko.logger.error("Encountered error while looking up Hypixel status for {}", uuid);
-			Nadeshiko.logger.error("Stack trace:");
-			e.printStackTrace();
-
+			Nadeshiko.logger.error("Encountered error while looking up Hypixel status for {}", uuid, e);
 			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
 				"Encountered error while looking up Hypixel status for %s", uuid);
 
@@ -277,17 +268,15 @@ public class StatsBuilder {
 				object.addProperty("tag", "");
 			}
 
-			object.addProperty("level", GuildLevel.getExactLevel(guild.get("exp").getAsInt()));
+			int guildXP = guild.has("exp") ? guild.get("exp").getAsInt() : 0;
+			object.addProperty("level", GuildLevel.getExactLevel(guildXP));
 			object.addProperty("members", guild.getAsJsonArray("members").size());
 			object.addProperty("joined", joined);
 
 			return object;
 
 		} catch (Exception e) {
-			Nadeshiko.logger.error("Encountered error while looking up Hypixel guild for {}", uuid);
-			Nadeshiko.logger.error("Stack trace:");
-			e.printStackTrace();
-
+			Nadeshiko.logger.error("Encountered error while looking up Hypixel guild for {}", uuid, e);
 			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
 				"Encountered error while looking up Hypixel guild for %s", uuid);
 
@@ -311,10 +300,7 @@ public class StatsBuilder {
 			}
 
 		} catch (Exception e) {
-			Nadeshiko.logger.error("Encountered error while looking up Hypixel stats for {}", uuid);
-			Nadeshiko.logger.error("Stack trace:");
-			e.printStackTrace();
-
+			Nadeshiko.logger.error("Encountered error while looking up Hypixel stats for {}", uuid, e);
 			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
 				"Encountered error while looking up Hypixel stats for %s", uuid);
 
@@ -416,10 +402,7 @@ public class StatsBuilder {
 
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Encountered error while building Hypixel profile for {}!",
-				playerObj.get("displayname").getAsString());
-			Nadeshiko.logger.error("Stack trace:");
-			e.printStackTrace();
-
+				playerObj.get("displayname").getAsString(), e);
 			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
 				"Encountered error while building Hypixel profile for %s",
 				playerObj.get("displayname").getAsString());

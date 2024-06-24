@@ -52,7 +52,7 @@ public class NetworkLevel {
 	 * @return Absolute level of player (Smallest value is 1.0)
 	 */
 	public double getLevel(double exp) {
-		return exp < 0 ? 1 : Math.floor(1 + REVERSE_PQ_PREFIX +
+		return exp <= 0 ? 1 : Math.floor(1 + REVERSE_PQ_PREFIX +
 			Math.sqrt(REVERSE_CONST + GROWTH_DIVIDES_2 * exp));
 	}
 
