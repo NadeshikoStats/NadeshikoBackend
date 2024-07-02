@@ -1,4 +1,4 @@
-## The backend server for [Nadeshiko.io](https://nadeshiko.io) ([GitHub](https://github.com/NadeshikoStats))
+## The backend server for [nadeshiko.io](https://nadeshiko.io) ([GitHub](https://github.com/NadeshikoStats))
 
 ## Features
 
