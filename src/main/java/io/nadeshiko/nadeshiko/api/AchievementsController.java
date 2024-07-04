@@ -22,8 +22,8 @@ import spark.Route;
 /**
  * Controller for the /achievements endpoint of the API
  * @see Route
- * @author adjective_noun stealing chloe's code because she abandoned this project
- * ADJECTIVE HAS LITTLE IDEA WHAT HE IS DOING THIS CODE MIGHT NOT WORK
+ * @author adjective_noun (modifying chloe's code)
+ * (he has no idea what he is doing)
  */
 public class StatsController {
 
