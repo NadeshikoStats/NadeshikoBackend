@@ -22,6 +22,12 @@ import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftColors;
 import lombok.NonNull;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * @author chloe
  * @since 0.6.0
@@ -60,14 +66,31 @@ public class GuildBuilder {
         response.add("ranks", guildData.getAsJsonArray("ranks"));
 
         JsonArray members = new JsonArray();
-        for (JsonElement rawPlayer : guildData.getAsJsonArray("members")) {
-            JsonObject player = rawPlayer.getAsJsonObject();
-            JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString());
 
-            player.add("profile", playerStats.getAsJsonObject("profile"));
-            members.add(player);
+        ThreadPoolExecutor service = (ThreadPoolExecutor) Executors.newFixedThreadPool(8);
+        Lock lock = new ReentrantLock();
+
+        for (JsonElement rawPlayer : guildData.getAsJsonArray("members")) {
+            service.submit(() -> {
+                JsonObject player = rawPlayer.getAsJsonObject();
+                JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString());
+
+                lock.lock();
+                player.add("profile", playerStats.getAsJsonObject("profile"));
+                members.add(player);
+                lock.unlock();
+            });
         }
-        response.add("members", members);
+
+        try {
+            service.shutdown();
+            if (!service.awaitTermination(60, TimeUnit.SECONDS)) {
+                return error("Timed out", 500);
+            }
+            response.add("members", members);
+        } catch (Exception e) {
+            return error("Internal threading error", 500);
+        }
 
         return response;
     }
