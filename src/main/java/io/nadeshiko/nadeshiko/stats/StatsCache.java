@@ -28,9 +28,9 @@ import lombok.RequiredArgsConstructor;
  * by not regenerating the whole response (a heavy operation) every time.
  * <p>
  *
- * The /stats endpoint controller ({@link StatsController}) utilizes the {@link StatsCache#get(String)} method to fetch
- * the API response for a given player. If the response is not in the cache, it relies upon the {@link StatsBuilder}
- * instance to build a new response, which is then cached and returned.
+ * The /stats endpoint controller ({@link StatsController}) utilizes the {@link StatsCache#get(String, boolean)} method
+ * to fetch the API response for a given player. If the response is not in the cache, it relies upon the
+ * {@link StatsBuilder} instance to build a new response, which is then cached and returned.
  *
  * @see StatsBuilder
  * @author chloe
@@ -52,9 +52,11 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 	 * that instead.
 	 *
 	 * @param name The name of the player to look up
+	 * @param full Whether the response should include extra information on the player's status and guild. This is
+	 *             significantly slower.
 	 * @return The response for the given player
 	 */
-	public JsonObject get(@NonNull String name) {
+	public JsonObject get(@NonNull String name, boolean full) {
 
 		// Take this opportunity to remove all outdated cache entries to save memory
 		this.cache.entrySet().removeIf(entry -> entry.getValue().isExpired());
@@ -66,7 +68,7 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 		}
 
 		// The player either isn't in the cache, or the cache is outdated. Build a new response
-		final JsonObject data = this.builder.build(name);
+		final JsonObject data = this.builder.build(name, full);
 
 		// Only cache the response if it was successful
 		if (data.get("success").getAsBoolean()) {

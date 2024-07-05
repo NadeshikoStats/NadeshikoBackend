@@ -20,6 +20,7 @@ import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftColors;
+import io.nadeshiko.nadeshiko.util.hypixel.GuildLevel;
 import lombok.NonNull;
 
 import java.util.concurrent.Executors;
@@ -60,7 +61,7 @@ public class GuildBuilder {
         response.addProperty("tag", MinecraftColors.getCodeFromName(guildData.get("tagColor")
             .getAsString()) + "[" + guildData.get("tag").getAsString() + "]");
         response.addProperty("created", guildData.get("created").getAsLong());
-        response.addProperty("exp", guildData.get("exp").getAsInt());
+        response.addProperty("level", GuildLevel.getExactLevel(guildData.get("exp").getAsInt()));
         response.add("preferred_games", guildData.getAsJsonArray("preferredGames"));
         response.add("achievements", guildData.getAsJsonObject("achievements"));
         response.add("ranks", guildData.getAsJsonArray("ranks"));
@@ -73,7 +74,7 @@ public class GuildBuilder {
         for (JsonElement rawPlayer : guildData.getAsJsonArray("members")) {
             service.submit(() -> {
                 JsonObject player = rawPlayer.getAsJsonObject();
-                JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString());
+                JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString(), false);
 
                 lock.lock();
                 player.add("profile", playerStats.getAsJsonObject("profile"));

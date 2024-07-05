@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class StatsBuilder {
 
-	public JsonObject build(@NonNull String name) {
+	public JsonObject build(@NonNull String name, boolean full) {
 
 		JsonObject response = new JsonObject();
 		response.addProperty("success", true);
@@ -86,13 +86,15 @@ public class StatsBuilder {
 			}
 		}
 
-		// Add the Hypixel status
-		final JsonObject hypixelStatus = this.fetchHypixelStatus(response.get("uuid").getAsString());
-		response.add("status", hypixelStatus);
+		if (full) {
+			// Add the Hypixel status
+			final JsonObject hypixelStatus = this.fetchHypixelStatus(response.get("uuid").getAsString());
+			response.add("status", hypixelStatus);
 
-		// Add the Hypixel guild
-		final JsonObject hypixelGuild = this.fetchHypixelGuild(response.get("uuid").getAsString());
-		response.add("guild", hypixelGuild);
+			// Add the Hypixel guild
+			final JsonObject hypixelGuild = this.fetchHypixelGuild(response.get("uuid").getAsString());
+			response.add("guild", hypixelGuild);
+		}
 
 		// Add the Hypixel stats and achievements
 		final JsonObject hypixelStats = this.fetchHypixelStats(response.get("uuid").getAsString());

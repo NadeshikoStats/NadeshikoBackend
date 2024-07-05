@@ -40,7 +40,7 @@ public class StatsController {
 
 		// Fetch the API response from the cache. If the cache doesn't already contain an up-to-date entry
 		//   for this player, one will be created and stored by the cache.
-		JsonObject cached = Nadeshiko.INSTANCE.getStatsCache().get(request.queryParams("name"));
+		JsonObject cached = Nadeshiko.INSTANCE.getStatsCache().get(request.queryParams("name"), true);
 
 		// Ensure that the response from the cache is valid
 		if (cached.get("success").getAsBoolean()) {
