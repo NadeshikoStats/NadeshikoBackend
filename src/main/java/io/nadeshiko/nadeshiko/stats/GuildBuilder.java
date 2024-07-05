@@ -56,12 +56,33 @@ public class GuildBuilder {
         // Not all guilds have a description
         if (guildData.has("description")) {
             response.addProperty("description", guildData.get("description").getAsString());
+        } else {
+            response.addProperty("description", "");
         }
 
-        response.addProperty("tag", MinecraftColors.getCodeFromName(guildData.get("tagColor")
-            .getAsString()) + "[" + guildData.get("tag").getAsString() + "]");
+        // Not all guilds have tags
+        if (guildData.has("tag")) {
+
+            // Not all guilds have tag colors
+            if (guildData.has("tagColor")) {
+                response.addProperty("tag", MinecraftColors.getCodeFromName(guildData.get("tagColor")
+                    .getAsString()) + "[" + guildData.get("tag").getAsString() + "]");
+            } else { // Fallback to gray tag
+                response.addProperty("tag", "§7[" + guildData.get("tag").getAsString() + "]");
+            }
+
+        } else {
+            response.addProperty("tag", "");
+        }
+
+        // Not all guilds have any XP
+        if (guildData.has("exp")) {
+            response.addProperty("level", GuildLevel.getExactLevel(guildData.get("exp").getAsInt()));
+        } else {
+            response.addProperty("level", 0);
+        }
+
         response.addProperty("created", guildData.get("created").getAsLong());
-        response.addProperty("level", GuildLevel.getExactLevel(guildData.get("exp").getAsInt()));
         response.add("preferred_games", guildData.getAsJsonArray("preferredGames"));
         response.add("achievements", guildData.getAsJsonObject("achievements"));
         response.add("ranks", guildData.getAsJsonArray("ranks"));

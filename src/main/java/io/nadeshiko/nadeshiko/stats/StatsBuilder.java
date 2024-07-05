@@ -253,7 +253,7 @@ public class StatsBuilder {
 			// Not all guilds have tags
 			if (guild.has("tag")) {
 
-				// Not all guilds have tag colors, apparently
+				// Not all guilds have tag colors
 				if (guild.has("tagColor")) {
 					object.addProperty("tag",
 						String.format("%s[%s]",
@@ -340,7 +340,7 @@ public class StatsBuilder {
 				profile.addProperty("coin_multiplier",
 					NetworkLevel.getCoinMultiplier(profile.get("network_level").getAsInt()));
 			} else {
-				profile.addProperty("network_level", 0d); // Default
+				profile.addProperty("network_level", 1d); // Default
 				profile.addProperty("coin_multiplier", 1d); // Default
 			}
 
