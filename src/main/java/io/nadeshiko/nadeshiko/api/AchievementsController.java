@@ -16,15 +16,12 @@ package io.nadeshiko.nadeshiko.api;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
-import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Base64;
 
 /**
  * Controller for the /achievements endpoint of the API
@@ -34,6 +31,10 @@ import java.util.Base64;
  */
 public class AchievementsController {
 
+	/**
+	 * The cached global achievements object, documented at
+	 * <a href="https://api.hypixel.net/#tag/Resources/paths/~1v2~1resources~1quests/get">the API documentation</a>
+	 */
 	private static JsonObject globalAchievements;
     static {
         try {

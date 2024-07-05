@@ -31,6 +31,10 @@ import java.io.IOException;
  */
 public class QuestsController {
 
+	/**
+     * The cached global quests object, documented at
+	 * <a href="https://api.hypixel.net/#tag/Resources/paths/~1v2~1resources~1quests/get">the API documentation</a>
+     */
 	private static JsonObject globalQuests;
     static {
         try {
