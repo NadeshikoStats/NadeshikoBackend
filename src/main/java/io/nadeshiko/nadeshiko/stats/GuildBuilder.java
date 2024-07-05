@@ -68,7 +68,7 @@ public class GuildBuilder {
 
         JsonArray members = new JsonArray();
 
-        ThreadPoolExecutor service = (ThreadPoolExecutor) Executors.newFixedThreadPool(8);
+        ThreadPoolExecutor service = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         Lock lock = new ReentrantLock();
 
         for (JsonElement rawPlayer : guildData.getAsJsonArray("members")) {
@@ -76,7 +76,7 @@ public class GuildBuilder {
                 JsonObject player = rawPlayer.getAsJsonObject();
                 JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString(), false);
 
-                lock.lock();
+                lock.lock(); // Prevent multiple writes to the members array at once
                 player.add("profile", playerStats.getAsJsonObject("profile"));
                 members.add(player);
                 lock.unlock();
@@ -85,7 +85,7 @@ public class GuildBuilder {
 
         try {
             service.shutdown();
-            if (!service.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!service.awaitTermination(30, TimeUnit.SECONDS)) {
                 return error("Timed out", 500);
             }
             response.add("members", members);

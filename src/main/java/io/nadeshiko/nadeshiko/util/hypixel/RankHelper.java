@@ -86,13 +86,17 @@ public class RankHelper {
 			// Happens if the player once had a rank and lost it
 			if (!candidateRank.equals("NONE") && !candidateRank.isEmpty()) {
 
-				// In case I'm forgetting about a rank or one gets added
-				try {
-					this.rank = Rank.valueOf(candidateRank);
-					return; // Nothing else matters
-				} catch (Exception e) {
-					Nadeshiko.logger.warn("Found unrecognized rank {} on player {}!",
-						candidateRank, playerObject.get("displayname"));
+				// Happens on very, very old accounts. Sometimes.
+				if (!candidateRank.equals("NORMAL")) {
+
+					// In case I'm forgetting about a rank or one gets added
+					try {
+						this.rank = Rank.valueOf(candidateRank);
+						return; // Nothing else matters
+					} catch (Exception e) {
+						Nadeshiko.logger.warn("Found unrecognized rank {} on player {}!",
+							candidateRank, playerObject.get("displayname"));
+					}
 				}
 			}
 		}
