@@ -44,7 +44,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.6.1";
+	public static String VERSION = "0.7.0-SNAPSHOT";
 	public static int DEFAULT_PORT = 2000;
 
 	/**
@@ -158,6 +158,7 @@ public class Nadeshiko {
 		this.spark.init();
 
 		// Bind endpoints to their controllers
+		spark.get("/achievements", AchievementsController.serveAchievementsEndpoint);
 		spark.get("/guild", GuildController.serveGuildEndpoint);
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/card/:data", CardController.serveCardEndpoint);

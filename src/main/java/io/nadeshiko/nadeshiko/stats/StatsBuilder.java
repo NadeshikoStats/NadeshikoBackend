@@ -113,6 +113,12 @@ public class StatsBuilder {
 			} else {
 				response.add("achievements", new JsonObject()); // Fallback if achievements are missing
 			}
+
+			if (hypixelStats.has("achievementsOneTime")) {
+				response.add("achievements_one_time", hypixelStats.get("achievementsOneTime").getAsJsonArray());
+			} else {
+				response.add("achievements_one_time", new JsonObject()); // Fallback if achievements are missing
+			}
 		}
 
 		return response;
