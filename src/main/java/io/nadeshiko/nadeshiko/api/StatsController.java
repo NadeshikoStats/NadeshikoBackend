@@ -58,6 +58,10 @@ public class StatsController {
 		// Register the request with the stats service
 		Nadeshiko.INSTANCE.getStatsService().registerStatsRequest(request.queryParams("name"));
 
+		// Remove these to save bandwidth since this endpoint doesn't require them
+		cached.remove("achievements_one_time");
+		cached.remove("quests");
+
 		// Return the data as provided from the cache
 		response.type("application/json");
 		return cached;

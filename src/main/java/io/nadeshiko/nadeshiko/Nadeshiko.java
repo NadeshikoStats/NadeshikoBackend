@@ -159,9 +159,10 @@ public class Nadeshiko {
 
 		// Bind endpoints to their controllers
 		spark.get("/achievements", AchievementsController.serveAchievementsEndpoint);
+		spark.get("/card/:data", CardController.serveCardEndpoint);
 		spark.get("/guild", GuildController.serveGuildEndpoint);
 		spark.get("/stats", StatsController.serveStatsEndpoint);
-		spark.get("/card/:data", CardController.serveCardEndpoint);
+		spark.get("/quests", QuestsController.serveQuestsEndpoint);
 		spark.get("/", (request, response) -> "Nadeshiko backend version " + VERSION);
 
 		// Set up the shutdown method on JVM stop

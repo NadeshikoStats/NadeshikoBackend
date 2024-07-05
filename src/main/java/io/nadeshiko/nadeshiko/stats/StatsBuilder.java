@@ -119,6 +119,12 @@ public class StatsBuilder {
 			} else {
 				response.add("achievements_one_time", new JsonObject()); // Fallback if achievements are missing
 			}
+
+			if (hypixelStats.has("quests")) {
+				response.add("quests", hypixelStats.get("quests").getAsJsonObject());
+			} else {
+				response.add("quests", new JsonObject()); // Fallback if quests are missing
+			}
 		}
 
 		return response;

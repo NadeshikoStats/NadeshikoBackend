@@ -16,39 +16,36 @@ package io.nadeshiko.nadeshiko.api;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
-import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import spark.Request;
 import spark.Response;
 import spark.Route;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Base64;
 
 /**
- * Controller for the /achievements endpoint of the API
+ * Controller for the /quests endpoint of the API
  * @see Route
  * @since 0.7.0
  * @author chloe
  */
-public class AchievementsController {
+public class QuestsController {
 
-	private static JsonObject globalAchievements;
+	private static JsonObject globalQuests;
     static {
         try {
-            globalAchievements = JsonParser.parseString(HTTPUtil.
-	            get("https://api.hypixel.net/v2/resources/achievements").response()).getAsJsonObject();
-	        Nadeshiko.logger.info("Fetched and cached global achievements data from Hypixel!");
+	        globalQuests = JsonParser.parseString(HTTPUtil.
+	            get("https://api.hypixel.net/v2/resources/quests").response()).getAsJsonObject();
+			Nadeshiko.logger.info("Fetched and cached global quests data from Hypixel!");
         } catch (IOException e) {
-            Nadeshiko.logger.error("Failed to fetch global achievements!", e);
+            Nadeshiko.logger.error("Failed to fetch global quests!", e);
         }
     }
 
     /**
-	 * Route provider to serve the /achievements endpoint of the API
+	 * Route provider to serve the /quests endpoint of the API
 	 */
-	public static Route serveAchievementsEndpoint = (Request request, Response response) -> {
+	public static Route serveQuestsEndpoint = (Request request, Response response) -> {
 
 		// Ensure a name was provided
 		if (!request.queryParams().contains("name")) {
@@ -76,12 +73,11 @@ public class AchievementsController {
 
 		JsonObject responseJson = new JsonObject();
 		responseJson.addProperty("success", true);
-		responseJson.add("global", globalAchievements);
+		responseJson.add("global", globalQuests);
 
 		JsonObject player = new JsonObject();
 		player.add("profile", cached.getAsJsonObject("profile"));
-		player.add("achievements", cached.getAsJsonObject("achievements"));
-		player.add("achievements_one_time", cached.getAsJsonArray("achievements_one_time"));
+		player.add("quests", cached.getAsJsonObject("quests"));
 		responseJson.add("player", player);
 
 		response.type("application/json");
