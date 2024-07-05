@@ -1,0 +1,124 @@
+/*
+ * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ *
+ * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
+ * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
+ * included in all copies or substantial portions of this software.
+ *
+ * These works are provided "AS IS" with absolutely no warranty of any kind, either expressed or implied.
+ *
+ * You should have received a copy of the MIT License alongside this software; refer to LICENSE for information.
+ * If not, refer to https://mit-license.org.
+ */
+
+package io.nadeshiko.nadeshiko.stats;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import io.nadeshiko.nadeshiko.Nadeshiko;
+import io.nadeshiko.nadeshiko.util.HTTPUtil;
+import io.nadeshiko.nadeshiko.util.MinecraftColors;
+import lombok.NonNull;
+
+/**
+ * @author chloe
+ * @since 0.6.0
+ */
+public class GuildBuilder {
+
+    public JsonObject buildFromName(@NonNull String name) {
+        return this.build(this.fetchGuildFromName(name));
+    }
+
+    public JsonObject buildFromPlayer(@NonNull String name) {
+        return this.build(this.fetchGuildFromPlayer(name));
+    }
+
+    private JsonObject build(JsonObject guildData) {
+
+        if (guildData == null) {
+            return error("Couldn't fetch guild data!", 500);
+        }
+
+        JsonObject response = new JsonObject();
+        response.addProperty("success", true);
+        response.addProperty("name", guildData.get("name").getAsString());
+
+        // Not all guilds have a description
+        if (guildData.has("description")) {
+            response.addProperty("description", guildData.get("description").getAsString());
+        }
+
+        response.addProperty("tag", MinecraftColors.getCodeFromName(guildData.get("tagColor")
+            .getAsString()) + "[" + guildData.get("tag").getAsString() + "]");
+        response.addProperty("created", guildData.get("created").getAsLong());
+        response.addProperty("exp", guildData.get("exp").getAsInt());
+        response.add("preferred_games", guildData.getAsJsonArray("preferredGames"));
+        response.add("achievements", guildData.getAsJsonObject("achievements"));
+        response.add("ranks", guildData.getAsJsonArray("ranks"));
+
+        JsonArray members = new JsonArray();
+        for (JsonElement rawPlayer : guildData.getAsJsonArray("members")) {
+            JsonObject player = rawPlayer.getAsJsonObject();
+            JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString());
+
+            player.add("profile", playerStats.getAsJsonObject("profile"));
+            members.add(player);
+        }
+        response.add("members", members);
+
+        return response;
+    }
+
+    /**
+     * Generate a response, as a JsonObject, to indicate a failure with the given cause
+     * @param cause The reason for the failure - returned to the client in the response
+     * @return The response, as a JsonObject
+     */
+    private JsonObject error(@NonNull String cause, int status) {
+
+        JsonObject response = new JsonObject();
+
+        response.addProperty("success", false);
+        response.addProperty("status", status);
+        response.addProperty("cause", cause);
+
+        return response;
+    }
+
+    private JsonObject fetchGuildFromName(@NonNull String name) {
+        try {
+            HTTPUtil.Response response =
+                HTTPUtil.get("https://api.hypixel.net/v2/guild?name=" + name +
+                    "&key=" + Nadeshiko.INSTANCE.getHypixelKey());
+
+            return JsonParser.parseString(response.response()).getAsJsonObject().getAsJsonObject("guild");
+
+        } catch (Exception e) {
+            Nadeshiko.logger.error("Encountered error while looking up Hypixel guild \"{}\"", name, e);
+            Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+                "Encountered error while looking up Hypixel guild \"%s\"", name);
+
+            return null;
+        }
+    }
+
+    private JsonObject fetchGuildFromPlayer(@NonNull String player) {
+        try {
+            HTTPUtil.Response response =
+                HTTPUtil.get("https://api.hypixel.net/v2/guild?player=" + player +
+                    "&key=" + Nadeshiko.INSTANCE.getHypixelKey());
+
+            return JsonParser.parseString(response.response()).getAsJsonObject().getAsJsonObject("guild");
+
+        } catch (Exception e) {
+            Nadeshiko.logger.error("Encountered error while looking up {}'s Hypixel guild", player, e);
+            Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+                "Encountered error while looking up %s's Hypixel guild", player);
+
+            return null;
+        }
+    }
+}

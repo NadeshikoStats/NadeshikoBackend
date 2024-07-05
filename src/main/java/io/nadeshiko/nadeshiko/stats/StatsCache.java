@@ -60,6 +60,7 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 		this.cache.entrySet().removeIf(entry -> entry.getValue().isExpired());
 
 		// If the player is already in the cache, and the cache isn't outdated, use that instead
+		// TODO: this naive method can result in players being cached multiple times (dashed uuid, name, undashed uuid)
 		if (this.cache.containsKey(name)) {
 			return this.cache.get(name).data;
 		}

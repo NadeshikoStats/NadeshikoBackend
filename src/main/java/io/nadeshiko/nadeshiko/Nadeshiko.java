@@ -14,11 +14,11 @@
 package io.nadeshiko.nadeshiko;
 
 import com.google.gson.Gson;
-import io.nadeshiko.nadeshiko.api.CardController;
-import io.nadeshiko.nadeshiko.api.StatsController;
+import io.nadeshiko.nadeshiko.api.*;
 import io.nadeshiko.nadeshiko.cards.CardsCache;
 import io.nadeshiko.nadeshiko.monitoring.DiscordMonitor;
 import io.nadeshiko.nadeshiko.monitoring.StatisticsService;
+import io.nadeshiko.nadeshiko.stats.GuildCache;
 import io.nadeshiko.nadeshiko.stats.StatsCache;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import lombok.Getter;
@@ -44,7 +44,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.5.3";
+	public static String VERSION = "0.6.0-SNAPSHOT";
 	public static int DEFAULT_PORT = 2000;
 
 	/**
@@ -69,6 +69,12 @@ public class Nadeshiko {
 	 */
 	@Getter
 	private final CardsCache cardsCache = new CardsCache();
+
+	/**
+	 * The {@link GuildCache} instance of this backend instance
+	 */
+	@Getter
+	private final GuildCache guildCache = new GuildCache();
 
 	/**
 	 * The {@link StatisticsService} of this backend instance
@@ -152,6 +158,7 @@ public class Nadeshiko {
 		this.spark.init();
 
 		// Bind endpoints to their controllers
+		spark.get("/guild", GuildController.serveGuildEndpoint);
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/card/:data", CardController.serveCardEndpoint);
 		spark.get("/", (request, response) -> "Nadeshiko backend version " + VERSION);
