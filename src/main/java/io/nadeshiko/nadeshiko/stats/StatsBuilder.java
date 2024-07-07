@@ -334,7 +334,14 @@ public class StatsBuilder {
 				tag.replace("]", "] ") +
 					playerObj.get("displayname").getAsString());
 
-			profile.addProperty("first_login", playerObj.get("firstLogin").getAsLong());
+			// Add the first login
+			// For some reason, it seems as if this field can be missing in extremely rare cases. I've only been able
+			//   to observe it on "AaAkKkEeErRrAaA". More investigation is likely needed.
+			if (playerObj.has("firstLogin")) {
+				profile.addProperty("first_login", playerObj.get("firstLogin").getAsLong());
+			} else {
+				profile.addProperty("first_login", 0); // Default
+			}
 
 			// Add the last login
 			// Players can disable the last login from their API
