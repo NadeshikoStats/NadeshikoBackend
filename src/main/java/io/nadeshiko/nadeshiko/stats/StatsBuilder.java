@@ -56,37 +56,38 @@ public class StatsBuilder {
 		response.addProperty("name", playerData.get("username").getAsString());
 		response.addProperty("uuid", playerData.get("id").getAsString());
 
-		textures = this.fetchTextures(playerData.get("id").getAsString());
+		if (full) {
 
-		// Add the skin and model
-		if (textures != null && textures.has("SKIN")) {
-			final JsonObject skinObject = textures.getAsJsonObject("SKIN");
+			textures = this.fetchTextures(playerData.get("id").getAsString());
 
-			if (skinObject.has("url")) {
-				response.addProperty("skin", skinObject.get("url").getAsString());
-			}
+			// Add the skin and model
+			if (textures != null && textures.has("SKIN")) {
+				final JsonObject skinObject = textures.getAsJsonObject("SKIN");
 
-			// Read the metadata to get the model
-			if (skinObject.has("metadata")) {
-				final JsonObject metadata = skinObject.getAsJsonObject("metadata");
+				if (skinObject.has("url")) {
+					response.addProperty("skin", skinObject.get("url").getAsString());
+				}
 
-				if (metadata.has("model")) {
-					boolean slim = metadata.get("model").getAsString().equals("slim");
-					response.addProperty("slim", slim);
+				// Read the metadata to get the model
+				if (skinObject.has("metadata")) {
+					final JsonObject metadata = skinObject.getAsJsonObject("metadata");
+
+					if (metadata.has("model")) {
+						boolean slim = metadata.get("model").getAsString().equals("slim");
+						response.addProperty("slim", slim);
+					}
 				}
 			}
-		}
 
-		// Add the cape
-		if (textures != null && textures.has("CAPE")) {
-			final JsonObject capeObject = textures.getAsJsonObject("CAPE");
+			// Add the cape
+			if (textures != null && textures.has("CAPE")) {
+				final JsonObject capeObject = textures.getAsJsonObject("CAPE");
 
-			if (capeObject.has("url")) {
-				response.addProperty("cape", capeObject.get("url").getAsString());
+				if (capeObject.has("url")) {
+					response.addProperty("cape", capeObject.get("url").getAsString());
+				}
 			}
-		}
 
-		if (full) {
 			// Add the Hypixel status
 			final JsonObject hypixelStatus = this.fetchHypixelStatus(response.get("uuid").getAsString());
 			response.add("status", hypixelStatus);
