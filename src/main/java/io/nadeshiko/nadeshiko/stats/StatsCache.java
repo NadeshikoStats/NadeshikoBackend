@@ -70,8 +70,8 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 		// The player either isn't in the cache, or the cache is outdated. Build a new response
 		final JsonObject data = this.builder.build(name, full);
 
-		// Only cache the response if it was successful
-		if (data.get("success").getAsBoolean()) {
+		// Only cache the response if it was successful, and it was a full request
+		if (full && data.get("success").getAsBoolean()) {
 			this.cache.put(name, new CacheEntry(data));
 		}
 

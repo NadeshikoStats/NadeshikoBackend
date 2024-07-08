@@ -44,13 +44,13 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.7.2";
+	public static String VERSION = "0.7.3";
 	public static int DEFAULT_PORT = 2000;
 
 	/**
 	 * Global static logger
 	 */
-	public static Logger logger = LoggerFactory.getLogger(Nadeshiko.class);
+	public static Logger logger = LoggerFactory.getLogger("nadeshiko");
 
 	/**
 	 * The {@link DiscordMonitor} instance of this backend instance
@@ -140,7 +140,7 @@ public class Nadeshiko {
 
 		String censoredKey = this.hypixelKey.replaceAll("[^-]", "*");
 		String compositeKey = this.hypixelKey.substring(0, 7) + censoredKey.substring(8);
-		logger.info("Using Hypixel API key " + compositeKey);
+        logger.info("Using Hypixel API key {}", compositeKey);
 
 		// Test the connections to the APIs used
 		this.testApiConnections();
@@ -163,7 +163,7 @@ public class Nadeshiko {
 		spark.get("/guild", GuildController.serveGuildEndpoint);
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/quests", QuestsController.serveQuestsEndpoint);
-		spark.get("/", (request, response) -> "Nadeshiko backend version " + VERSION);
+		spark.get("/", (request, response) -> "nadeshiko backend version " + VERSION);
 
 		// Set up the shutdown method on JVM stop
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
