@@ -30,6 +30,8 @@ public abstract class CardProvider {
 
 	private Color color = Color.WHITE;
 
+	protected final Font tinyLight = new Font("Inter Medium", Font.PLAIN, 16);
+	protected final Font tinyBold = new Font("Inter Medium", Font.BOLD, 16);
 	protected final Font smallLight = new Font("Inter Medium", Font.PLAIN, 18);
 	protected final Font smallBold = new Font("Inter Medium", Font.BOLD, 18);
 	protected final Font mediumLight = new Font("Inter Medium", Font.PLAIN, 20);
