@@ -76,10 +76,11 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		// Draw the SkyBlock level
 		int level = profileData.getAsJsonObject("skyblock_level").get("level").getAsInt();
 		int maxLevel = profileData.getAsJsonObject("skyblock_level").get("maxLevel").getAsInt();
-		String levelText = "Level [" + level + "]";
+		String prefixColor = this.getPrefixColor(level);
+		String levelText = String.format("Level §8[%s" + level + "§8]", prefixColor);
 		g.setColor(level == maxLevel ? maxColor : Color.WHITE);
 		g.setFont(mediumBold);
-		g.drawString(levelText, 755 - g.getFontMetrics().stringWidth(levelText), 80);
+		MinecraftRenderer.drawCustomString(g,levelText, 755 - MinecraftRenderer.customWidth(g, levelText), 80);
 
 		// Draw the SkyBlock level bar
 		float progress = profileData.getAsJsonObject("skyblock_level").get("progress").getAsFloat();
@@ -115,8 +116,8 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		double networth = profileData.getAsJsonObject("networth").get("networth").getAsDouble();
 		double purse = profileData.getAsJsonObject("networth").get("purse").getAsDouble();
 		double bank = profileData.getAsJsonObject("networth").get("bank").getAsDouble();
-		String text = "MP " + mp + "        Networth " + NumberUtil.formatNumber(networth) + "        Purse " +
-			NumberUtil.formatNumber(purse) + "        Bank " + NumberUtil.formatNumber(bank);
+		String text = "MP  " + String.format("%,d", mp) + "           Networth " + NumberUtil.formatNumber(networth) +
+			"           Purse  " + NumberUtil.formatNumber(purse) + "           Bank  " + NumberUtil.formatNumber(bank);
 		g.setColor(new Color(181, 181, 181));
 		g.setFont(tinyLight);
 		g.drawString(text, (int) (1000 - g.getFontMetrics().stringWidth(text) / 2d), 255);
@@ -214,5 +215,35 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		// Draw the slayer progress
 		float progress = level == maxLevel ? 1 : data.getAsJsonObject("level").get("progress").getAsFloat();
 		this.drawProgress(g, x, y, 102, 8, progress, level == maxLevel ? maxColor : this.getColor());
+	}
+
+	private String getPrefixColor(int level) {
+		if (level < 40) {
+			return "§7";
+		} else if (level < 80) {
+			return "§f";
+		} else if (level < 120) {
+			return "§e";
+		} else if (level < 160) {
+			return "§a";
+		} else if (level < 200) {
+			return "§2";
+		} else if (level < 240) {
+			return "§b";
+		} else if (level < 280) {
+			return "§3";
+		} else if (level < 320) {
+			return "§9";
+		} else if (level < 360) {
+			return "§d";
+		} else if (level < 400) {
+			return "§5";
+		} else if (level < 440) {
+			return "§6";
+		} else if (level < 480) {
+			return "§c";
+		} else {
+			return "§4";
+		}
 	}
 }
