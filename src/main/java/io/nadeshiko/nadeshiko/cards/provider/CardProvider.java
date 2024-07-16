@@ -60,12 +60,16 @@ public abstract class CardProvider {
 	}
 
 	protected void drawProgress(Graphics2D g, int x, int y, int maxWidth, double progress) {
-		this.drawProgress(g, x, y, maxWidth, 8, progress);
+		this.drawProgress(g, x, y, maxWidth, 8, progress, this.color);
 	}
 
 	protected void drawProgress(Graphics2D g, int x, int y, int maxWidth, int height, double progress) {
+		this.drawProgress(g, x, y, maxWidth, height, progress, this.color);
+	}
+
+	protected void drawProgress(Graphics2D g, int x, int y, int maxWidth, int height, double progress, Color color) {
 		Color originalColor = g.getColor();
-		g.setColor(this.color);
+		g.setColor(color);
 
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g.fillRoundRect(x, y, (int) (progress * maxWidth), height, height, height);

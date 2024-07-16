@@ -44,7 +44,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.7.3";
+	public static String VERSION = "0.8.0-SNAPSHOT";
 	public static int DEFAULT_PORT = 2000;
 
 	/**

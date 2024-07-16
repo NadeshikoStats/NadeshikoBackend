@@ -24,6 +24,7 @@ public enum CardGame {
 	BUILD_BATTLE(BuildBattleCardProvider.class),
 	DUELS(DuelsCardProvider.class),
 	NETWORK(NetworkCardProvider.class),
+	SKYBLOCK_GENERAL(SkyBlockGeneralCardProvider.class),
 	SKYWARS(SkywarsCardProvider.class);
 
 	private final Class<? extends CardProvider> providerClass;
