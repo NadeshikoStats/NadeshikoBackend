@@ -13,6 +13,7 @@
 
 package io.nadeshiko.nadeshiko.stats;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -118,7 +119,7 @@ public class StatsBuilder {
 			if (hypixelStats.has("achievementsOneTime")) {
 				response.add("achievements_one_time", hypixelStats.get("achievementsOneTime").getAsJsonArray());
 			} else {
-				response.add("achievements_one_time", new JsonObject()); // Fallback if achievements are missing
+				response.add("achievements_one_time", new JsonArray()); // Fallback if achievements are missing
 			}
 
 			if (hypixelStats.has("quests")) {

@@ -46,6 +46,8 @@ public class AchievementsController {
         }
     }
 
+	private static long lastCacheTime = System.currentTimeMillis();
+
     /**
 	 * Route provider to serve the /achievements endpoint of the API
 	 */
@@ -57,6 +59,14 @@ public class AchievementsController {
 			response.type("application/json");
 			return "{\"success\":false,\"cause\":\"Missing name parameter\"}";
 		}
+
+		// Update the global cache if needed
+	    if (System.currentTimeMillis() - lastCacheTime > 1000 * 60 * 60) {
+		    globalAchievements = JsonParser.parseString(HTTPUtil.
+			    get("https://api.hypixel.net/v2/resources/achievements").response()).getAsJsonObject();
+		    Nadeshiko.logger.info("Fetched and updated global achievements data from Hypixel!");
+			lastCacheTime = System.currentTimeMillis();
+	    }
 
 		// Fetch the API response from the cache. If the cache doesn't already contain an up-to-date entry
 		//   for this player, one will be created and stored by the cache.
