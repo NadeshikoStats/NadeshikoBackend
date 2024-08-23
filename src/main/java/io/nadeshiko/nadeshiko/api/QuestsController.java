@@ -46,7 +46,9 @@ public class QuestsController {
         }
     }
 
-    /**
+	private static long lastCacheTime = System.currentTimeMillis();
+
+	/**
 	 * Route provider to serve the /quests endpoint of the API
 	 */
 	public static Route serveQuestsEndpoint = (Request request, Response response) -> {
@@ -57,6 +59,15 @@ public class QuestsController {
 			response.type("application/json");
 			return "{\"success\":false,\"cause\":\"Missing name parameter\"}";
 		}
+
+		// Update the global cache if needed
+		if (System.currentTimeMillis() - lastCacheTime > 1000 * 60 * 60) {
+			globalQuests = JsonParser.parseString(HTTPUtil.
+				get("https://api.hypixel.net/v2/resources/quests").response()).getAsJsonObject();
+			Nadeshiko.logger.info("Fetched and updated global quests data from Hypixel!");
+			lastCacheTime = System.currentTimeMillis();
+		}
+
 
 		// Fetch the API response from the cache. If the cache doesn't already contain an up-to-date entry
 		//   for this player, one will be created and stored by the cache.
