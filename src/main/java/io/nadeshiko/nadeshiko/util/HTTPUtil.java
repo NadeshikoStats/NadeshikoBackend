@@ -108,8 +108,8 @@ public class HTTPUtil {
 		URL url = new URL(urlString);
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("GET");
-		connection.setConnectTimeout(10000);
-		connection.setReadTimeout(10000);
+		connection.setConnectTimeout(30000);
+		connection.setReadTimeout(30000);
 
 		// Add the headers to the request, if any were provided
 		if (headers != null) {
