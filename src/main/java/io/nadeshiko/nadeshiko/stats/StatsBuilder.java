@@ -13,10 +13,7 @@
 
 package io.nadeshiko.nadeshiko.stats;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.util.hypixel.GuildLevel;
 import io.nadeshiko.nadeshiko.util.hypixel.NetworkLevel;
@@ -25,6 +22,8 @@ import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftColors;
 import lombok.NonNull;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.Base64;
 import java.util.Map;
 
@@ -34,7 +33,50 @@ import java.util.Map;
  */
 public class StatsBuilder {
 
+	/**
+	 * The cache of player badges, updated every hour
+	 */
+	private static JsonObject playerBadges;
+	static {
+        playerBadges = readPlayerBadges();
+        Nadeshiko.logger.info("Loaded and cached player badges");
+    }
+
+	/**
+	 * The time at which the player badge cache was last updated
+	 */
+	private static long lastCacheTime = System.currentTimeMillis();
+
+	/**
+	 * Reads the badges.json file
+	 * @return The contents of the badge.json file, or an empty JsonObject
+	 */
+	private static JsonObject readPlayerBadges() {
+		File configFile = new File("badges.json");
+
+		// Verify that the config file exists
+		if (!configFile.exists()) {
+			Nadeshiko.logger.warn("No badges.json was found! Is this intentional? Badges will not function.");
+			return new JsonObject();
+		}
+
+		// Read the config file, parse it, and store it in memory
+		try {
+			return JsonParser.parseString(Files.readString(configFile.toPath())).getAsJsonObject();
+		} catch (Exception e) {
+			Nadeshiko.logger.error("Failed to read badges.json! Badges will not function.");
+			return new JsonObject();
+		}
+	}
+
 	public JsonObject build(@NonNull String name, boolean full) {
+
+		// Update the badge cache if needed
+		if (System.currentTimeMillis() - lastCacheTime > 1000 * 60 * 60) {
+			playerBadges = readPlayerBadges();
+			Nadeshiko.logger.info("Loaded and updated player badges");
+			lastCacheTime = System.currentTimeMillis();
+		}
 
 		JsonObject response = new JsonObject();
 		response.addProperty("success", true);
@@ -56,6 +98,11 @@ public class StatsBuilder {
 		JsonObject playerData = minecraftProfile.getAsJsonObject("data").getAsJsonObject("player");
 		response.addProperty("name", playerData.get("username").getAsString());
 		response.addProperty("uuid", playerData.get("id").getAsString());
+
+		// Add badge, if applicable
+		if (playerBadges.has(playerData.get("id").getAsString())) {
+			response.addProperty("badge", playerBadges.get(playerData.get("id").getAsString()).getAsString());
+		}
 
 		if (full) {
 
