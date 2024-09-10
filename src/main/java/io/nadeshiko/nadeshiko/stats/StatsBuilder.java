@@ -99,9 +99,11 @@ public class StatsBuilder {
 		response.addProperty("name", playerData.get("username").getAsString());
 		response.addProperty("uuid", playerData.get("id").getAsString());
 
-		// Add badge, if applicable
+		// Add badge
 		if (playerBadges.has(playerData.get("id").getAsString())) {
 			response.addProperty("badge", playerBadges.get(playerData.get("id").getAsString()).getAsString());
+		} else {
+			response.addProperty("badge", "NONE");
 		}
 
 		if (full) {

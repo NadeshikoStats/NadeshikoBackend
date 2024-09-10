@@ -90,6 +90,7 @@ public class AchievementsController {
 		responseJson.add("global", globalAchievements);
 
 		JsonObject player = new JsonObject();
+		player.addProperty("badge", cached.get("badge").getAsString());
 		player.add("profile", cached.getAsJsonObject("profile"));
 		player.add("achievements", cached.getAsJsonObject("achievements"));
 		player.add("achievements_one_time", cached.getAsJsonArray("achievements_one_time"));
