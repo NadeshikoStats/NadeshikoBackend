@@ -61,6 +61,9 @@ public class GuildController {
         // Log the request
 //        Nadeshiko.logger.info("Serving stats for guild {}", cached.get("name").getAsString());
 
+        // Register the request with the stats service
+        Nadeshiko.INSTANCE.getStatsService().registerGuildRequest(cached.get("name").getAsString());
+
         // Return the data as provided from the cache
         response.type("application/json");
         return cached;

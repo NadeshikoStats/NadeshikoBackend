@@ -85,6 +85,9 @@ public class AchievementsController {
 		// Log the request
 		Nadeshiko.logger.info("Serving achievements for {}", request.queryParams("name"));
 
+	    // Register the request with the stats service
+	    Nadeshiko.INSTANCE.getStatsService().registerAchievementRequest(request.queryParams("name"));
+
 		JsonObject responseJson = new JsonObject();
 		responseJson.addProperty("success", true);
 		responseJson.add("global", globalAchievements);

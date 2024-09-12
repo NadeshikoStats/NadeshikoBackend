@@ -39,13 +39,12 @@ import java.util.concurrent.TimeUnit;
 public class StatisticsService implements Runnable {
 
 	/**
-	 * A registry of {@code /stats} requests this StatisticsService has logged within this session
+	 * A series of request registries this StatisticsService has logged within this session
 	 */
 	private final List<RequestEntry> statsRequests = Collections.synchronizedList(new ArrayList<>());
-
-	/**
-	 * A registry of {@code /card} requests this StatisticsService has logged within this session
-	 */
+	private final List<RequestEntry> questRequests = Collections.synchronizedList(new ArrayList<>());
+	private final List<RequestEntry> achievementRequests = Collections.synchronizedList(new ArrayList<>());
+	private final List<RequestEntry> guildRequests = Collections.synchronizedList(new ArrayList<>());
 	private final List<RequestEntry> cardRequests = Collections.synchronizedList(new ArrayList<>());
 
 	/**
@@ -67,19 +66,22 @@ public class StatisticsService implements Runnable {
 		scheduler.scheduleAtFixedRate(this, midnight, TimeUnit.DAYS.toMinutes(1), TimeUnit.MINUTES);
 	}
 
-	/**
-	 * Register a new request to the {@code /stats} endpoint with this StatisticsService
-	 * @param name The name of the player associated with the request
-	 */
 	public void registerStatsRequest(String name) {
 		this.statsRequests.add(new RequestEntry(name, null));
 	}
 
-	/**
-	 * Register a new request to the {@code /cards} endpoint with this StatisticsService
-	 * @param name The name of the player associated with the request
-	 * @param game The {@link CardGame} associated with the request
-	 */
+	public void registerQuestRequest(String name) {
+		this.questRequests.add(new RequestEntry(name, null));
+	}
+
+	public void registerAchievementRequest(String name) {
+		this.achievementRequests.add(new RequestEntry(name, null));
+	}
+
+	public void registerGuildRequest(String name) {
+		this.guildRequests.add(new RequestEntry(name, null));
+	}
+
 	public void registerCardRequest(String name, CardGame game) {
 		this.cardRequests.add(new RequestEntry(name, game.name()));
 	}
@@ -201,6 +203,9 @@ public class StatisticsService implements Runnable {
 			"Total requests today: **" + (this.statsRequests.size() + this.cardRequests.size()) + "**\\n" +
 			"\\n" +
 			"Total `/stats` requests today: **" + this.statsRequests.size() + "**\\n" +
+			"Total `/guild` requests today: **" + this.guildRequests.size() + "**\\n" +
+			"Total `/achievement` requests today: **" + this.achievementRequests.size() + "**\\n" +
+			"Total `/quest` requests today: **" + this.questRequests.size() + "**\\n" +
 			"Total `/card` requests today: **" + this.cardRequests.size() + "**\\n" +
 			"\\n" +
 			"**Hourly Visualization:**");
