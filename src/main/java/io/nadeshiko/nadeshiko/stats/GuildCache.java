@@ -91,17 +91,20 @@ public class GuildCache extends Cache<String, GuildCache.CacheEntry> {
         // Take this opportunity to remove all outdated cache entries to save memory
         this.cache.entrySet().removeIf(entry -> entry.getValue().isExpired());
 
+        // Get guild
+        JsonObject guild = this.builder.fetchGuildFromPlayer(player);
+
         // If the guild is already in the cache, and the cache isn't outdated, use that instead
-        if (this.cache.containsKey(player)) {
-            return this.cache.get(player).data;
+        if (guild != null && this.cache.containsKey(guild.get("name").getAsString())) {
+            return this.cache.get(guild.get("name").getAsString()).data;
         }
 
         // The guild either isn't in the cache, or the cache is outdated. Build a new response
         final JsonObject data = this.builder.buildFromPlayer(player);
 
         // Only cache the response if it was successful
-        if (data.get("success").getAsBoolean()) {
-            this.cache.put(player, new GuildCache.CacheEntry(data));
+        if (guild != null && data.get("success").getAsBoolean()) {
+            this.cache.put(guild.get("name").getAsString(), new GuildCache.CacheEntry(data));
         }
 
         return data;

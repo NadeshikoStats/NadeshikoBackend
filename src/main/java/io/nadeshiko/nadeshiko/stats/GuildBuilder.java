@@ -151,10 +151,11 @@ public class GuildBuilder {
         }
     }
 
-    private JsonObject fetchGuildFromPlayer(@NonNull String player) {
+    public JsonObject fetchGuildFromPlayer(@NonNull String player) {
         try {
+            String uuid = Nadeshiko.INSTANCE.getStatsCache().get(player, false).get("uuid").getAsString();
             HTTPUtil.Response response =
-                HTTPUtil.get("https://api.hypixel.net/v2/guild?player=" + player +
+                HTTPUtil.get("https://api.hypixel.net/v2/guild?player=" + uuid +
                     "&key=" + Nadeshiko.INSTANCE.getHypixelKey());
 
             return JsonParser.parseString(response.response()).getAsJsonObject().getAsJsonObject("guild");
