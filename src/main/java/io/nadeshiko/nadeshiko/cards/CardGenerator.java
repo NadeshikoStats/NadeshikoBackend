@@ -84,7 +84,7 @@ public class CardGenerator {
 
 			// Read the glow overlay from the resources
 			try (InputStream glowStream = CardGenerator.class.
-				getResourceAsStream("/cards/badge/" + badge + "-overlay.png")) {
+				getResourceAsStream("/cards/badge/" + badge.split("-")[0] + "-overlay.png")) {
 
 				if (glowStream != null) {
 					byte[] glowBytes = glowStream.readAllBytes();
