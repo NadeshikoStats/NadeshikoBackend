@@ -36,7 +36,7 @@ public class StatsBuilder {
 	/**
 	 * The cache of player badges, updated every hour
 	 */
-	private static JsonObject playerBadges;
+	public static JsonObject playerBadges;
 	static {
         playerBadges = readPlayerBadges();
         Nadeshiko.logger.info("Loaded and cached player badges");
@@ -260,7 +260,11 @@ public class StatsBuilder {
 			JsonObject session = jsonResponse.getAsJsonObject("session");
 			JsonObject object = new JsonObject();
 
-			object.addProperty("online", session.get("online").getAsBoolean());
+			if (session.has("online")) {
+				object.addProperty("online", session.get("online").getAsBoolean());
+			} else {
+				object.addProperty("online", false);
+			}
 
 			if (session.has("gameType")) {
 				object.addProperty("game", session.get("gameType").getAsString());

@@ -103,8 +103,20 @@ public class NetworkCardProvider extends CardProvider {
 		g.drawString("Name", 1065, 325);
 		g.setColor(Color.WHITE);
 		g.setFont(smallBold);
+		String name = guild.get("name").getAsString();
+		int dotWidth = g.getFontMetrics().stringWidth("...");
+		int width = MinecraftRenderer.customWidth(g, name + " " + guild.get("tag").getAsString());
+		boolean nameTruncated = false;
+		while (width > 300 - dotWidth) {
+			nameTruncated = true;
+			name = name.substring(0, Math.max(0, name.length() - 1));
+			width = MinecraftRenderer.customWidth(g, name + "... " + guild.get("tag").getAsString());
+		}
+		if (nameTruncated) {
+			name += "...";
+		}
 		MinecraftRenderer.drawCustomString(g,
-			guild.get("name").getAsString() + " " + guild.get("tag").getAsString(), 1125, 325);
+			name + " " + guild.get("tag").getAsString(), 1125, 325);
 
 		this.drawLabelValuePair(g, "Level",
 			String.format("%,d", guild.get("level").getAsInt()), 1065, 357);

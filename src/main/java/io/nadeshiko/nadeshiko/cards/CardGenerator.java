@@ -16,6 +16,7 @@ package io.nadeshiko.nadeshiko.cards;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
+import io.nadeshiko.nadeshiko.stats.StatsBuilder;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.ImageUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftRenderer;
@@ -46,12 +47,14 @@ public class CardGenerator {
 	public byte[] generateCard(CardGame game, JsonObject data) throws Exception {
 
 		String name = data.get("name").getAsString();
+		String badge = Nadeshiko.INSTANCE.getStatsCache().get(name, true).get("badge").getAsString();
+		boolean hasBadge = !badge.isEmpty() && !badge.equals("NONE");
 
 		BufferedImage card;
 		Graphics graphics;
 
 		// Read the template from the resources
-		try (InputStream templateStream =  CardGenerator.class.
+		try (InputStream templateStream = CardGenerator.class.
 			getResourceAsStream("/cards/templates/" + game.name() + ".png")) {
 
 			byte[] cardTemplateBytes;
@@ -67,14 +70,33 @@ public class CardGenerator {
 		}
 
 		// Fetch the player's stats
-		String statsString = HTTPUtil.get("http://localhost:2000/stats?name=" + name).response();
-		JsonObject statsResponse = JsonParser.parseString(statsString).getAsJsonObject();
+		JsonObject statsResponse = Nadeshiko.INSTANCE.getStatsCache().get(name, true);
 		JsonObject profileObject = statsResponse.getAsJsonObject("profile");
 
 		// Ensure the player is valid and fetching stats succeeded
 		if (!statsResponse.has("success") || !statsResponse.get("success").getAsBoolean()) {
 			Nadeshiko.INSTANCE.alert("Failed generating %s card for %s!", game.name(), name);
 			return statsResponse.toString().getBytes();
+		}
+
+		// Add glow, if applicable
+		if (hasBadge) {
+
+			// Read the glow overlay from the resources
+			try (InputStream glowStream = CardGenerator.class.
+				getResourceAsStream("/cards/badge/" + badge + "-overlay.png")) {
+
+				if (glowStream != null) {
+					byte[] glowBytes = glowStream.readAllBytes();
+					BufferedImage glowImage = ImageUtil.createImageFromBytes(glowBytes);
+
+					// Draw the glow
+					graphics.drawImage(glowImage, 0, 0, null);
+				} else {
+					Nadeshiko.INSTANCE.alert("Failed reading badge glow file for {}!", badge);
+					return null;
+				}
+			}
 		}
 
 		// Get the player render
@@ -89,11 +111,39 @@ public class CardGenerator {
 
 		// Draw the name tag
 		int width = MinecraftRenderer.minecraftWidth(graphics, profileObject.get("tagged_name").getAsString(), 40);
+		int textX = 300;
+
+		if (hasBadge) {
+			width += 34 + 10;
+			textX -= (34 + 10) / 2;
+		}
+
 		graphics.setColor(new Color(0, 0, 0, 128));
 		graphics.fillRect(300 - (width / 2) - 10, 83, width + 20, 50);
 
+		int nameWidth = MinecraftRenderer.minecraftWidth(graphics, profileObject.get("tagged_name").getAsString(), 40);
 		MinecraftRenderer.drawCenterMinecraftString(graphics,
-			profileObject.get("tagged_name").getAsString(), 300, 120, 40);
+			profileObject.get("tagged_name").getAsString(), textX, 120, 40);
+
+		// Add the badge, if applicable
+		if (hasBadge) {
+
+			// Read the badge from the resources
+			try (InputStream glowStream = CardGenerator.class.
+				getResourceAsStream("/cards/badge/" + badge + ".png")) {
+
+				if (glowStream != null) {
+					byte[] badgeBytes = glowStream.readAllBytes();
+					BufferedImage badgeImage = ImageUtil.createImageFromBytes(badgeBytes);
+
+					// Draw the badge
+					graphics.drawImage(badgeImage, textX + (nameWidth / 2) + 10, 91, null);
+				} else {
+					Nadeshiko.INSTANCE.alert("Failed reading badge file for %s!", badge);
+					return null;
+				}
+			}
+		}
 
 		// Populate the template using the game's provider
 		game.getProvider().generate(card, statsResponse);
