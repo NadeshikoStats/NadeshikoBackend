@@ -14,6 +14,7 @@
 package io.nadeshiko.nadeshiko.stats;
 
 import com.google.gson.JsonObject;
+import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.api.StatsController;
 import io.nadeshiko.nadeshiko.util.Cache;
 import lombok.Getter;
@@ -73,6 +74,11 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 		// Only cache the response if it was successful, and it was a full request
 		if (full && data.get("success").getAsBoolean()) {
 			this.cache.put(name, new CacheEntry(data));
+		}
+
+		// Save the player data into the leaderboard database
+		if (data.get("success").getAsBoolean()) {
+			Nadeshiko.INSTANCE.getLeaderboardService().insertPlayer(data);
 		}
 
 		return data;

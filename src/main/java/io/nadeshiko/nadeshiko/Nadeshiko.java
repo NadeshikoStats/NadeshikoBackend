@@ -16,6 +16,7 @@ package io.nadeshiko.nadeshiko;
 import com.google.gson.Gson;
 import io.nadeshiko.nadeshiko.api.*;
 import io.nadeshiko.nadeshiko.cards.CardsCache;
+import io.nadeshiko.nadeshiko.leaderboards.LeaderboardService;
 import io.nadeshiko.nadeshiko.monitoring.DiscordMonitor;
 import io.nadeshiko.nadeshiko.monitoring.StatisticsService;
 import io.nadeshiko.nadeshiko.stats.GuildCache;
@@ -44,7 +45,8 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.8.8";
+	public static String VERSION = "0.9.0-SNAPSHOT";
+	public static String DEFAULT_DATABASE = "mongodb://localhost:27017";
 	public static int DEFAULT_PORT = 2000;
 
 	/**
@@ -83,6 +85,12 @@ public class Nadeshiko {
 	private final StatisticsService statsService = new StatisticsService();
 
 	/**
+	 * The {@link LeaderboardService} of this backend instance
+	 */
+	@Getter
+	private final LeaderboardService leaderboardService = new LeaderboardService();
+
+	/**
 	 * The timestamp at which this instance began startup
 	 */
 	private long startTime;
@@ -119,12 +127,24 @@ public class Nadeshiko {
 	public void startup() {
 		this.startTime = System.currentTimeMillis();
 
+		// Pre-release warning
+		if (VERSION.contains("SNAPSHOT")) {
+			logger.warn("============================ WARNING ===========================");
+			logger.warn("This is a pre-release version of nadeshiko. (version {})", VERSION);
+			logger.warn("Do NOT use this version in production; it may be unstable!");
+			logger.warn("================================================================");
+		}
+
 		// Read config file
 		this.readConfig();
 
 		// Start the Discord monitor, if enabled
 		this.igniteDiscordMonitor();
 		discordMonitor.log("Igniting Nadeshiko...");
+
+		// Connect to the leaderboard database, creating the collections if required
+		String uri = this.config.containsKey("database") ? (String) this.config.get("database") : DEFAULT_DATABASE;
+		this.leaderboardService.connect(uri);
 
 		// Read the API key from the config file
 		this.hypixelKey = (String) this.config.get("hypixel_key");
@@ -163,6 +183,7 @@ public class Nadeshiko {
 		spark.get("/guild", GuildController.serveGuildEndpoint);
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/quests", QuestsController.serveQuestsEndpoint);
+		spark.get("/leaderboard", LeaderboardController.serverLeaderboardEndpoint);
 		spark.get("/", (request, response) -> "nadeshiko backend version " + VERSION);
 
 		// Set up the shutdown method on JVM stop
@@ -178,6 +199,9 @@ public class Nadeshiko {
 	 */
 	public void shutdown() {
 		logger.info("Stopping!");
+
+		// Disconnect from the database
+		this.leaderboardService.disconnect();
 
 		// Stop the Spark instance
 		this.spark.stop();
