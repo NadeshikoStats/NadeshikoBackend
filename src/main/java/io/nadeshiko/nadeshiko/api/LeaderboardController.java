@@ -42,7 +42,7 @@ public class LeaderboardController {
         }
 
         // Ensure that the provided leaderboard is valid
-        if (Leaderboard.getByKey(request.queryParams("leaderboard")) == null) {
+        if (Leaderboard.get(request.queryParams("leaderboard")) == null) {
             response.status(400);
             response.type("application/json");
             return "{\"success\":false,\"cause\":\"Unknown leaderboard!\"}";
@@ -59,6 +59,6 @@ public class LeaderboardController {
 
         response.type("application/json");
         return Nadeshiko.INSTANCE.getLeaderboardService()
-            .get(Objects.requireNonNull(Leaderboard.getByKey(request.queryParams("leaderboard"))), page);
+            .get(Objects.requireNonNull(Leaderboard.get(request.queryParams("leaderboard"))), page);
     };
 }

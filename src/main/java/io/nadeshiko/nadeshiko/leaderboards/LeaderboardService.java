@@ -13,10 +13,13 @@
 
 package io.nadeshiko.nadeshiko.leaderboards;
 
+import static io.nadeshiko.nadeshiko.leaderboards.Leaderboard.*;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mongodb.*;
 import com.mongodb.client.*;
+import io.nadeshiko.nadeshiko.cards.provider.impl.BedwarsCardProvider;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,18 +85,26 @@ public class LeaderboardService {
      */
     public void insertPlayer(JsonObject player) {
 
-        // Base profile
         JsonObject profile = player.getAsJsonObject("profile");
-        Document playerDocument = new Document()
+        JsonObject stats = player.getAsJsonObject("stats");
+        Document playerDocument = new Document();
+
+        // Network
+        playerDocument
             .append("uuid", player.get("uuid").getAsString())
             .append("tagged_name", profile.get("tagged_name").getAsString())
             .append("time", System.currentTimeMillis())
-            .append("first_login", profile.get("first_login").getAsLong())
-            .append("network_level", profile.get("network_level").getAsFloat())
-            .append("achievement_points", profile.get("achievement_points").getAsInt())
-            .append("karma", profile.get("karma").getAsInt())
-            .append("ranks_gifted", profile.get("ranks_gifted").getAsInt())
-            .append("quests_completed", profile.get("quests_completed").getAsInt());
+            .append(FIRST_LOGIN.name(), profile.get("first_login").getAsLong())
+            .append(NETWORK_LEVEL.name(), profile.get("network_level").getAsFloat())
+            .append(ACHIEVEMENT_POINTS.name(), profile.get("achievement_points").getAsInt())
+            .append(KARMA.name(), profile.get("karma").getAsInt())
+            .append(RANKS_GIFTED.name(), profile.get("ranks_gifted").getAsInt())
+            .append(QUESTS_COMPLETED.name(), profile.get("quests_completed").getAsInt());
+
+        // Bed Wars
+        JsonObject bedWars = stats.getAsJsonObject("Bedwars");
+        playerDocument
+            .append(BEDWARS_EXP.name(), bedWars.get("Experience").getAsLong());
 
         // Delete old player stats, if present
         this.nadeshikoDatabase.getCollection("stats")
@@ -107,10 +118,12 @@ public class LeaderboardService {
         JsonArray array = new JsonArray();
 
         long entries = this.nadeshikoDatabase.getCollection("stats")
-            .countDocuments(new Document(leaderboard.getKey(), new Document("$ne", 0)));
+            .countDocuments(new Document(leaderboard.name(), new Document("$ne", 0))
+                .append(leaderboard.name(), new Document("$exists", true)));
 
         List<Document> documents = this.getDocuments(leaderboard, page);
         for (int i = 0; i < documents.size(); i++) {
+
             Document document = documents.get(i);
             int start = (page - 1) * 100 + 1;
 
@@ -119,7 +132,7 @@ public class LeaderboardService {
             entry.addProperty("tagged_name", document.getString("tagged_name"));
             entry.addProperty("ranking", start + i);
             entry.addProperty("percentile", 100 - ((start + i) / (double) entries) * 100);
-            entry.addProperty("value", document.get(leaderboard.getKey()).toString());
+            entry.addProperty("value", document.get(leaderboard.name()).toString());
             array.add(entry);
         }
 
@@ -127,8 +140,9 @@ public class LeaderboardService {
     }
 
     private List<Document> getDocuments(Leaderboard leaderboard, int page) {
-        Document filter = new Document(leaderboard.getKey(), new Document("$ne", 0));
-        Document sort = new Document(leaderboard.getKey(), leaderboard.getSortDirection()).append("uuid", -1);
+        Document filter = new Document(leaderboard.name(), new Document("$ne", 0))
+            .append(leaderboard.name(), new Document("$exists", true));
+        Document sort = new Document(leaderboard.name(), leaderboard.getSortDirection()).append("uuid", -1);
 
         // Query the stats collection, apply the filter, sort and limit the results
         try (MongoCursor<Document> cursor = this.nadeshikoDatabase.getCollection("stats")

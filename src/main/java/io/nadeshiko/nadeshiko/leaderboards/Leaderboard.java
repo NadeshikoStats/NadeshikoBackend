@@ -19,19 +19,63 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum Leaderboard {
-    FIRST_LOGIN("first_login", 1),
-    NETWORK_LEVEL("network_level", -1),
-    ACHIEVEMENT_POINTS("achievement_points", -1),
-    KARMA("karma", -1),
-    RANKS_GIFTED("ranks_gifted", -1),
-    QUESTS_COMPLETED("quests_completed", -1);
 
-    private final String key;
+    // Network
+    FIRST_LOGIN(1),
+    NETWORK_LEVEL,
+    ACHIEVEMENT_POINTS,
+    KARMA,
+    RANKS_GIFTED,
+    QUESTS_COMPLETED,
+
+    // Bed Wars
+    BEDWARS_EXP,
+    BEDWARS_TICKETS,
+    BEDWARS_TICKETS_EARNED,
+    BEDWARS_COMPLETED_CHALLENGES,
+    BEDWARS_COLLECTED_EMERALDS,
+    BEDWARS_COLLECTED_DIAMONDS,
+    BEDWARS_WINS,
+    BEDWARS_WLR,
+    BEDWARS_FINALS,
+    BEDWARS_FKDR,
+    BEDWARS_KILLS,
+    BEDWARS_KDR,
+    BEDWARS_BEDS,
+    BEDWARS_BBLR,
+    BEDWARS_SOLO_WINS,
+    BEDWARS_SOLO_WLR,
+    BEDWARS_SOLO_FINALS,
+    BEDWARS_SOLO_FKDR,
+    BEDWARS_DOUBLES_WINS,
+    BEDWARS_DOUBLES_WLR,
+    BEDWARS_DOUBLES_FINALS,
+    BEDWARS_DOUBLES_FKDR,
+    BEDWARS_THREES_WINS,
+    BEDWARS_THREES_WLR,
+    BEDWARS_THREES_FINALS,
+    BEDWARS_THREES_FKDR,
+    BEDWARS_FOURS_WINS,
+    BEDWARS_FOURS_WLR,
+    BEDWARS_FOURS_FINALS,
+    BEDWARS_FOURS_FKDR,
+    BEDWARS_FOURVFOUR_WINS,
+    BEDWARS_FOURVFOUR_WLR,
+    BEDWARS_FOURVFOUR_FINALS,
+    BEDWARS_FOURVFOUR_FKDR;
+
+    Leaderboard() {
+        this(-1); // default to descending
+    }
+
+    /**
+     * The direction this leaderboard sorts in: -1 is descending, 1 is ascending. Defaults to descending.
+     */
     private final int sortDirection;
 
-    public static Leaderboard getByKey(String key) {
+    public static Leaderboard get(String name) {
         for (Leaderboard leaderboard : Leaderboard.values()) {
-            if (leaderboard.key.equals(key)) {
+            if (leaderboard.name().equals(name)) {
                 return leaderboard;
             }
         }

@@ -220,7 +220,7 @@ public class BedwarsCardProvider extends CardProvider {
 		return modes;
 	}
 
-	private static double getBedWarsLevel(double exp) {
+	public static double getBedWarsLevel(double exp) {
 		int level = 100 * ((int)(exp / 487000));
 		exp = exp % 487000;
 		if(exp < 500) return level + exp / 500;
@@ -251,7 +251,7 @@ public class BedwarsCardProvider extends CardProvider {
 
 	@Getter
 	@AllArgsConstructor
-	private enum Prestige {
+	public enum Prestige {
 
 		// 0 - 900
 		STONE(0, star -> "§7[" + star + "✫]"),
