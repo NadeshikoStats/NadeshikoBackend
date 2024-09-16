@@ -109,6 +109,31 @@ public class LeaderboardService {
             }
         }
 
+        // Duels
+        JsonObject duels = stats.getAsJsonObject("Duels");
+        for (Leaderboard leaderboard : values()) {
+            if (leaderboard.name().startsWith("DUELS")) {
+                playerDocument.append(leaderboard.name(), leaderboard.derive(duels));
+            }
+        }
+
+        // Pit
+        JsonObject pit = stats.getAsJsonObject("Pit").getAsJsonObject("pit_stats_ptl");
+        for (Leaderboard leaderboard : values()) {
+            if (leaderboard.name().startsWith("PIT")) {
+                playerDocument.append(leaderboard.name(), leaderboard.derive(pit));
+            }
+        }
+
+        // SkyWars
+        JsonObject skyWars = stats.getAsJsonObject("SkyWars");
+        for (Leaderboard leaderboard : values()) {
+            if (leaderboard.name().startsWith("SKYWARS")) {
+                playerDocument.append(leaderboard.name(), leaderboard.derive(skyWars));
+            }
+        }
+
+
         // Delete old player stats, if present
         this.nadeshikoDatabase.getCollection("stats")
             .deleteMany(new Document("uuid", player.get("uuid").getAsString()));
@@ -121,14 +146,19 @@ public class LeaderboardService {
     public JsonArray get(Leaderboard leaderboard, int page) {
         JsonArray array = new JsonArray();
 
-        long entries = this.nadeshikoDatabase.getCollection("stats")
-            .countDocuments(new Document(leaderboard.name(), new Document("$ne", 0)));
+        long entries = this.nadeshikoDatabase.getCollection("stats").countDocuments(
+            new Document(leaderboard.name(), new Document("$exists", true).append("$ne", 0))
+        );
 
         List<Document> documents = this.getDocuments(leaderboard, page);
         for (int i = 0; i < documents.size(); i++) {
 
             Document document = documents.get(i);
             int start = (page - 1) * 100 + 1;
+
+            if (document.get(leaderboard.name()) == null) {
+                continue;
+            }
 
             JsonObject entry = new JsonObject();
             entry.addProperty("uuid", document.getString("uuid"));
@@ -143,7 +173,7 @@ public class LeaderboardService {
     }
 
     private List<Document> getDocuments(Leaderboard leaderboard, int page) {
-        Document filter = new Document(leaderboard.name(), new Document("$ne", 0));
+        Document filter = new Document(leaderboard.name(), new Document("$exists", true).append("$ne", 0));
         Document sort = new Document(leaderboard.name(), leaderboard.getSortDirection()).append("uuid", -1);
 
         // Query the stats collection, apply the filter, sort and limit the results

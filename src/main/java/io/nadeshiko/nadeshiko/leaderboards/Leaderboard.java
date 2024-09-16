@@ -75,7 +75,80 @@ public enum Leaderboard {
     BEDWARS_FOURVFOUR_WINS(bw -> bw.get("two_four_wins_bedwars").getAsInt()),
     BEDWARS_FOURVFOUR_WLR(bw -> bw.get("two_four_wins_bedwars").getAsDouble() / bw.get("two_four_losses_bedwars").getAsDouble()),
     BEDWARS_FOURVFOUR_FINALS(bw -> bw.get("two_four_final_kills_bedwars").getAsInt()),
-    BEDWARS_FOURVFOUR_FKDR(bw -> bw.get("two_four_final_kills_bedwars").getAsDouble() / bw.get("two_four_final_deaths_bedwars").getAsDouble());
+    BEDWARS_FOURVFOUR_FKDR(bw -> bw.get("two_four_final_kills_bedwars").getAsDouble() / bw.get("two_four_final_deaths_bedwars").getAsDouble()),
+
+    /**
+     * Duels leaderboards.
+     * Derivation functions of leaderboards in this category take in the /stats/Duels object.
+     */
+    DUELS_CLICKS(duels -> duels.get("melee_swings").getAsInt()),
+    DUELS_WINS(duels -> duels.get("wins").getAsInt()),
+    DUELS_WLR(duels -> duels.get("wins").getAsDouble() / duels.get("losses").getAsDouble()),
+    DUELS_KILLS(duels -> duels.get("kills").getAsInt()),
+    DUELS_DAMAGE_DEALT(duels -> duels.get("damage_dealt").getAsLong()),
+    DUELS_HEALTH_REGENERATED(duels -> duels.get("health_regenerated").getAsLong()),
+    DUELS_WINSTREAK(duels -> duels.get("current_winstreak").getAsInt()),
+    DUELS_BEST_WINSTREAK(duels -> duels.get("best_overall_winstreak").getAsInt()),
+    DUELS_BRIDGE_WINS(duels -> duels.get("bridge_duel_wins").getAsInt()),
+    DUELS_BRIDGE_GOALS(duels -> duels.get("bridge_duel_goals").getAsInt()),
+    DUELS_SW_WINS(duels -> duels.get("sw_duel_wins").getAsInt()),
+    DUELS_CLASSIC_WINS(duels -> duels.get("classic_duel_wins").getAsInt()),
+    DUELS_UHC_WINS(duels -> duels.get("uhc_duel_wins").getAsInt()),
+    DUELS_SUMO_WINS(duels -> duels.get("sumo_duel_wins").getAsInt()),
+    DUELS_PARKOUR_WINS(duels -> duels.get("parkour_eight_wins").getAsInt()),
+    DUELS_BLITZ_WINS(duels -> duels.get("blitz_duel_wins").getAsInt()),
+    DUELS_BOW_WINS(duels -> duels.get("bow_duel_wins").getAsInt()),
+    DUELS_MW_WINS(duels -> duels.get("mw_duel_wins").getAsInt()),
+    DUELS_BOWSPLEEF_WINS(duels -> duels.get("bowspleef_duel_wins").getAsInt()),
+    DUELS_OP_WINS(duels -> duels.get("op_duel_wins").getAsInt()),
+    DUELS_COMBO_WINS(duels -> duels.get("combo_duel_wins").getAsInt()),
+    DUELS_BOXING_WINS(duels -> duels.get("boxing_duel_wins").getAsInt()),
+    DUELS_NODEBUFF_WINS(duels -> duels.get("potion_duel_wins").getAsInt()),
+    DUELS_ARENA_WINS(duels -> duels.get("duel_arena_wins").getAsInt()),
+
+    /**
+     * Pit leaderboards.
+     * Derivation functions of leaderboards in this category take in the /stats/Pit/pit_stats_ptl object.
+     */
+    PIT_JOINS(pit -> pit.get("joins").getAsInt()),
+    PIT_PLAYTIME(pit -> pit.get("playtime_minutes").getAsInt()),
+    PIT_CHAT_MESSAGES(pit -> pit.get("chat_messages").getAsInt()),
+    PIT_CLICKS(pit -> pit.get("left_clicks").getAsInt()),
+    PIT_KILLS(pit -> pit.get("kills").getAsInt()),
+    PIT_KDR(pit -> pit.get("kills").getAsDouble() / pit.get("deaths").getAsDouble()),
+    PIT_WHEAT_FARMED(pit -> pit.get("wheat_farmed").getAsInt()),
+
+    /**
+     * SkyWars leaderboards.
+     * Derivation functions of leaderboards in this category take in the /stats/SkyWars object.
+     */
+    SKYWARS_EXP(sw -> sw.get("skywars_experience").getAsInt()),
+    SKYWARS_LONGEST_BOW_KILL(sw -> Math.max(sw.get("longest_bow_kill").getAsInt(), sw.get("longest_bow_kill_team").getAsInt())),
+    SKYWARS_WINSTREAK(sw -> sw.get("win_streak").getAsInt()),
+    SKYWARS_WINS(sw -> sw.get("wins").getAsInt()),
+    SKYWARS_WLR(sw -> sw.get("wins").getAsDouble() / sw.get("losses").getAsDouble()),
+    SKYWARS_KILLS(sw -> sw.get("kills").getAsInt()),
+    SKYWARS_KDR(sw -> sw.get("kills").getAsDouble() / sw.get("deaths").getAsDouble()),
+    SKYWARS_SOLO_NORMAL_WINS(sw -> sw.get("wins_solo_normal").getAsInt()),
+    SKYWARS_SOLO_NORMAL_WLR(sw -> sw.get("wins_solo_normal").getAsDouble() / sw.get("losses_solo_normal").getAsDouble()),
+    SKYWARS_SOLO_NORMAL_KILLS(sw -> sw.get("kills_solo_normal").getAsInt()),
+    SKYWARS_SOLO_NORMAL_KDR(sw -> sw.get("kills_solo_normal").getAsDouble() / sw.get("deaths_solo_normal").getAsDouble()),
+    SKYWARS_SOLO_INSANE_WINS(sw -> sw.get("wins_solo_insane").getAsInt()),
+    SKYWARS_SOLO_INSANE_WLR(sw -> sw.get("wins_solo_insane").getAsDouble() / sw.get("losses_solo_insane").getAsDouble()),
+    SKYWARS_SOLO_INSANE_KILLS(sw -> sw.get("kills_solo_insane").getAsInt()),
+    SKYWARS_SOLO_INSANE_KDR(sw -> sw.get("kills_solo_insane").getAsDouble() / sw.get("deaths_solo_insane").getAsDouble()),
+    SKYWARS_TEAM_NORMAL_WINS(sw -> sw.get("wins_team_normal").getAsInt()),
+    SKYWARS_TEAM_NORMAL_WLR(sw -> sw.get("wins_team_normal").getAsDouble() / sw.get("losses_team_normal").getAsDouble()),
+    SKYWARS_TEAM_NORMAL_KILLS(sw -> sw.get("kills_team_normal").getAsInt()),
+    SKYWARS_TEAM_NORMAL_KDR(sw -> sw.get("kills_team_normal").getAsDouble() / sw.get("deaths_team_normal").getAsDouble()),
+    SKYWARS_TEAM_INSANE_WINS(sw -> sw.get("wins_team_insane").getAsInt()),
+    SKYWARS_TEAM_INSANE_WLR(sw -> sw.get("wins_team_insane").getAsDouble() / sw.get("losses_team_insane").getAsDouble()),
+    SKYWARS_TEAM_INSANE_KILLS(sw -> sw.get("kills_team_insane").getAsInt()),
+    SKYWARS_TEAM_INSANE_KDR(sw -> sw.get("kills_team_insane").getAsDouble() / sw.get("deaths_team_insane").getAsDouble()),
+
+
+
+    ;
 
     /**
      * Create a new leaderboard with a default sort direction of descending
