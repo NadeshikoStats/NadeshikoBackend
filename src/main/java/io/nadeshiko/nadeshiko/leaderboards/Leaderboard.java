@@ -25,7 +25,6 @@ import java.util.function.Function;
  * @author chloe
  * @since 0.9.0
  */
-@Getter
 @RequiredArgsConstructor
 public enum Leaderboard {
 
@@ -98,6 +97,7 @@ public enum Leaderboard {
     /**
      * The direction this leaderboard sorts in: -1 is descending, 1 is ascending. Defaults to descending.
      */
+    @Getter
     private final int sortDirection;
 
     /**

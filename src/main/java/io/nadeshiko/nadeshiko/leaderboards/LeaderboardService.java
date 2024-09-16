@@ -19,7 +19,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mongodb.*;
 import com.mongodb.client.*;
-import io.nadeshiko.nadeshiko.cards.provider.impl.BedwarsCardProvider;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,12 +87,14 @@ public class LeaderboardService {
         JsonObject stats = player.getAsJsonObject("stats");
         Document playerDocument = new Document();
 
-        // Network
+        // Base
         JsonObject profile = player.getAsJsonObject("profile");
         playerDocument
             .append("uuid", player.get("uuid").getAsString())
             .append("tagged_name", profile.get("tagged_name").getAsString())
             .append("time", System.currentTimeMillis());
+
+        // Network
         for (Leaderboard leaderboard : values()) {
             if (leaderboard.name().startsWith("NETWORK")) {
                 playerDocument.append(leaderboard.name(), leaderboard.derive(profile));
@@ -112,6 +113,7 @@ public class LeaderboardService {
         this.nadeshikoDatabase.getCollection("stats")
             .deleteMany(new Document("uuid", player.get("uuid").getAsString()));
 
+        // Insert new stats
         this.nadeshikoDatabase.getCollection("stats").insertOne(playerDocument);
     }
 
@@ -120,8 +122,7 @@ public class LeaderboardService {
         JsonArray array = new JsonArray();
 
         long entries = this.nadeshikoDatabase.getCollection("stats")
-            .countDocuments(new Document(leaderboard.name(), new Document("$ne", 0))
-                .append(leaderboard.name(), new Document("$exists", true)));
+            .countDocuments(new Document(leaderboard.name(), new Document("$ne", 0)));
 
         List<Document> documents = this.getDocuments(leaderboard, page);
         for (int i = 0; i < documents.size(); i++) {
@@ -142,8 +143,7 @@ public class LeaderboardService {
     }
 
     private List<Document> getDocuments(Leaderboard leaderboard, int page) {
-        Document filter = new Document(leaderboard.name(), new Document("$ne", 0))
-            .append(leaderboard.name(), new Document("$exists", true));
+        Document filter = new Document(leaderboard.name(), new Document("$ne", 0));
         Document sort = new Document(leaderboard.name(), leaderboard.getSortDirection()).append("uuid", -1);
 
         // Query the stats collection, apply the filter, sort and limit the results
