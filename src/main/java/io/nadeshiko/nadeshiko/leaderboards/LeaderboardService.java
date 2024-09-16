@@ -23,6 +23,8 @@ import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,6 +71,9 @@ public class LeaderboardService {
 
         this.mongoClient = MongoClients.create(new ConnectionString(uri));
         this.nadeshikoDatabase = this.mongoClient.getDatabase("nadeshiko");
+
+        // Dump leaderboards
+        this.dumpLeaderboards();
     }
 
     /**
@@ -165,5 +170,29 @@ public class LeaderboardService {
      */
     private void update() {
 
+    }
+
+    private void dumpLeaderboards() {
+        JsonObject lbsObject = new JsonObject();
+
+        for (LeaderboardCategory category : LeaderboardCategory.values()) {
+            JsonArray array = new JsonArray();
+
+            for (Leaderboard leaderboard : values()) {
+                if (leaderboard.getCategory().equals(category)) {
+                    array.add(leaderboard.name());
+                }
+            }
+
+            lbsObject.add(category.name(), array);
+        }
+
+        try {
+            File leaderboards = new File("leaderboards.json");
+            Files.write(leaderboards.toPath(), lbsObject.toString().getBytes());
+            logger.info("Dumped leaderboards to leaderboards.json");
+        } catch (Exception e) {
+            logger.error("Failed to dump leaderboards!", e);
+        }
     }
 }

@@ -45,7 +45,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.9.1";
+	public static String VERSION = "0.9.2";
 	public static String DEFAULT_DATABASE = "mongodb://localhost:27017";
 	public static int DEFAULT_PORT = 2000;
 
@@ -126,7 +126,7 @@ public class Nadeshiko {
 	 */
 	public void startup() {
 		this.startTime = System.currentTimeMillis();
-		logger.info("Igniting nadeshiko... ({})", VERSION);
+		logger.info("Igniting nadeshiko... (version {})", VERSION);
 
 		// Pre-release warning
 		if (VERSION.contains("SNAPSHOT")) {
@@ -191,6 +191,7 @@ public class Nadeshiko {
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
 
 		double startSeconds = ((System.currentTimeMillis() - startTime) / 1000f);
+		startSeconds = Math.round(startSeconds * 100) / 100d;
 		logger.info("nadeshiko is now up! Took {} seconds to ignite!", startSeconds);
 		discordMonitor.ok("nadeshiko is now up! Took %f seconds to ignite!", startSeconds);
 	}

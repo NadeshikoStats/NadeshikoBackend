@@ -174,9 +174,29 @@ public enum Leaderboard {
     MURDER_MYSTERY_DETECTIVE_WINS(MURDER_MYSTERY, mm -> mm.get("detective_wins").getAsInt()),
     MURDER_MYSTERY_WINS(MURDER_MYSTERY, mm -> mm.get("wins").getAsInt()),
     MURDER_MYSTERY_WINS_CLASSIC(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_CLASSIC").getAsInt()),
-    MURDER_MYSTERY_WINS_HARDCORE(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_HARDCORE").getAsInt()),
-    MURDER_MYSTERY_WINS_DOUBLES(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_DOUBLE_UP").getAsInt()),
-    MURDER_MYSTERY_WINS_INFECTION(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_INFECTION").getAsInt());
+    MURDER_MYSTERY_WINS_DOUBLE_UP(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_DOUBLE_UP").getAsInt()),
+    MURDER_MYSTERY_WINS_ASSASSINS(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_ASSASSINS").getAsInt()),
+    MURDER_MYSTERY_WINS_INFECTION(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_INFECTION").getAsInt()),
+
+    /**
+     * TNT Games leaderboards.
+     * Derivation functions of leaderboards in this category take in the /stats/TNTGames object.
+     * @see LeaderboardCategory#TNT_GAMES
+     */
+    TNT_GAMES_WINS(TNT_GAMES, tnt -> tnt.get("wins").getAsInt()),
+    TNT_GAMES_WINS_WIZARDS(TNT_GAMES, tnt -> tnt.get("wins_capture").getAsInt()),
+    TNT_GAMES_WINS_TNTRUN(TNT_GAMES, tnt -> tnt.get("wins_tntrun").getAsInt()),
+    TNT_GAMES_WINS_BOWSPLEEF(TNT_GAMES, tnt -> tnt.get("wins_bowspleef").getAsInt()),
+    TNT_GAMES_WINS_PVPRUN(TNT_GAMES, tnt -> tnt.get("wins_pvprun").getAsInt()),
+    TNT_GAMES_WINS_TNTTAG(TNT_GAMES, tnt -> tnt.get("wins_tntag").getAsInt()),
+    TNT_GAMES_KILLS_WIZARDS(TNT_GAMES, tnt -> tnt.get("kills_capture").getAsInt()),
+    TNT_GAMES_KILLS_PVPRUN(TNT_GAMES, tnt -> tnt.get("kills_pvprun").getAsInt()),
+    TNT_GAMES_KILLS_TNTTAG(TNT_GAMES, tnt -> tnt.get("kills_tntag").getAsInt()),
+    TNT_GAMES_LONGEST_TNTRUN(TNT_GAMES, tnt -> tnt.get("record_tntrun").getAsInt()),
+    TNT_GAMES_LONGEST_PVPRUN(TNT_GAMES, tnt -> tnt.get("record_pvprun").getAsInt()),
+
+
+    ;
 
     /**
      * Create a new leaderboard with a default sort direction of descending
