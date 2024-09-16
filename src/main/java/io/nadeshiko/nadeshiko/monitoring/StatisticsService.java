@@ -199,8 +199,10 @@ public class StatisticsService implements Runnable {
 		embed.setTitle("API statistics for " + formatter.format(yesterday));
 
 		// Description
+		int requests = this.statsRequests.size() + this.guildRequests.size() + this.achievementRequests.size() +
+			this.questRequests.size() + this.cardRequests.size();
 		embed.setDescription("**Requests:**\\n" +
-			"Total requests today: **" + (this.statsRequests.size() + this.cardRequests.size()) + "**\\n" +
+			"Total requests today: **" + requests + "**\\n" +
 			"\\n" +
 			"Total `/stats` requests today: **" + this.statsRequests.size() + "**\\n" +
 			"Total `/guild` requests today: **" + this.guildRequests.size() + "**\\n" +
@@ -212,7 +214,7 @@ public class StatisticsService implements Runnable {
 
 		embed.setColor(new Color(246, 173, 198));
 		embed.setImage(this.buildRequestsGraph());
-		embed.setFooter("Sent from Nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
+		embed.setFooter("Sent from nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
 
 		System.out.println(this.buildRequestsGraph());
 

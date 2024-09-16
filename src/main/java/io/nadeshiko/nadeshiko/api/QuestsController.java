@@ -87,7 +87,7 @@ public class QuestsController {
 		Nadeshiko.logger.info("Serving achievements for {}", request.queryParams("name"));
 
 		// Register the request with the stats service
-		Nadeshiko.INSTANCE.getStatsService().registerAchievementRequest(request.queryParams("name"));
+		Nadeshiko.INSTANCE.getStatsService().registerQuestRequest(request.queryParams("name"));
 
 		JsonObject responseJson = new JsonObject();
 		responseJson.addProperty("success", true);

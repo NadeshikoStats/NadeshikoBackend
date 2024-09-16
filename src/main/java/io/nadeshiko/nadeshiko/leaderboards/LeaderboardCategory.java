@@ -31,8 +31,10 @@ public enum LeaderboardCategory {
     NETWORK(data -> data.getAsJsonObject("profile")),
     BEDWARS(data -> getStats(data).getAsJsonObject("Bedwars")),
     DUELS(data -> getStats(data).getAsJsonObject("Duels")),
+    SKYWARS(data -> getStats(data).getAsJsonObject("SkyWars")),
     PIT(data -> getStats(data).getAsJsonObject("Pit").getAsJsonObject("pit_stats_ptl")),
-    SKYWARS(data -> getStats(data).getAsJsonObject("SkyWars"));
+    BUILD_BATTLE(data -> getStats(data).getAsJsonObject("BuildBattle")),
+    MURDER_MYSTERY(data -> getStats(data).getAsJsonObject("MurderMystery"));
 
     private final Function<JsonObject, JsonObject> deriveInput;
 

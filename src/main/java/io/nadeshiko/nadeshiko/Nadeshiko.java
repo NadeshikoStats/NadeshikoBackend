@@ -45,7 +45,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.9.0";
+	public static String VERSION = "0.9.1";
 	public static String DEFAULT_DATABASE = "mongodb://localhost:27017";
 	public static int DEFAULT_PORT = 2000;
 
@@ -126,6 +126,7 @@ public class Nadeshiko {
 	 */
 	public void startup() {
 		this.startTime = System.currentTimeMillis();
+		logger.info("Igniting nadeshiko... ({})", VERSION);
 
 		// Pre-release warning
 		if (VERSION.contains("SNAPSHOT")) {
@@ -140,7 +141,7 @@ public class Nadeshiko {
 
 		// Start the Discord monitor, if enabled
 		this.igniteDiscordMonitor();
-		discordMonitor.log("Igniting Nadeshiko...");
+		discordMonitor.log("Igniting nadeshiko...");
 
 		// Connect to the leaderboard database, creating the collections if required
 		String uri = this.config.containsKey("database") ? (String) this.config.get("database") : DEFAULT_DATABASE;
@@ -190,8 +191,8 @@ public class Nadeshiko {
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
 
 		double startSeconds = ((System.currentTimeMillis() - startTime) / 1000f);
-		logger.info("Nadeshiko is now up! Took {} seconds to ignite!", startSeconds);
-		discordMonitor.ok("Nadeshiko is now up! Took %f seconds to ignite!", startSeconds);
+		logger.info("nadeshiko is now up! Took {} seconds to ignite!", startSeconds);
+		discordMonitor.ok("nadeshiko is now up! Took %f seconds to ignite!", startSeconds);
 	}
 
 	/**
@@ -206,9 +207,9 @@ public class Nadeshiko {
 		// Stop the Spark instance
 		this.spark.stop();
 
-		logger.info("Nadeshiko was running for {} ms", System.currentTimeMillis() - this.startTime);
-		logger.info("Stopped Nadeshiko");
-		discordMonitor.log("Stopped! Nadeshiko was running since <t:%d:f>", this.startTime / 1000);
+		logger.info("nadeshiko was running for {} ms", System.currentTimeMillis() - this.startTime);
+		logger.info("Stopped nadeshiko");
+		discordMonitor.log("Stopped! nadeshiko was running since <t:%d:f>", this.startTime / 1000);
 	}
 
 	/**

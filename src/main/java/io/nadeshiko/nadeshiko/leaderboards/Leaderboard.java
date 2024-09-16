@@ -33,6 +33,7 @@ public enum Leaderboard {
     /**
      * Network leaderboards.
      * Derivation functions of leaderboards in this category take in the /profile object.
+     * @see LeaderboardCategory#NETWORK
      */
     NETWORK_FIRST_LOGIN(NETWORK, profile -> profile.get("first_login").getAsLong(), 1),
     NETWORK_NETWORK_LEVEL(NETWORK, profile -> profile.get("network_level").getAsFloat()),
@@ -44,6 +45,7 @@ public enum Leaderboard {
     /**
      * BedWars leaderboards.
      * Derivation functions of leaderboards in this category take in the /stats/Bedwars object.
+     * @see LeaderboardCategory#BEDWARS
      */
     BEDWARS_EXP(BEDWARS, bw -> bw.get("Experience").getAsLong()),
     BEDWARS_TICKETS_EARNED(BEDWARS, bw -> bw.getAsJsonObject("slumber").get("total_tickets_earned").getAsLong()),
@@ -82,6 +84,7 @@ public enum Leaderboard {
     /**
      * Duels leaderboards.
      * Derivation functions of leaderboards in this category take in the /stats/Duels object.
+     * @see LeaderboardCategory#DUELS
      */
     DUELS_CLICKS(DUELS, duels -> duels.get("melee_swings").getAsInt()),
     DUELS_WINS(DUELS, duels -> duels.get("wins").getAsInt()),
@@ -109,20 +112,9 @@ public enum Leaderboard {
     DUELS_ARENA_WINS(DUELS, duels -> duels.get("duel_arena_wins").getAsInt()),
 
     /**
-     * Pit leaderboards.
-     * Derivation functions of leaderboards in this category take in the /stats/Pit/pit_stats_ptl object.
-     */
-    PIT_JOINS(PIT, pit -> pit.get("joins").getAsInt()),
-    PIT_PLAYTIME(PIT, pit -> pit.get("playtime_minutes").getAsInt()),
-    PIT_CHAT_MESSAGES(PIT, pit -> pit.get("chat_messages").getAsInt()),
-    PIT_CLICKS(PIT, pit -> pit.get("left_clicks").getAsInt()),
-    PIT_KILLS(PIT, pit -> pit.get("kills").getAsInt()),
-    PIT_KDR(PIT, pit -> pit.get("kills").getAsDouble() / pit.get("deaths").getAsDouble()),
-    PIT_WHEAT_FARMED(PIT, pit -> pit.get("wheat_farmed").getAsInt()),
-
-    /**
      * SkyWars leaderboards.
      * Derivation functions of leaderboards in this category take in the /stats/SkyWars object.
+     * @see LeaderboardCategory#SKYWARS
      */
     SKYWARS_EXP(SKYWARS, sw -> sw.get("skywars_experience").getAsInt()),
     SKYWARS_LONGEST_BOW_KILL(SKYWARS, sw -> Math.max(sw.get("longest_bow_kill").getAsInt(), sw.get("longest_bow_kill_team").getAsInt())),
@@ -148,7 +140,43 @@ public enum Leaderboard {
     SKYWARS_TEAM_INSANE_KILLS(SKYWARS, sw -> sw.get("kills_team_insane").getAsInt()),
     SKYWARS_TEAM_INSANE_KDR(SKYWARS, sw -> sw.get("kills_team_insane").getAsDouble() / sw.get("deaths_team_insane").getAsDouble()),
 
-    ;
+    /**
+     * Pit leaderboards.
+     * Derivation functions of leaderboards in this category take in the /stats/Pit/pit_stats_ptl object.
+     * @see LeaderboardCategory#PIT
+     */
+    PIT_JOINS(PIT, pit -> pit.get("joins").getAsInt()),
+    PIT_PLAYTIME(PIT, pit -> pit.get("playtime_minutes").getAsInt()),
+    PIT_CHAT_MESSAGES(PIT, pit -> pit.get("chat_messages").getAsInt()),
+    PIT_CLICKS(PIT, pit -> pit.get("left_clicks").getAsInt()),
+    PIT_KILLS(PIT, pit -> pit.get("kills").getAsInt()),
+    PIT_KDR(PIT, pit -> pit.get("kills").getAsDouble() / pit.get("deaths").getAsDouble()),
+    PIT_WHEAT_FARMED(PIT, pit -> pit.get("wheat_farmed").getAsInt()),
+
+    /**
+     * Build Battle leaderboards.
+     * Derivation functions of leaderboards in this category take in the /stats/BuildBattle object.
+     * @see LeaderboardCategory#BUILD_BATTLE
+     */
+    BUILD_BATTLE_WINS(BUILD_BATTLE, bb -> bb.get("wins").getAsInt()),
+    BUILD_BATTLE_WINS_GTB(BUILD_BATTLE, bb -> bb.get("wins_guess_the_build").getAsInt()),
+    BUILD_BATTLE_SCORE(BUILD_BATTLE, bb -> bb.get("score").getAsInt()),
+    BUILD_BATTLE_CORRECT_GUESSES(BUILD_BATTLE, bb -> bb.get("correct_guesses").getAsInt()),
+    BUILD_BATTLE_VOTES(BUILD_BATTLE, bb -> bb.get("total_votes").getAsInt()),
+
+    /**
+     * Murder Mystery leaderboards.
+     * Derivation functions of leaderboards in this category take in the /stats/MurderMystery object.
+     * @see LeaderboardCategory#MURDER_MYSTERY
+     */
+    MURDER_MYSTERY_KILLS(MURDER_MYSTERY, mm -> mm.get("kills").getAsInt()),
+    MURDER_MYSTERY_MURDERER_WINS(MURDER_MYSTERY, mm -> mm.get("murderer_wins").getAsInt()),
+    MURDER_MYSTERY_DETECTIVE_WINS(MURDER_MYSTERY, mm -> mm.get("detective_wins").getAsInt()),
+    MURDER_MYSTERY_WINS(MURDER_MYSTERY, mm -> mm.get("wins").getAsInt()),
+    MURDER_MYSTERY_WINS_CLASSIC(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_CLASSIC").getAsInt()),
+    MURDER_MYSTERY_WINS_HARDCORE(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_HARDCORE").getAsInt()),
+    MURDER_MYSTERY_WINS_DOUBLES(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_DOUBLE_UP").getAsInt()),
+    MURDER_MYSTERY_WINS_INFECTION(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_INFECTION").getAsInt());
 
     /**
      * Create a new leaderboard with a default sort direction of descending

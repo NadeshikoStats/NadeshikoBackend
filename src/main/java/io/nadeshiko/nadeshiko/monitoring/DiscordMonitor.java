@@ -76,7 +76,7 @@ public class DiscordMonitor {
 		embed.setAuthor(author, null, null);
 		embed.setColor(COLOR_OK);
 		embed.setDescription(prefix + formattedMessage);
-		embed.setFooter("Sent from Nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
+		embed.setFooter("Sent from nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
 
 		// Send the embed to the webhook
 		try {
@@ -113,7 +113,7 @@ public class DiscordMonitor {
 		embed.setAuthor(author, null, null);
 		embed.setColor(COLOR_LOG);
 		embed.setDescription(prefix + formattedMessage);
-		embed.setFooter("Sent from Nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
+		embed.setFooter("Sent from nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
 
 		// Send the embed to the webhook
 		try {
@@ -151,7 +151,7 @@ public class DiscordMonitor {
 		embed.setAuthor(author, null, null);
 		embed.setColor(COLOR_ALERT);
 		embed.setDescription(prefix + finalMessage);
-		embed.setFooter("Sent from Nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
+		embed.setFooter("Sent from nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
 
 		// Send the embed to the webhook
 		try {
@@ -188,7 +188,7 @@ public class DiscordMonitor {
 		embed.setAuthor(author, null, null);
 		embed.setColor(COLOR_ALERT);
 		embed.setDescription(prefix + formattedMessage);
-		embed.setFooter("Sent from Nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
+		embed.setFooter("Sent from nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
 
 		// Send the embed to the webhook
 		try {

@@ -108,7 +108,8 @@ public class LeaderboardService {
     }
 
     // TODO: THIS NEEDS CACHING!
-    public JsonArray get(Leaderboard leaderboard, int page) {
+    public JsonObject get(Leaderboard leaderboard, int page) {
+        JsonObject object = new JsonObject();
         JsonArray array = new JsonArray();
 
         long entries = this.nadeshikoDatabase.getCollection("stats").countDocuments(
@@ -134,7 +135,9 @@ public class LeaderboardService {
             array.add(entry);
         }
 
-        return array;
+        object.addProperty("count", entries);
+        object.add("data", array);
+        return object;
     }
 
     private List<Document> getDocuments(Leaderboard leaderboard, int page) {
