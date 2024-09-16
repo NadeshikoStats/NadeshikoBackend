@@ -101,6 +101,19 @@ public enum Leaderboard {
     private final int sortDirection;
 
     /**
+     * Derive a stat. Use this instead of the derive member, as this has additional safety.
+     * @param object The JsonObject to derive the stat from
+     * @return The player's stat, or 0 if none exists.
+     */
+    public Object derive(JsonObject object) {
+        try {
+            return this.derive.apply(object);
+        } catch (Exception e) {
+            return 0; // player doesn't have that stat
+        }
+    }
+
+    /**
      * Get a leaderboard by name
      * @param name The name of the leaderboard to look up
      * @return The leaderboard matching the provided name, or null if none exists

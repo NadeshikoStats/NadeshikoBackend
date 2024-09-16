@@ -96,7 +96,7 @@ public class LeaderboardService {
             .append("time", System.currentTimeMillis());
         for (Leaderboard leaderboard : values()) {
             if (leaderboard.name().startsWith("NETWORK")) {
-                playerDocument.append(leaderboard.name(), leaderboard.getDerive().apply(profile));
+                playerDocument.append(leaderboard.name(), leaderboard.derive(profile));
             }
         }
 
@@ -104,10 +104,9 @@ public class LeaderboardService {
         JsonObject bedWars = stats.getAsJsonObject("Bedwars");
         for (Leaderboard leaderboard : values()) {
             if (leaderboard.name().startsWith("BEDWARS")) {
-                playerDocument.append(leaderboard.name(), leaderboard.getDerive().apply(bedWars));
+                playerDocument.append(leaderboard.name(), leaderboard.derive(bedWars));
             }
         }
-
 
         // Delete old player stats, if present
         this.nadeshikoDatabase.getCollection("stats")
