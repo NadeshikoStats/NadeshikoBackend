@@ -85,26 +85,29 @@ public class LeaderboardService {
      */
     public void insertPlayer(JsonObject player) {
 
-        JsonObject profile = player.getAsJsonObject("profile");
         JsonObject stats = player.getAsJsonObject("stats");
         Document playerDocument = new Document();
 
         // Network
+        JsonObject profile = player.getAsJsonObject("profile");
         playerDocument
             .append("uuid", player.get("uuid").getAsString())
             .append("tagged_name", profile.get("tagged_name").getAsString())
-            .append("time", System.currentTimeMillis())
-            .append(FIRST_LOGIN.name(), profile.get("first_login").getAsLong())
-            .append(NETWORK_LEVEL.name(), profile.get("network_level").getAsFloat())
-            .append(ACHIEVEMENT_POINTS.name(), profile.get("achievement_points").getAsInt())
-            .append(KARMA.name(), profile.get("karma").getAsInt())
-            .append(RANKS_GIFTED.name(), profile.get("ranks_gifted").getAsInt())
-            .append(QUESTS_COMPLETED.name(), profile.get("quests_completed").getAsInt());
+            .append("time", System.currentTimeMillis());
+        for (Leaderboard leaderboard : values()) {
+            if (leaderboard.name().startsWith("NETWORK")) {
+                playerDocument.append(leaderboard.name(), leaderboard.getDerive().apply(profile));
+            }
+        }
 
-        // Bed Wars
+        // BedWars
         JsonObject bedWars = stats.getAsJsonObject("Bedwars");
-        playerDocument
-            .append(BEDWARS_EXP.name(), bedWars.get("Experience").getAsLong());
+        for (Leaderboard leaderboard : values()) {
+            if (leaderboard.name().startsWith("BEDWARS")) {
+                playerDocument.append(leaderboard.name(), leaderboard.getDerive().apply(bedWars));
+            }
+        }
+
 
         // Delete old player stats, if present
         this.nadeshikoDatabase.getCollection("stats")
