@@ -45,7 +45,7 @@ public class Nadeshiko {
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.9.0-SNAPSHOT";
+	public static String VERSION = "0.9.0";
 	public static String DEFAULT_DATABASE = "mongodb://localhost:27017";
 	public static int DEFAULT_PORT = 2000;
 

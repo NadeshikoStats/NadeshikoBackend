@@ -84,7 +84,6 @@ public class LeaderboardService {
      */
     public void insertPlayer(JsonObject player) {
 
-        JsonObject stats = player.getAsJsonObject("stats");
         Document playerDocument = new Document();
 
         // Base
@@ -94,45 +93,11 @@ public class LeaderboardService {
             .append("tagged_name", profile.get("tagged_name").getAsString())
             .append("time", System.currentTimeMillis());
 
-        // Network
+        // Populate leaderboards
         for (Leaderboard leaderboard : values()) {
-            if (leaderboard.name().startsWith("NETWORK")) {
-                playerDocument.append(leaderboard.name(), leaderboard.derive(profile));
-            }
+            JsonObject leaderboardInput = leaderboard.getCategory().getDeriveInput(player);
+            playerDocument.append(leaderboard.name(), leaderboard.derive(leaderboardInput));
         }
-
-        // BedWars
-        JsonObject bedWars = stats.getAsJsonObject("Bedwars");
-        for (Leaderboard leaderboard : values()) {
-            if (leaderboard.name().startsWith("BEDWARS")) {
-                playerDocument.append(leaderboard.name(), leaderboard.derive(bedWars));
-            }
-        }
-
-        // Duels
-        JsonObject duels = stats.getAsJsonObject("Duels");
-        for (Leaderboard leaderboard : values()) {
-            if (leaderboard.name().startsWith("DUELS")) {
-                playerDocument.append(leaderboard.name(), leaderboard.derive(duels));
-            }
-        }
-
-        // Pit
-        JsonObject pit = stats.getAsJsonObject("Pit").getAsJsonObject("pit_stats_ptl");
-        for (Leaderboard leaderboard : values()) {
-            if (leaderboard.name().startsWith("PIT")) {
-                playerDocument.append(leaderboard.name(), leaderboard.derive(pit));
-            }
-        }
-
-        // SkyWars
-        JsonObject skyWars = stats.getAsJsonObject("SkyWars");
-        for (Leaderboard leaderboard : values()) {
-            if (leaderboard.name().startsWith("SKYWARS")) {
-                playerDocument.append(leaderboard.name(), leaderboard.derive(skyWars));
-            }
-        }
-
 
         // Delete old player stats, if present
         this.nadeshikoDatabase.getCollection("stats")
