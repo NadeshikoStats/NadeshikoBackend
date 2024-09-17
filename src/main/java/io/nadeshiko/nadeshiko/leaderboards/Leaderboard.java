@@ -196,6 +196,27 @@ public enum Leaderboard {
     TNT_GAMES_LONGEST_PVPRUN(TNT_GAMES, tnt -> tnt.get("record_pvprun").getAsInt()),
 
     /**
+     * Arcade leaderboards.
+     * Derivation functions of leaderboards in this category take in the /stats/Arcade object.
+     * @see LeaderboardCategory#ARCADE
+     */
+    ARCADE_DROPPER_BEST_TIME(ARCADE, ar -> ar.getAsJsonObject("dropper").get("fastest_game").getAsInt(), 1),
+    ARCADE_DROPPER_WINS(ARCADE, ar -> ar.getAsJsonObject("dropper").get("wins").getAsInt()),
+    ARCADE_HYPIXEL_SAYS_WINS(ARCADE, ar -> ar.get("wins_simon_says").getAsInt()),
+    ARCADE_MINI_WALLS_WINS(ARCADE, ar -> ar.get("wins_mini_walls").getAsInt()),
+    ARCADE_MINI_WALLS_KILLS(ARCADE, ar -> ar.get("kills_mini_walls").getAsInt()),
+    ARCADE_PARTY_WINS(ARCADE, ar -> ar.get("wins_party").getAsInt()),
+    ARCADE_PIXEL_PARTY_WINS(ARCADE, ar -> ar.getAsJsonObject("pixel_party").get("wins").getAsInt()),
+    ARCADE_THROW_OUT_WINS(ARCADE, ar -> ar.get("wins_throw_out").getAsInt()),
+    ARCADE_THROW_OUT_KILLS(ARCADE, ar -> ar.get("kills_throw_out").getAsInt()),
+    ARCADE_ZOMBIES_WINS(ARCADE, ar -> ar.get("wins_zombies").getAsInt()),
+    ARCADE_ZOMBIES_KILLS(ARCADE, ar -> ar.get("zombie_kills_zombies").getAsInt()),
+    ARCADE_ZOMBIES_WINDOWS_REPAIRED(ARCADE, ar -> ar.get("windows_repaired_zombies").getAsInt()),
+    ARCADE_ZOMBIES_PLAYERS_REVIVED(ARCADE, ar -> ar.get("players_revived_zombies").getAsInt()),
+    ARCADE_ZOMBIES_DOORS_OPENED(ARCADE, ar -> ar.get("doors_opened_zombies").getAsInt()),
+
+
+    /**
      * SkyBlock leaderboards.
      * Derivation functions of leaderboards in this category take in /data of the active profile from SkyCrypt
      * @see LeaderboardCategory#SKYBLOCK

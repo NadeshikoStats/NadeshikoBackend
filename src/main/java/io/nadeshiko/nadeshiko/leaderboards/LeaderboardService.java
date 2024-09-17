@@ -73,7 +73,7 @@ public class LeaderboardService {
         this.nadeshikoDatabase = this.mongoClient.getDatabase("nadeshiko");
 
         // Dump leaderboards
-        this.dumpLeaderboards();
+//        this.dumpLeaderboards();
     }
 
     /**
