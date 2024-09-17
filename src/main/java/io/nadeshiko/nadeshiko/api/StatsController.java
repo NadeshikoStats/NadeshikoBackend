@@ -40,16 +40,13 @@ public class StatsController {
 
 		// Fetch the API response from the cache. If the cache doesn't already contain an up-to-date entry
 		//   for this player, one will be created and stored by the cache.
-		JsonObject cached = Nadeshiko.INSTANCE.getStatsCache().get(request.queryParams("name"), true);
+		JsonObject cached = Nadeshiko.INSTANCE.getStatsCache().get(request.queryParams("name"), true).deepCopy();
 
 		// Ensure that the response from the cache is valid
 		if (cached.get("success").getAsBoolean()) {
 			response.status(200);
 		} else {
 			response.status(cached.get("status").getAsInt());
-
-			// Remove the bad response from the cache, forcing it to be reattempted on the next request
-			cached.remove("status");
 		}
 
 		// Log the request
