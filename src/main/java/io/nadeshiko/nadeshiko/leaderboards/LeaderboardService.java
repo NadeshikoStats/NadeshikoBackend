@@ -87,7 +87,7 @@ public class LeaderboardService {
      * Called when a player is searched on nadeshiko. Insert them into the stat database.
      * @param player The JsonObject containing the player's stats.
      */
-    public void insertPlayer(JsonObject player) {
+    public synchronized void insertPlayer(JsonObject player) {
 
         Document playerDocument = new Document();
 
@@ -125,7 +125,7 @@ public class LeaderboardService {
     }
 
     // TODO: THIS NEEDS CACHING!
-    public JsonObject get(Leaderboard leaderboard, int page) {
+    public synchronized JsonObject get(Leaderboard leaderboard, int page) {
         JsonObject object = new JsonObject();
         JsonArray array = new JsonArray();
 

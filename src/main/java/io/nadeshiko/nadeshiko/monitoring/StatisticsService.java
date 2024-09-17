@@ -91,6 +91,9 @@ public class StatisticsService implements Runnable {
 	 */
 	private void flush() {
 		this.statsRequests.clear();
+		this.questRequests.clear();
+		this.achievementRequests.clear();
+		this.guildRequests.clear();
 		this.cardRequests.clear();
 	}
 
@@ -206,8 +209,8 @@ public class StatisticsService implements Runnable {
 			"\\n" +
 			"Total `/stats` requests today: **" + this.statsRequests.size() + "**\\n" +
 			"Total `/guild` requests today: **" + this.guildRequests.size() + "**\\n" +
-			"Total `/achievement` requests today: **" + this.achievementRequests.size() + "**\\n" +
-			"Total `/quest` requests today: **" + this.questRequests.size() + "**\\n" +
+			"Total `/achievements` requests today: **" + this.achievementRequests.size() + "**\\n" +
+			"Total `/quests` requests today: **" + this.questRequests.size() + "**\\n" +
 			"Total `/card` requests today: **" + this.cardRequests.size() + "**\\n" +
 			"\\n" +
 			"**Hourly Visualization:**");
