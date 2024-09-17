@@ -100,6 +100,13 @@ public class LeaderboardService {
 
         // Populate leaderboards
         for (Leaderboard leaderboard : values()) {
+
+            // Handle SkyBlock separately
+            if (leaderboard.getCategory().equals(LeaderboardCategory.SKYBLOCK)) {
+                insertSkyBlock(player.get("uuid").getAsString(), playerDocument);
+                continue;
+            }
+
             JsonObject leaderboardInput = leaderboard.getCategory().getDeriveInput(player);
             playerDocument.append(leaderboard.name(), leaderboard.derive(leaderboardInput));
         }
@@ -110,6 +117,10 @@ public class LeaderboardService {
 
         // Insert new stats
         this.nadeshikoDatabase.getCollection("stats").insertOne(playerDocument);
+    }
+
+    private void insertSkyBlock(String uuid, Document playerDocument) {
+        // TODO: request SkyBlock API
     }
 
     // TODO: THIS NEEDS CACHING!

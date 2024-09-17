@@ -35,7 +35,10 @@ public enum LeaderboardCategory {
     PIT(data -> getStats(data).getAsJsonObject("Pit").getAsJsonObject("pit_stats_ptl")),
     BUILD_BATTLE(data -> getStats(data).getAsJsonObject("BuildBattle")),
     MURDER_MYSTERY(data -> getStats(data).getAsJsonObject("MurderMystery")),
-    TNT_GAMES(data -> getStats(data).getAsJsonObject("TNTGames"));
+    TNT_GAMES(data -> getStats(data).getAsJsonObject("TNTGames")),
+
+    // Different from the others. Takes in the active profile data from the SkyCrypt API.
+    SKYBLOCK(profile -> profile.getAsJsonObject("data"));
 
     private final Function<JsonObject, JsonObject> deriveInput;
 

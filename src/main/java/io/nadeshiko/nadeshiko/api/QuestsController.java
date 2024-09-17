@@ -94,6 +94,7 @@ public class QuestsController {
 		responseJson.add("global", globalQuests);
 
 		JsonObject player = new JsonObject();
+		player.addProperty("badge", cached.get("badge").getAsString());
 		player.add("profile", cached.getAsJsonObject("profile"));
 		player.add("quests", cached.getAsJsonObject("quests"));
 		responseJson.add("player", player);
