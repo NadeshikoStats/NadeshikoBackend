@@ -63,9 +63,8 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 		this.cache.entrySet().removeIf(entry -> entry.getValue().isExpired());
 
 		// If the player is already in the cache, and the cache isn't outdated, use that instead
-		// TODO: this naive method can result in players being cached multiple times (dashed uuid, name, undashed uuid)
-		if (this.cache.containsKey(name)) {
-			return this.cache.get(name).data;
+		if (this.cache.containsKey(name.toLowerCase())) { // names are case-insensitive
+			return this.cache.get(name.toLowerCase()).data;
 		}
 
 		// The player either isn't in the cache, or the cache is outdated. Build a new response
@@ -73,12 +72,12 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 
 		// Only cache the response if it was successful, and it was a full request
 		if (full && data.get("success").getAsBoolean()) {
-			this.cache.put(name, new CacheEntry(data));
+			this.cache.put(data.get("name").getAsString().toLowerCase(), new CacheEntry(data));
 		}
 
 		// Save the player data into the leaderboard database
 		if (data.get("success").getAsBoolean()) {
-			Nadeshiko.INSTANCE.getLeaderboardService().insertPlayer(data);
+			new Thread(() -> Nadeshiko.INSTANCE.getLeaderboardService().insertPlayer(data)).start();
 		}
 
 		return data;

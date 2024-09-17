@@ -71,8 +71,8 @@ public class StatsBuilder {
 
 	public JsonObject build(@NonNull String name, boolean full) {
 
-		// Update the badge cache if needed
-		if (System.currentTimeMillis() - lastCacheTime > 1000 * 60 * 60) {
+		// Update the badge cache if needed (5 minutes)
+		if (System.currentTimeMillis() - lastCacheTime > 1000 * 60 * 5) {
 			playerBadges = readPlayerBadges();
 			Nadeshiko.logger.info("Loaded and updated player badges");
 			lastCacheTime = System.currentTimeMillis();

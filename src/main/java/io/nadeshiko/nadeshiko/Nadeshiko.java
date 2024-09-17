@@ -33,7 +33,7 @@ import java.nio.file.Files;
 import java.util.Map;
 
 /**
- * Main class of the Nadeshiko backend
+ * Main class of the nadeshiko backend
  *
  * @author chloe
  * @since March 11, 2024
@@ -41,11 +41,18 @@ import java.util.Map;
 public class Nadeshiko {
 
 	/**
-	 * Global Nadeshiko instance, created by the {@link Nadeshiko#main(String[])} entry point
+	 * Global nadeshiko instance, created by the {@link Nadeshiko#main(String[])} entry point
 	 */
 	public static Nadeshiko INSTANCE = null;
 
-	public static String VERSION = "0.9.2";
+	/**
+	 * nadeshiko version number
+	 */
+	public static String VERSION = "1.0.0-SNAPSHOT";
+
+	/**
+	 * Setting fallbacks (if missing from config.json)
+	 */
 	public static String DEFAULT_DATABASE = "mongodb://localhost:27017";
 	public static int DEFAULT_PORT = 2000;
 

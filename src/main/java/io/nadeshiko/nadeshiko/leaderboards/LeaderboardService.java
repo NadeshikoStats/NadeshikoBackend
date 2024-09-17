@@ -95,6 +95,7 @@ public class LeaderboardService {
         JsonObject profile = player.getAsJsonObject("profile");
         playerDocument
             .append("uuid", player.get("uuid").getAsString())
+            .append("badge", player.get("badge").getAsString())
             .append("tagged_name", profile.get("tagged_name").getAsString())
             .append("time", System.currentTimeMillis());
 
@@ -102,10 +103,10 @@ public class LeaderboardService {
         for (Leaderboard leaderboard : values()) {
 
             // Handle SkyBlock separately
-            if (leaderboard.getCategory().equals(LeaderboardCategory.SKYBLOCK)) {
-                insertSkyBlock(player.get("uuid").getAsString(), playerDocument);
-                continue;
-            }
+//            if (leaderboard.getCategory().equals(LeaderboardCategory.SKYBLOCK)) {
+//                insertSkyBlock(player.get("uuid").getAsString(), playerDocument);
+//                continue;
+//            }
 
             JsonObject leaderboardInput = leaderboard.getCategory().getDeriveInput(player);
             playerDocument.append(leaderboard.name(), leaderboard.derive(leaderboardInput));
@@ -144,6 +145,7 @@ public class LeaderboardService {
 
             JsonObject entry = new JsonObject();
             entry.addProperty("uuid", document.getString("uuid"));
+            entry.addProperty("badge", document.getString("badge"));
             entry.addProperty("tagged_name", document.getString("tagged_name"));
             entry.addProperty("ranking", start + i);
             entry.addProperty("percentile", 100 - ((start + i) / (double) entries) * 100);

@@ -200,19 +200,19 @@ public enum Leaderboard {
      * Derivation functions of leaderboards in this category take in /data of the active profile from SkyCrypt
      * @see LeaderboardCategory#SKYBLOCK
      */
-    SKYBLOCK_XP(SKYBLOCK, sb -> sb.getAsJsonObject("skyblock_level").get("xp").getAsInt()),
-    SKYBLOCK_CATACOMBS_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("catacombs")
-        .getAsJsonObject("level").get("xp").getAsDouble()),
-    SKYBLOCK_ARCHER_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
-        .getAsJsonObject("archer").getAsJsonObject("level").get("xp").getAsDouble()),
-    SKYBLOCK_BERSERK_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
-        .getAsJsonObject("berserk").getAsJsonObject("level").get("xp").getAsDouble()),
-    SKYBLOCK_HEALER_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
-        .getAsJsonObject("healer").getAsJsonObject("level").get("xp").getAsDouble()),
-    SKYBLOCK_MAGE_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
-        .getAsJsonObject("mage").getAsJsonObject("level").get("xp").getAsDouble()),
-    SKYBLOCK_TANK_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
-        .getAsJsonObject("tank").getAsJsonObject("level").get("xp").getAsDouble()),
+//    SKYBLOCK_XP(SKYBLOCK, sb -> sb.getAsJsonObject("skyblock_level").get("xp").getAsInt()),
+//    SKYBLOCK_CATACOMBS_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("catacombs")
+//        .getAsJsonObject("level").get("xp").getAsDouble()),
+//    SKYBLOCK_ARCHER_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
+//        .getAsJsonObject("archer").getAsJsonObject("level").get("xp").getAsDouble()),
+//    SKYBLOCK_BERSERK_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
+//        .getAsJsonObject("berserk").getAsJsonObject("level").get("xp").getAsDouble()),
+//    SKYBLOCK_HEALER_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
+//        .getAsJsonObject("healer").getAsJsonObject("level").get("xp").getAsDouble()),
+//    SKYBLOCK_MAGE_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
+//        .getAsJsonObject("mage").getAsJsonObject("level").get("xp").getAsDouble()),
+//    SKYBLOCK_TANK_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
+//        .getAsJsonObject("tank").getAsJsonObject("level").get("xp").getAsDouble()),
 
 
     ;
