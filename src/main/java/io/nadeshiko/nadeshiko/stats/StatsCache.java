@@ -76,8 +76,8 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 		}
 
 		// Save the player data into the leaderboard database
-		if (data.get("success").getAsBoolean()) {
-			new Thread(() -> Nadeshiko.INSTANCE.getLeaderboardService().insertPlayer(data)).start();
+		if (data.get("success").getAsBoolean() && data.has("profile")) {
+			new Thread(() -> Nadeshiko.INSTANCE.getLeaderboardService().insertPlayer(data.deepCopy())).start();
 		}
 
 		return data;

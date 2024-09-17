@@ -117,8 +117,6 @@ public enum Leaderboard {
      * @see LeaderboardCategory#SKYWARS
      */
     SKYWARS_EXP(SKYWARS, sw -> sw.get("skywars_experience").getAsInt()),
-    SKYWARS_LONGEST_BOW_KILL(SKYWARS, sw -> Math.max(sw.get("longest_bow_kill").getAsInt(), sw.get("longest_bow_kill_team").getAsInt())),
-    SKYWARS_WINSTREAK(SKYWARS, sw -> sw.get("win_streak").getAsInt()),
     SKYWARS_WINS(SKYWARS, sw -> sw.get("wins").getAsInt()),
     SKYWARS_WLR(SKYWARS, sw -> sw.get("wins").getAsDouble() / sw.get("losses").getAsDouble()),
     SKYWARS_KILLS(SKYWARS, sw -> sw.get("kills").getAsInt()),
@@ -159,10 +157,10 @@ public enum Leaderboard {
      * @see LeaderboardCategory#BUILD_BATTLE
      */
     BUILD_BATTLE_WINS(BUILD_BATTLE, bb -> bb.get("wins").getAsInt()),
-    BUILD_BATTLE_GTB_WINS(BUILD_BATTLE, bb -> bb.get("wins_guess_the_build").getAsInt()),
-    BUILD_BATTLE_GTB_CORRECT_GUESSES(BUILD_BATTLE, bb -> bb.get("correct_guesses").getAsInt()),
     BUILD_BATTLE_SCORE(BUILD_BATTLE, bb -> bb.get("score").getAsInt()),
     BUILD_BATTLE_VOTES(BUILD_BATTLE, bb -> bb.get("total_votes").getAsInt()),
+    BUILD_BATTLE_GTB_WINS(BUILD_BATTLE, bb -> bb.get("wins_guess_the_build").getAsInt()),
+    BUILD_BATTLE_GTB_CORRECT_GUESSES(BUILD_BATTLE, bb -> bb.get("correct_guesses").getAsInt()),
 
     /**
      * Murder Mystery leaderboards.
@@ -184,16 +182,17 @@ public enum Leaderboard {
      * @see LeaderboardCategory#TNT_GAMES
      */
     TNT_GAMES_WINS(TNT_GAMES, tnt -> tnt.get("wins").getAsInt()),
-    TNT_GAMES_WIZARDS_WINS(TNT_GAMES, tnt -> tnt.get("wins_capture").getAsInt()),
-    TNT_GAMES_TNTRUN_WINS(TNT_GAMES, tnt -> tnt.get("wins_tntrun").getAsInt()),
     TNT_GAMES_BOWSPLEEF_WINS(TNT_GAMES, tnt -> tnt.get("wins_bowspleef").getAsInt()),
     TNT_GAMES_PVPRUN_WINS(TNT_GAMES, tnt -> tnt.get("wins_pvprun").getAsInt()),
-    TNT_GAMES_TNTTAG_WINS(TNT_GAMES, tnt -> tnt.get("wins_tntag").getAsInt()),
-    TNT_GAMES_WIZARDS_KILLS(TNT_GAMES, tnt -> tnt.get("kills_capture").getAsInt()),
     TNT_GAMES_PVPRUN_KILLS(TNT_GAMES, tnt -> tnt.get("kills_pvprun").getAsInt()),
-    TNT_GAMES_TNTTAG_KILLS(TNT_GAMES, tnt -> tnt.get("kills_tntag").getAsInt()),
-    TNT_GAMES_TNTRUN_LONGEST(TNT_GAMES, tnt -> tnt.get("record_tntrun").getAsInt()),
     TNT_GAMES_PVPRUN_LONGEST(TNT_GAMES, tnt -> tnt.get("record_pvprun").getAsInt()),
+    TNT_GAMES_TNTRUN_WINS(TNT_GAMES, tnt -> tnt.get("wins_tntrun").getAsInt()),
+    TNT_GAMES_TNTRUN_LONGEST(TNT_GAMES, tnt -> tnt.get("record_tntrun").getAsInt()),
+    TNT_GAMES_TNTTAG_WINS(TNT_GAMES, tnt -> tnt.get("wins_tntag").getAsInt()),
+    TNT_GAMES_TNTTAG_KILLS(TNT_GAMES, tnt -> tnt.get("kills_tntag").getAsInt()),
+    TNT_GAMES_WIZARDS_WINS(TNT_GAMES, tnt -> tnt.get("wins_capture").getAsInt()),
+    TNT_GAMES_WIZARDS_KILLS(TNT_GAMES, tnt -> tnt.get("kills_capture").getAsInt()),
+
 
     /**
      * Arcade leaderboards.
@@ -216,11 +215,11 @@ public enum Leaderboard {
     ARCADE_ZOMBIES_DOORS_OPENED(ARCADE, ar -> ar.get("doors_opened_zombies").getAsInt()),
 
 
-    /**
-     * SkyBlock leaderboards.
-     * Derivation functions of leaderboards in this category take in /data of the active profile from SkyCrypt
-     * @see LeaderboardCategory#SKYBLOCK
-     */
+//    /**
+//     * SkyBlock leaderboards.
+//     * Derivation functions of leaderboards in this category take in /data of the active profile from SkyCrypt
+//     * @see LeaderboardCategory#SKYBLOCK
+//     */
 //    SKYBLOCK_XP(SKYBLOCK, sb -> sb.getAsJsonObject("skyblock_level").get("xp").getAsInt()),
 //    SKYBLOCK_CATACOMBS_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("catacombs")
 //        .getAsJsonObject("level").get("xp").getAsDouble()),
