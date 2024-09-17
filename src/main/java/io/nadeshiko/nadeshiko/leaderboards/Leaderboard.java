@@ -159,9 +159,9 @@ public enum Leaderboard {
      * @see LeaderboardCategory#BUILD_BATTLE
      */
     BUILD_BATTLE_WINS(BUILD_BATTLE, bb -> bb.get("wins").getAsInt()),
-    BUILD_BATTLE_WINS_GTB(BUILD_BATTLE, bb -> bb.get("wins_guess_the_build").getAsInt()),
+    BUILD_BATTLE_GTB_WINS(BUILD_BATTLE, bb -> bb.get("wins_guess_the_build").getAsInt()),
+    BUILD_BATTLE_GTB_CORRECT_GUESSES(BUILD_BATTLE, bb -> bb.get("correct_guesses").getAsInt()),
     BUILD_BATTLE_SCORE(BUILD_BATTLE, bb -> bb.get("score").getAsInt()),
-    BUILD_BATTLE_CORRECT_GUESSES(BUILD_BATTLE, bb -> bb.get("correct_guesses").getAsInt()),
     BUILD_BATTLE_VOTES(BUILD_BATTLE, bb -> bb.get("total_votes").getAsInt()),
 
     /**
@@ -170,13 +170,13 @@ public enum Leaderboard {
      * @see LeaderboardCategory#MURDER_MYSTERY
      */
     MURDER_MYSTERY_KILLS(MURDER_MYSTERY, mm -> mm.get("kills").getAsInt()),
+    MURDER_MYSTERY_WINS(MURDER_MYSTERY, mm -> mm.get("wins").getAsInt()),
     MURDER_MYSTERY_MURDERER_WINS(MURDER_MYSTERY, mm -> mm.get("murderer_wins").getAsInt()),
     MURDER_MYSTERY_DETECTIVE_WINS(MURDER_MYSTERY, mm -> mm.get("detective_wins").getAsInt()),
-    MURDER_MYSTERY_WINS(MURDER_MYSTERY, mm -> mm.get("wins").getAsInt()),
-    MURDER_MYSTERY_WINS_CLASSIC(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_CLASSIC").getAsInt()),
-    MURDER_MYSTERY_WINS_DOUBLE_UP(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_DOUBLE_UP").getAsInt()),
-    MURDER_MYSTERY_WINS_ASSASSINS(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_ASSASSINS").getAsInt()),
-    MURDER_MYSTERY_WINS_INFECTION(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_INFECTION").getAsInt()),
+    MURDER_MYSTERY_CLASSIC_WINS(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_CLASSIC").getAsInt()),
+    MURDER_MYSTERY_DOUBLE_UP_WINS(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_DOUBLE_UP").getAsInt()),
+    MURDER_MYSTERY_ASSASSINS_WINS(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_ASSASSINS").getAsInt()),
+    MURDER_MYSTERY_INFECTION_WINS(MURDER_MYSTERY, mm -> mm.get("wins_MURDER_INFECTION").getAsInt()),
 
     /**
      * TNT Games leaderboards.
@@ -184,16 +184,16 @@ public enum Leaderboard {
      * @see LeaderboardCategory#TNT_GAMES
      */
     TNT_GAMES_WINS(TNT_GAMES, tnt -> tnt.get("wins").getAsInt()),
-    TNT_GAMES_WINS_WIZARDS(TNT_GAMES, tnt -> tnt.get("wins_capture").getAsInt()),
-    TNT_GAMES_WINS_TNTRUN(TNT_GAMES, tnt -> tnt.get("wins_tntrun").getAsInt()),
-    TNT_GAMES_WINS_BOWSPLEEF(TNT_GAMES, tnt -> tnt.get("wins_bowspleef").getAsInt()),
-    TNT_GAMES_WINS_PVPRUN(TNT_GAMES, tnt -> tnt.get("wins_pvprun").getAsInt()),
-    TNT_GAMES_WINS_TNTTAG(TNT_GAMES, tnt -> tnt.get("wins_tntag").getAsInt()),
-    TNT_GAMES_KILLS_WIZARDS(TNT_GAMES, tnt -> tnt.get("kills_capture").getAsInt()),
-    TNT_GAMES_KILLS_PVPRUN(TNT_GAMES, tnt -> tnt.get("kills_pvprun").getAsInt()),
-    TNT_GAMES_KILLS_TNTTAG(TNT_GAMES, tnt -> tnt.get("kills_tntag").getAsInt()),
-    TNT_GAMES_LONGEST_TNTRUN(TNT_GAMES, tnt -> tnt.get("record_tntrun").getAsInt()),
-    TNT_GAMES_LONGEST_PVPRUN(TNT_GAMES, tnt -> tnt.get("record_pvprun").getAsInt()),
+    TNT_GAMES_WIZARDS_WINS(TNT_GAMES, tnt -> tnt.get("wins_capture").getAsInt()),
+    TNT_GAMES_TNTRUN_WINS(TNT_GAMES, tnt -> tnt.get("wins_tntrun").getAsInt()),
+    TNT_GAMES_BOWSPLEEF_WINS(TNT_GAMES, tnt -> tnt.get("wins_bowspleef").getAsInt()),
+    TNT_GAMES_PVPRUN_WINS(TNT_GAMES, tnt -> tnt.get("wins_pvprun").getAsInt()),
+    TNT_GAMES_TNTTAG_WINS(TNT_GAMES, tnt -> tnt.get("wins_tntag").getAsInt()),
+    TNT_GAMES_WIZARDS_KILLS(TNT_GAMES, tnt -> tnt.get("kills_capture").getAsInt()),
+    TNT_GAMES_PVPRUN_KILLS(TNT_GAMES, tnt -> tnt.get("kills_pvprun").getAsInt()),
+    TNT_GAMES_TNTTAG_KILLS(TNT_GAMES, tnt -> tnt.get("kills_tntag").getAsInt()),
+    TNT_GAMES_TNTRUN_LONGEST(TNT_GAMES, tnt -> tnt.get("record_tntrun").getAsInt()),
+    TNT_GAMES_PVPRUN_LONGEST(TNT_GAMES, tnt -> tnt.get("record_pvprun").getAsInt()),
 
     /**
      * Arcade leaderboards.
