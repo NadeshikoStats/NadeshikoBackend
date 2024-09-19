@@ -51,6 +51,9 @@ public class GuildController {
         // Ensure that the response from the cache is valid
         if (cached.get("success").getAsBoolean()) {
             response.status(200);
+
+            // Register the request with the stats service
+            Nadeshiko.INSTANCE.getStatsService().registerGuildRequest(cached.get("name").getAsString());
         } else {
             response.status(cached.get("status").getAsInt());
 
@@ -60,9 +63,6 @@ public class GuildController {
 
         // Log the request
 //        Nadeshiko.logger.info("Serving stats for guild {}", cached.get("name").getAsString());
-
-        // Register the request with the stats service
-        Nadeshiko.INSTANCE.getStatsService().registerGuildRequest(cached.get("name").getAsString());
 
         // Return the data as provided from the cache
         response.type("application/json");

@@ -46,7 +46,7 @@ public class GuildBuilder {
     private JsonObject build(JsonObject guildData) {
 
         if (guildData == null) {
-            return error("Couldn't fetch guild data!", 500);
+            return error("This player is not in a guild!", 404);
         }
 
         JsonObject response = new JsonObject();
@@ -134,13 +134,25 @@ public class GuildBuilder {
         return response;
     }
 
+    /**
+     * Fetches a Hypixel guild by name
+     * @param name The name of the guild to look up
+     * @return The guild, or {@code null} if none exists
+     */
     private JsonObject fetchGuildFromName(@NonNull String name) {
         try {
             HTTPUtil.Response response =
                 HTTPUtil.get("https://api.hypixel.net/v2/guild?name=" + name +
                     "&key=" + Nadeshiko.INSTANCE.getHypixelKey());
 
-            return JsonParser.parseString(response.response()).getAsJsonObject().getAsJsonObject("guild");
+            JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
+
+            // Make sure the guild exists
+            if (!jsonResponse.has("guild") || jsonResponse.get("guild").isJsonNull()) {
+                return null; // the guild does not exist
+            }
+
+            return jsonResponse.getAsJsonObject("guild");
 
         } catch (Exception e) {
             Nadeshiko.logger.error("Encountered error while looking up Hypixel guild \"{}\"", name, e);
@@ -151,6 +163,11 @@ public class GuildBuilder {
         }
     }
 
+    /**
+     * Fetches the Hypixel guild of a given player
+     * @param player The username or UUID of the player to look up
+     * @return The player's guild, or {@code null} if none exists
+     */
     public JsonObject fetchGuildFromPlayer(@NonNull String player) {
         try {
             String uuid = Nadeshiko.INSTANCE.getStatsCache().get(player, false).get("uuid").getAsString();
@@ -158,7 +175,14 @@ public class GuildBuilder {
                 HTTPUtil.get("https://api.hypixel.net/v2/guild?player=" + uuid +
                     "&key=" + Nadeshiko.INSTANCE.getHypixelKey());
 
-            return JsonParser.parseString(response.response()).getAsJsonObject().getAsJsonObject("guild");
+            JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
+
+            // Make sure the player has a guild
+            if (!jsonResponse.has("guild") || jsonResponse.get("guild").isJsonNull()) {
+                return null; // the player has no guild
+            }
+
+            return jsonResponse.getAsJsonObject("guild");
 
         } catch (Exception e) {
             Nadeshiko.logger.error("Encountered error while looking up {}'s Hypixel guild", player, e);
