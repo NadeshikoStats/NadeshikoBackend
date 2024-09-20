@@ -129,13 +129,31 @@ public class StatsBuilder {
 				}
 			}
 
-			// Add the cape
-			if (textures != null && textures.has("CAPE")) {
-				final JsonObject capeObject = textures.getAsJsonObject("CAPE");
+			// Add cape
+			try {
+				// Try OF first
+				HTTPUtil.RawResponse ofResponse = HTTPUtil.getRaw("http://s.optifine.net/capes/" +
+					response.get("name").getAsString() + ".png");
 
-				if (capeObject.has("url")) {
-					response.addProperty("cape", capeObject.get("url").getAsString());
+				// Check if the cape exists
+				if (ofResponse.status() == 200) {
+					response.addProperty("cape", Base64.getEncoder().encodeToString(ofResponse.response()));
 				}
+
+				// Add vanilla cape, if it exists
+				else if (textures != null && textures.has("CAPE")) {
+					final JsonObject capeObject = textures.getAsJsonObject("CAPE");
+
+					if (capeObject.has("url")) {
+						HTTPUtil.RawResponse mojangResponse = HTTPUtil.getRaw(capeObject.get("url").getAsString());
+						response.addProperty("cape", Base64.getEncoder().encodeToString(mojangResponse.response()));
+					}
+				}
+			} catch (Exception e) {
+				Nadeshiko.logger.error("Encountered error while looking up cape for {}",
+					response.get("name").getAsString(), e);
+				Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+					"Encountered error while looking up cape for %s", response.get("name").getAsString());
 			}
 
 			// Add the Hypixel status
