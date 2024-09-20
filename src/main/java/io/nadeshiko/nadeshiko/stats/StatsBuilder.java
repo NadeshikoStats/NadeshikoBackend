@@ -149,6 +149,11 @@ public class StatsBuilder {
 						response.addProperty("cape", Base64.getEncoder().encodeToString(mojangResponse.response()));
 					}
 				}
+
+				// Final fallback
+				else {
+					response.addProperty("cape", "");
+				}
 			} catch (Exception e) {
 				Nadeshiko.logger.error("Encountered error while looking up cape for {}",
 					response.get("name").getAsString(), e);
