@@ -32,7 +32,7 @@ public enum LeaderboardCategory {
     BEDWARS(data -> getStats(data).getAsJsonObject("Bedwars")),
     DUELS(data -> getStats(data).getAsJsonObject("Duels")),
     SKYWARS(data -> getStats(data).getAsJsonObject("SkyWars")),
-    PIT(data -> getStats(data).getAsJsonObject("Pit").getAsJsonObject("pit_stats_ptl")),
+    PIT(data -> getStats(data).getAsJsonObject("Pit")),
     BUILD_BATTLE(data -> getStats(data).getAsJsonObject("BuildBattle")),
     MURDER_MYSTERY(data -> getStats(data).getAsJsonObject("MurderMystery")),
     TNT_GAMES(data -> getStats(data).getAsJsonObject("TNTGames")),
