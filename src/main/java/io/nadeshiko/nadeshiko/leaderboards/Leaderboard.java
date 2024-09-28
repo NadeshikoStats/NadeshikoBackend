@@ -149,7 +149,7 @@ public enum Leaderboard {
      * Derivation functions of leaderboards in this category take in the /stats/Pit/pit_stats_ptl object.
      * @see LeaderboardCategory#PIT
      */
-    PIT_EXP(PIT, pit -> pit.getAsJsonObject("profile").get("xp").getAsInt()),
+    PIT_EXP(PIT, pit -> pit.getAsJsonObject("profile").get("xp").getAsLong()),
     PIT_GOLD(PIT, pit -> pit.getAsJsonObject("profile").get("cash").getAsDouble()),
     PIT_DAMAGE_DEALT(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("damage_dealt").getAsInt()),
     PIT_JOINS(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("joins").getAsInt()),
