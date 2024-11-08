@@ -129,17 +129,20 @@ public class BuildBattleCardProvider extends CardProvider {
 	@Getter
 	@AllArgsConstructor
 	private enum Title {
-		ROOKIE(0, score -> "§fRookie"),
-		UNTRAINED(100, score -> "§8Untrained"),
-		AMATEUR(250, score -> "§eAmateur"),
+		PROSPECT(0, score -> "§fProspect"),
+		ROOKIE(100, score -> "§7Rookie"),
+		AMATEUR(250, score -> "§8Amateur"),
 		APPRENTICE(500, score -> "§aApprentice"),
-		EXPERIENCED(1000, score -> "§dExperienced"),
-		SEASONED(2000, score -> "§9Seasoned"),
-		SKILLED(3500, score -> "§3Skilled"),
-		TALENTED(7500, score -> "§cTalented"),
-		PROFESSIONAL(10000, score -> "§5Professional"),
-		EXPERT(15000, score -> "§1Expert"),
-		MASTER(20000, score -> "§4Master");
+		TRAINED(1000, score -> "§2Trained"),
+		EXPERIENCED(2500, score -> "§bExperienced"),
+		SEASONED(5000, score -> "§3Seasoned"),
+		SKILLED(10000, score -> "§9Skilled"),
+		TALENTED(25000, score -> "§1Talented"),
+		PROFESSIONAL(50000, score -> "§5Professional"),
+		ARTISAN(100000, score -> "§dArtisan"),
+		EXPERT(200000, score -> "§cExpert"),
+		MASTER(350000, score -> "§4Master"),
+		GRANDMASTER(500000, score -> "§6Grandmaster");
 
 		private final int requirement;
 		private final Function<String, String> format;
