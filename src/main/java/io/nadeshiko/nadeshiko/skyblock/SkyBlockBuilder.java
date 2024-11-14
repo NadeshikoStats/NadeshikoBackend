@@ -189,11 +189,15 @@ public class SkyBlockBuilder extends BaseBuilder {
 			newItem.addProperty("id", oldItem.getAsJsonObject("id").get("value").getAsInt());
 			newItem.addProperty("count", oldItem.getAsJsonObject("Count").get("value").getAsInt());
 			newItem.addProperty("damage", oldItem.getAsJsonObject("Damage").get("value").getAsInt());
-			newItem.addProperty("name", tag.getAsJsonObject("display").getAsJsonObject("value")
-				.getAsJsonObject("Name").get("value").getAsString());
-			newItem.add("lore", tag.getAsJsonObject("display").getAsJsonObject("value")
-				.getAsJsonObject("Lore").getAsJsonArray("value"));
-			newItem.add("attributes", tag.getAsJsonObject("ExtraAttributes").getAsJsonObject("value"));
+			if (tag.has("display")) {
+				newItem.addProperty("name", tag.getAsJsonObject("display").getAsJsonObject("value")
+					.getAsJsonObject("Name").get("value").getAsString());
+				newItem.add("lore", tag.getAsJsonObject("display").getAsJsonObject("value")
+					.getAsJsonObject("Lore").getAsJsonArray("value"));
+			}
+			if (tag.has("ExtraAttributes")) {
+				newItem.add("attributes", tag.getAsJsonObject("ExtraAttributes").getAsJsonObject("value"));
+			}
 
 			JsonArray lore = new JsonArray();
 			for (JsonElement jsonElement : tag.getAsJsonObject("display").getAsJsonObject("value")
