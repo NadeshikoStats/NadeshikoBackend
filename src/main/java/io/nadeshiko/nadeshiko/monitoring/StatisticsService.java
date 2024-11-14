@@ -46,6 +46,7 @@ public class StatisticsService implements Runnable {
 	private final List<RequestEntry> achievementRequests = Collections.synchronizedList(new ArrayList<>());
 	private final List<RequestEntry> guildRequests = Collections.synchronizedList(new ArrayList<>());
 	private final List<RequestEntry> cardRequests = Collections.synchronizedList(new ArrayList<>());
+	private final List<RequestEntry> skyBlockRequests = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * The scheduler used to send the daily statistics
@@ -86,6 +87,10 @@ public class StatisticsService implements Runnable {
 		this.cardRequests.add(new RequestEntry(name, game.name()));
 	}
 
+	public void registerSkyBlockRequest(String name) {
+		this.skyBlockRequests.add(new RequestEntry(name, null));
+	}
+
 	/**
 	 * Reset the registry of daily requests
 	 */
@@ -95,6 +100,7 @@ public class StatisticsService implements Runnable {
 		this.achievementRequests.clear();
 		this.guildRequests.clear();
 		this.cardRequests.clear();
+		this.skyBlockRequests.clear();
 	}
 
 	/**
@@ -212,6 +218,7 @@ public class StatisticsService implements Runnable {
 			"Total `/achievements` requests today: **" + this.achievementRequests.size() + "**\\n" +
 			"Total `/quests` requests today: **" + this.questRequests.size() + "**\\n" +
 			"Total `/card` requests today: **" + this.cardRequests.size() + "**\\n" +
+			"Total `/skyblock` requests today: **" + this.skyBlockRequests.size() + "**\\n" +
 			"\\n" +
 			"**Hourly Visualization:**");
 

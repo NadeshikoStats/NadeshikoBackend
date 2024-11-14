@@ -17,6 +17,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.nadeshiko.nadeshiko.BaseBuilder;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftColors;
@@ -33,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author chloe
  * @since 0.6.0
  */
-public class GuildBuilder {
+public class GuildBuilder extends BaseBuilder {
 
     public JsonObject buildFromName(@NonNull String name) {
         return this.build(this.fetchGuildFromName(name));
@@ -114,22 +115,6 @@ public class GuildBuilder {
         } catch (Exception e) {
             return error("Internal threading error", 500);
         }
-
-        return response;
-    }
-
-    /**
-     * Generate a response, as a JsonObject, to indicate a failure with the given cause
-     * @param cause The reason for the failure - returned to the client in the response
-     * @return The response, as a JsonObject
-     */
-    private JsonObject error(@NonNull String cause, int status) {
-
-        JsonObject response = new JsonObject();
-
-        response.addProperty("success", false);
-        response.addProperty("status", status);
-        response.addProperty("cause", cause);
 
         return response;
     }

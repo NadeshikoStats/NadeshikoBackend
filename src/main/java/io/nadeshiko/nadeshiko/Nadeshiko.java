@@ -19,6 +19,7 @@ import io.nadeshiko.nadeshiko.cards.CardsCache;
 import io.nadeshiko.nadeshiko.leaderboards.LeaderboardService;
 import io.nadeshiko.nadeshiko.monitoring.DiscordMonitor;
 import io.nadeshiko.nadeshiko.monitoring.StatisticsService;
+import io.nadeshiko.nadeshiko.skyblock.SkyBlockCache;
 import io.nadeshiko.nadeshiko.stats.GuildCache;
 import io.nadeshiko.nadeshiko.stats.StatsCache;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
@@ -48,7 +49,7 @@ public class Nadeshiko {
 	/**
 	 * nadeshiko version number
 	 */
-	public static String VERSION = "1.0.4";
+	public static String VERSION = "1.1.0-SNAPSHOT";
 
 	/**
 	 * Setting fallbacks (if missing from config.json)
@@ -84,6 +85,12 @@ public class Nadeshiko {
 	 */
 	@Getter
 	private final GuildCache guildCache = new GuildCache();
+
+	/**
+	 * The {@link SkyBlockCache} instance of this backend instance
+	 */
+	@Getter
+	private final SkyBlockCache skyBlockCache = new SkyBlockCache();
 
 	/**
 	 * The {@link StatisticsService} of this backend instance
@@ -191,12 +198,14 @@ public class Nadeshiko {
 		spark.get("/guild", GuildController.serveGuildEndpoint);
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/quests", QuestsController.serveQuestsEndpoint);
-		spark.get("/leaderboard", LeaderboardController.serverLeaderboardEndpoint);
+		spark.get("/leaderboard", LeaderboardController.serveLeaderboardEndpoint);
+		spark.get("/skyblock", SkyBlockController.serveSkyBlockEndpoint);
 		spark.get("/", (request, response) -> "nadeshiko backend version " + VERSION);
 
 		// Set up the shutdown method on JVM stop
 		Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
 
+		// Done
 		double startSeconds = ((System.currentTimeMillis() - startTime) / 1000f);
 		startSeconds = Math.round(startSeconds * 100) / 100d;
 		logger.info("nadeshiko is now up! Took {} seconds to ignite!", startSeconds);
@@ -215,6 +224,7 @@ public class Nadeshiko {
 		// Stop the Spark instance
 		this.spark.stop();
 
+		// Done
 		logger.info("nadeshiko was running for {} ms", System.currentTimeMillis() - this.startTime);
 		logger.info("Stopped nadeshiko");
 		discordMonitor.log("Stopped! nadeshiko was running since <t:%d:f>", this.startTime / 1000);
