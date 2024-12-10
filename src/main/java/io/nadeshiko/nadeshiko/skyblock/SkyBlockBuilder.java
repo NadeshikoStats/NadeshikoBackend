@@ -22,13 +22,10 @@ import dev.dewy.nbt.tags.collection.CompoundTag;
 import io.nadeshiko.nadeshiko.BaseBuilder;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
+import io.nadeshiko.networth.item.Item;
 import lombok.NonNull;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Base64;
 import java.util.zip.GZIPInputStream;
 
@@ -199,6 +196,10 @@ public class SkyBlockBuilder extends BaseBuilder {
 				newItem.add("attributes", tag.getAsJsonObject("ExtraAttributes").getAsJsonObject("value"));
 			}
 
+			// Add item value
+			Item item = Item.fromAttributes(newItem.get("count").getAsInt(), newItem.get("attributes").getAsJsonObject());
+			newItem.addProperty("value", Nadeshiko.INSTANCE.getNetworthCalculator().calculateItem(item));
+
 			JsonArray lore = new JsonArray();
 			for (JsonElement jsonElement : tag.getAsJsonObject("display").getAsJsonObject("value")
 					.getAsJsonObject("Lore").getAsJsonArray("value")) {
@@ -213,6 +214,13 @@ public class SkyBlockBuilder extends BaseBuilder {
 	}
 
 	private JsonObject cleanupProfile(@NonNull JsonObject profile, @NonNull String uuid) {
+
+		// Add networth
+		try {
+			profile.add("networth", Nadeshiko.INSTANCE.getNetworthCalculator().calculatePlayer(profile, uuid).serialize());
+		} catch (Exception e) {
+			Nadeshiko.logger.error("Failed to calculate networth for {}!", uuid, e);
+		}
 
 		// Remove other members and flatten the JSON object
 		JsonObject members = profile.getAsJsonObject("members");

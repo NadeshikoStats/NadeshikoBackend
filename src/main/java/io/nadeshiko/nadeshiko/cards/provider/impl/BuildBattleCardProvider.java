@@ -42,7 +42,7 @@ public class BuildBattleCardProvider extends CardProvider {
 		int wins = buildBattle.get("wins").getAsInt();
 		int losses = buildBattle.get("games_played").getAsInt() - wins;
 		int score = buildBattle.get("score").getAsInt();
-		int votes = buildBattle.get("total_votes").getAsInt();
+		int votes = buildBattle.has("total_votes") ? buildBattle.get("total_votes").getAsInt() : 0;
 		int coins = buildBattle.get("coins").getAsInt();
 		int highestScore = stats.getAsJsonObject("achievements").get("buildbattle_build_battle_points").getAsInt();
 

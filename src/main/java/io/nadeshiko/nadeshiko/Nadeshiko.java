@@ -23,6 +23,8 @@ import io.nadeshiko.nadeshiko.skyblock.SkyBlockCache;
 import io.nadeshiko.nadeshiko.stats.GuildCache;
 import io.nadeshiko.nadeshiko.stats.StatsCache;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
+import io.nadeshiko.networth.NetworthCalculator;
+import io.nadeshiko.networth.exception.InvalidApiKeyException;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +63,12 @@ public class Nadeshiko {
 	 * Global static logger
 	 */
 	public static Logger logger = LoggerFactory.getLogger("nadeshiko");
+
+	/**
+	 * The {@link NetworthCalculator} instance of this backend instance
+	 */
+	@Getter
+	private NetworthCalculator networthCalculator;
 
 	/**
 	 * The {@link DiscordMonitor} instance of this backend instance
@@ -180,7 +188,17 @@ public class Nadeshiko {
 		// Test the connections to the APIs used
 		this.testApiConnections();
 
-		// If a port was provided, use it instead of the default!
+		// Ignite the SkyBlock networth calculator
+        try {
+	        logger.info("Igniting networth calculator (this may take a while)...");
+	        this.networthCalculator = new NetworthCalculator(this.hypixelKey);
+	        logger.info("Networth calculator is ready!");
+        } catch (InvalidApiKeyException e) { // Should never happen since we already validate the key ourselves
+            this.alert("The API key was rejected by the networth calculator. This should be impossible.");
+			return;
+        }
+
+        // If a port was provided, use it instead of the default!
 		if (this.config.get("port") != null) {
 			this.port = (int) ((double) this.config.get("port")); // No idea why this double cast is needed
 		} else {
