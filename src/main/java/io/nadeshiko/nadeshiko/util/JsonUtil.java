@@ -13,25 +13,26 @@
 
 package io.nadeshiko.nadeshiko.util;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class JsonUtil {
 
-    public int getNullableInt(JsonObject object) {
+    public int getNullableInt(JsonElement object) {
         return object != null ? object.getAsInt() : 0;
     }
 
-    public double getNullableDouble(JsonObject object) {
+    public double getNullableDouble(JsonElement object) {
         return object != null ? object.getAsDouble() : 0;
     }
 
-    public String getNullableString(JsonObject object) {
+    public String getNullableString(JsonElement object) {
         return object != null ? object.getAsString() : "null";
     }
 
-    public boolean getNullableBoolean(JsonObject object) {
+    public boolean getNullableBoolean(JsonElement object) {
         return object != null && object.getAsBoolean();
     }
 }

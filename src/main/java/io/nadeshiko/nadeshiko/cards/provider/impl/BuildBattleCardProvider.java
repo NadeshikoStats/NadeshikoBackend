@@ -128,21 +128,27 @@ public class BuildBattleCardProvider extends CardProvider {
 
 	@Getter
 	@AllArgsConstructor
+
 	private enum Title {
-		PROSPECT(0, score -> "§fProspect"),
-		ROOKIE(100, score -> "§7Rookie"),
+		ROOKIE(0, score -> "§fRookie"),
+		UNTRAINED(100, score -> "§7Untrained"),
 		AMATEUR(250, score -> "§8Amateur"),
-		APPRENTICE(500, score -> "§aApprentice"),
-		TRAINED(1000, score -> "§2Trained"),
-		EXPERIENCED(2500, score -> "§bExperienced"),
-		SEASONED(5000, score -> "§3Seasoned"),
-		SKILLED(10000, score -> "§9Skilled"),
-		TALENTED(25000, score -> "§1Talented"),
-		PROFESSIONAL(50000, score -> "§5Professional"),
-		ARTISAN(100000, score -> "§dArtisan"),
-		EXPERT(200000, score -> "§cExpert"),
-		MASTER(350000, score -> "§4Master"),
-		GRANDMASTER(500000, score -> "§6Grandmaster");
+		PROSPECT(500, score -> "§aProspect"),
+		APPRENTICE(1000, score -> "§2Apprentice"),
+		EXPERIENCED(2000, score -> "§bExperienced"),
+		SEASONED(3500, score -> "§3Seasoned"),
+		TRAINED(5000, score -> "§9Trained"),
+		SKILLED(7500, score -> "§1Skilled"),
+		TALENTED(10000, score -> "§5Talented"),
+		PROFESSIONAL(15000, score -> "§2Professional"),
+		ARTISAN(20000, score -> "§cArtisan"),
+		EXPERT(30000, score -> "§4Expert"),
+		MASTER(50000, score -> "§6Master"),
+		LEGEND(100000, score -> "§a§lLegend"),
+		GRANDMASTER(200000, score -> "§b§lGrandmaster"),
+		CELESTIAL(300000, score -> "§d§lCelestial"),
+		DIVINE(400000, score -> "§c§lDivine"),
+		ASCENDED(500000, score -> "§6§lAscended");
 
 		private final int requirement;
 		private final Function<String, String> format;
