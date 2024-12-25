@@ -20,6 +20,8 @@ import io.nadeshiko.nadeshiko.util.JsonUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -283,6 +285,8 @@ public enum Leaderboard {
     ARCADE_HALLOWEEN_SIMULATOR_WINS(ARCADE, ar -> ar.get("wins_halloween_simulator").getAsInt()),
     ARCADE_EASTER_SIMULATOR_WINS(ARCADE, ar -> ar.get("wins_easter_simulator").getAsInt()),
 
+
+
 //    /**
 //     * SkyBlock leaderboards.
 //     * Derivation functions of leaderboards in this category take in /data of the active profile from SkyCrypt
@@ -303,7 +307,14 @@ public enum Leaderboard {
 //        .getAsJsonObject("tank").getAsJsonObject("level").get("xp").getAsDouble()),
 
 
+
+
     ;
+
+    /**
+     * Dynamically generated leaderboards
+     */
+    private static final List<DynamicLeaderboard> DYNAMIC_LEADERBOARDS = new ArrayList<>();
 
     /**
      * Create a new leaderboard with a default sort direction of descending
@@ -360,5 +371,27 @@ public enum Leaderboard {
             }
         }
         return null;
+    }
+
+    public static DynamicLeaderboard getDynamic(String name) {
+        for (DynamicLeaderboard leaderboard : DYNAMIC_LEADERBOARDS) {
+            if (leaderboard.name().equals(name)) {
+                return leaderboard;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param category      The {@link LeaderboardCategory} this leaderboard belongs to
+     * @param derive        Function that takes in a JsonObject of stats, and outputs the stat appropriate to the leaderboard.
+     *                      <p>
+     *                      The exact JsonObject which this function takes in depends on the leaderboard category.
+     *                      For example, network leaderboards take in the {@code profile} object, whereas BedWars leaderboards take in the
+     *                      {@code stats/Bedwars} object.
+     * @param sortDirection The direction this leaderboard sorts in: -1 is descending, 1 is ascending. Defaults to descending.
+     */
+    public record DynamicLeaderboard(String name, LeaderboardCategory category, Function<JsonObject, Object> derive,
+                                     int sortDirection) {
     }
 }

@@ -200,12 +200,42 @@ public class SkyBlockBuilder extends BaseBuilder {
 			Item item = Item.fromAttributes(newItem.get("count").getAsInt(), newItem.get("attributes").getAsJsonObject());
 			newItem.addProperty("value", Nadeshiko.INSTANCE.getNetworthCalculator().calculateItem(item));
 
+			// Add lore
 			JsonArray lore = new JsonArray();
 			for (JsonElement jsonElement : tag.getAsJsonObject("display").getAsJsonObject("value")
 					.getAsJsonObject("Lore").getAsJsonArray("value")) {
 				lore.add(jsonElement.getAsJsonObject().get("value").getAsString());
 			}
 			newItem.add("lore", lore);
+
+			// Add rarity
+			String lastLine = lore.get(lore.size() - 1).getAsString();
+			// This is done backwards because of false contains matches with common/uncommon and special/very special.
+			if (lastLine.contains("ADMIN")) {
+				newItem.addProperty("rarity", "ADMIN");
+			} else if (lastLine.contains("ULTIMATE")) {
+				newItem.addProperty("rarity", "ULTIMATE");
+			} else if (lastLine.contains("VERY SPECIAL")) {
+				newItem.addProperty("rarity", "VERY_SPECIAL");
+			} else if (lastLine.contains("SPECIAL")) {
+				newItem.addProperty("rarity", "SPECIAL");
+			} else if (lastLine.contains("DIVINE")) {
+				newItem.addProperty("rarity", "DIVINE");
+			} else if (lastLine.contains("MYTHIC")) {
+				newItem.addProperty("rarity", "VERY_SPECIAL");
+			} else if (lastLine.contains("LEGENDARY")) {
+				newItem.addProperty("rarity", "LEGENDARY");
+			} else if (lastLine.contains("EPIC")) {
+				newItem.addProperty("rarity", "EPIC");
+			} else if (lastLine.contains("RARE")) {
+				newItem.addProperty("rarity", "RARE");
+			} else if (lastLine.contains("UNCOMMON")) {
+				newItem.addProperty("rarity", "UNCOMMON");
+			} else if (lastLine.contains("COMMON")) {
+				newItem.addProperty("rarity", "COMMON");
+			} else {
+				newItem.addProperty("rarity", "NONE");
+			}
 
 			decodedInventory.add(newItem);
 		}

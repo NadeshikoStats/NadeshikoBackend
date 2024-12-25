@@ -14,7 +14,6 @@
 package io.nadeshiko.nadeshiko.util;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass

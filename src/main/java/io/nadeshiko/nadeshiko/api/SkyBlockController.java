@@ -32,6 +32,14 @@ public class SkyBlockController {
      */
     public static Route serveSkyBlockEndpoint = (Request request, Response response) -> {
 
+        // Ensure the networth calculator is ready
+        if (!Nadeshiko.INSTANCE.isNetworthReady()) {
+            response.status(503);
+            response.type("application/json");
+            return "{\"success\":false,\"cause\":\"" +
+                "The networth calculator is currently unable to process the request. Try again in a minute.\"}";
+        }
+
         // Ensure a UUID was provided
         if (!request.queryParams().contains("name")) {
             response.status(400);

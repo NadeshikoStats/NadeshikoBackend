@@ -118,6 +118,12 @@ public class Nadeshiko {
 	private long startTime;
 
 	/**
+	 * Whether this instance's SkyBlock networth calculator implementation is up and ready
+	 */
+	@Getter
+	private boolean networthReady;
+
+	/**
 	 * The Spark instance of this backend instance
 	 */
 	private final Service spark = Service.ignite();
@@ -189,14 +195,16 @@ public class Nadeshiko {
 		this.testApiConnections();
 
 		// Ignite the SkyBlock networth calculator
-        try {
-	        logger.info("Igniting networth calculator (this may take a while)...");
-	        this.networthCalculator = new NetworthCalculator(this.hypixelKey);
-	        logger.info("Networth calculator is ready!");
-        } catch (InvalidApiKeyException e) { // Should never happen since we already validate the key ourselves
-            this.alert("The API key was rejected by the networth calculator. This should be impossible.");
-			return;
-        }
+		new Thread(() -> {
+			try {
+				logger.info("Igniting networth calculator (this may take a while)...");
+				this.networthCalculator = new NetworthCalculator(this.hypixelKey);
+				logger.info("Networth calculator is ready! SkyBlock endpoints are now available.");
+				Nadeshiko.this.networthReady = true;
+			} catch (InvalidApiKeyException e) { // Should never happen since we already validate the key ourselves
+				this.alert("The API key was rejected by the networth calculator. This should be impossible.");
+			}
+		}).start();
 
         // If a port was provided, use it instead of the default!
 		if (this.config.get("port") != null) {
