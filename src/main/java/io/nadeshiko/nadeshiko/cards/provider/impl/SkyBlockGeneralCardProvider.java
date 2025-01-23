@@ -13,28 +13,23 @@
 
 package io.nadeshiko.nadeshiko.cards.provider.impl;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
-import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftRenderer;
 import io.nadeshiko.nadeshiko.util.NumberUtil;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.SneakyThrows;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.Map;
-import java.util.function.Function;
 
 public class SkyBlockGeneralCardProvider extends CardProvider {
 
-	private final Color maxColor = new Color(206, 143, 18);
+	private static final int GOLD_LEVEL = 450;
+
+	private static final int MAX_CATA = 50;
+
+	private static final Color MAX_COLOR = new Color(206, 143, 18);
 
 	public SkyBlockGeneralCardProvider() {
 		super(CardGame.SKYBLOCK_GENERAL);
@@ -43,51 +38,29 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 	@Override
 	public void generate(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
-		JsonObject skyblockProfiles, profileData = null;
 
 		// Fetch the player's SkyBlock stats
-		try {
-			skyblockProfiles = JsonParser.parseString(HTTPUtil.get("https://sky.shiiyu.moe/api/v2/profile/" +
-				stats.get("name").getAsString()).response()).getAsJsonObject().getAsJsonObject("profiles");
-
-			// Iterate over profiles to find the active one
-			for (Map.Entry<String, JsonElement> entry : skyblockProfiles.entrySet()) {
-				JsonObject entryObject = entry.getValue().getAsJsonObject();
-
-				if (entryObject.has("current") && entryObject.get("current").getAsBoolean()) {
-					profileData = entryObject.getAsJsonObject("data");
-					break;
-				}
-			}
-
-			// Ensure that the active profile was found
-			if (profileData == null) {
-				Nadeshiko.logger.error("Somehow {} has no active SkyBlock profile?", stats);
-				return;
-			}
-		} catch (Exception e) {
-			Nadeshiko.logger.error("Encountered error when fetching SkyBlock stats for {}", stats, e);
-			return;
-		}
+		JsonObject profileData = Nadeshiko.INSTANCE.getSkyBlockCache().get(stats.get("name").getAsString(), null)
+			.getAsJsonObject("skyblock_profile");
 
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
 		// Draw the SkyBlock level
-		int level = profileData.getAsJsonObject("skyblock_level").get("level").getAsInt();
-		int maxLevel = profileData.getAsJsonObject("skyblock_level").get("maxLevel").getAsInt();
+		int experience = profileData.getAsJsonObject("leveling").get("experience").getAsInt();
+		int level = (int) (experience / 100d);
 		String prefixColor = this.getPrefixColor(level);
 		String levelText = String.format("Level §8[%s" + level + "§8]", prefixColor);
-		g.setColor(level == maxLevel ? maxColor : Color.WHITE);
+		g.setColor(level >= GOLD_LEVEL ? MAX_COLOR : Color.WHITE);
 		g.setFont(mediumBold);
 		MinecraftRenderer.drawCustomString(g,levelText, 755 - MinecraftRenderer.customWidth(g, levelText), 80);
 
 		// Draw the SkyBlock level bar
-		float progress = profileData.getAsJsonObject("skyblock_level").get("progress").getAsFloat();
-		this.drawProgress(g, 772, 71, 654, 8, progress, level == maxLevel ? maxColor : this.getColor());
+		float progress = (experience % 100) / 100f;
+		this.drawProgress(g, 772, 71, 654, 8, progress, level >= GOLD_LEVEL ? MAX_COLOR : this.getColor());
 
 		// Draw the skills
-		JsonObject skillsObject = profileData.getAsJsonObject("skills").getAsJsonObject("skills");
+		JsonObject skillsObject = profileData.getAsJsonObject("skills");
 		this.drawSkill(g, 772, 108, "Taming", skillsObject.getAsJsonObject("taming"));
 		this.drawSkill(g, 772, 133, "Mining", skillsObject.getAsJsonObject("mining"));
 		this.drawSkill(g, 772, 158, "Foraging", skillsObject.getAsJsonObject("foraging"));
@@ -103,7 +76,7 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		this.drawDungeons(g, profileData.getAsJsonObject("dungeons"));
 
 		// Draw slayers
-		JsonObject slayersObject = profileData.getAsJsonObject("slayer").getAsJsonObject("slayers");
+		JsonObject slayersObject = profileData.getAsJsonObject("slayer").getAsJsonObject("slayer_bosses");
 		this.drawSlayer(g, 1131, 357, "Rev", slayersObject.getAsJsonObject("zombie"));
 		this.drawSlayer(g, 1131, 389, "Sven", slayersObject.getAsJsonObject("wolf"));
 		this.drawSlayer(g, 1131, 421, "Blaze", slayersObject.getAsJsonObject("blaze"));
@@ -112,10 +85,10 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		this.drawSlayer(g, 1332, 421, "Vamp", slayersObject.getAsJsonObject("vampire"));
 
 		// Draw bottom stuff
-		int mp = profileData.getAsJsonObject("accessories").getAsJsonObject("magical_power").get("total").getAsInt();
-		double networth = profileData.getAsJsonObject("networth").get("networth").getAsDouble();
-		double purse = profileData.getAsJsonObject("networth").get("purse").getAsDouble();
-		double bank = profileData.getAsJsonObject("networth").get("bank").getAsDouble();
+		int mp = profileData.getAsJsonObject("player_stats").get("magical_power").getAsInt();
+		double networth = profileData.getAsJsonObject("networth").get("total").getAsDouble();
+		double purse = profileData.getAsJsonObject("networth").getAsJsonObject("liquid").get("purse").getAsDouble();
+		double bank = profileData.getAsJsonObject("networth").getAsJsonObject("liquid").get("bank").getAsDouble();
 		String text = "MP  " + String.format("%,d", mp) + "           Networth " + NumberUtil.formatNumber(networth) +
 			"           Purse  " + NumberUtil.formatNumber(purse) + "           Bank  " + NumberUtil.formatNumber(bank);
 		g.setColor(new Color(181, 181, 181));
@@ -127,43 +100,42 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 
 		// Draw the skill level
 		int level = data.get("level").getAsInt();
-		int maxLevel = data.get("maxLevel").getAsInt();
+		int maxLevel = data.get("max_level").getAsInt();
 		String levelText = " " + level;
-		g.setColor(level >= maxLevel ? maxColor : Color.WHITE);
+		g.setColor(level >= maxLevel ? MAX_COLOR : Color.WHITE);
 		g.setFont(smallBold);
 		g.drawString(levelText, x - 15 - g.getFontMetrics().stringWidth(levelText), y + 10);
 
 		// Draw the skill name
-		g.setColor(level >= maxLevel ? maxColor : new Color(181, 181, 181));
+		g.setColor(level >= maxLevel ? MAX_COLOR : new Color(181, 181, 181));
 		g.setFont(smallLight);
 		g.drawString(name, x - 20 - g.getFontMetrics().stringWidth(name) - g.getFontMetrics().stringWidth(levelText), y + 10);
 
 		// Draw the skill progress
 		float progress = level == maxLevel ? 1 : data.get("progress").getAsFloat();
-		this.drawProgress(g, x, y, 236, 8, progress, level == maxLevel ? maxColor : this.getColor());
+		this.drawProgress(g, x, y, 236, 8, progress, level == maxLevel ? MAX_COLOR : this.getColor());
 	}
 
 	private void drawDungeons(Graphics2D g, JsonObject data) {
 
 		// Draw Catacombs level
-		int cataLevel = data.getAsJsonObject("catacombs").getAsJsonObject("level").get("level").getAsInt();
-		int cataLevelMax = data.getAsJsonObject("catacombs").getAsJsonObject("level").get("maxLevel").getAsInt();
+		int cataLevel = data.getAsJsonObject("dungeon_types").getAsJsonObject("catacombs").get("level").getAsInt();
 		String cataLevelText = " " + cataLevel;
-		g.setColor(cataLevel >= cataLevelMax ? maxColor : Color.WHITE);
+		g.setColor(cataLevel >= MAX_CATA ? MAX_COLOR : Color.WHITE);
 		g.setFont(smallBold);
 		g.drawString(cataLevelText, 730, 367);
 
 		// Draw "Catacombs"
-		g.setColor(cataLevel >= cataLevelMax ? maxColor : new Color(181, 181, 181));
+		g.setColor(cataLevel >= MAX_CATA ? MAX_COLOR : new Color(181, 181, 181));
 		g.setFont(smallLight);
 		g.drawString("Catacombs", 627, 367);
 
 		// Draw Catacombs level progress
-		float cataProgress = data.getAsJsonObject("catacombs").getAsJsonObject("level").get("progress").getAsFloat();
-		this.drawProgress(g, 773, 357, 217, 8, cataProgress, cataLevel == cataLevelMax ? maxColor : this.getColor());
+		float cataProgress = data.getAsJsonObject("dungeon_types").getAsJsonObject("catacombs").get("progress").getAsFloat();
+		this.drawProgress(g, 773, 357, 217, 8, cataProgress, cataLevel == MAX_CATA ? MAX_COLOR : this.getColor());
 
 		// Draw classes
-		JsonObject classesObject = data.getAsJsonObject("classes").getAsJsonObject("classes");
+		JsonObject classesObject = data.getAsJsonObject("player_classes");
 		this.drawClass(g, 655, 397, "Archer", classesObject.getAsJsonObject("archer"));
 		this.drawClass(g, 655, 420, "Healer", classesObject.getAsJsonObject("healer"));
 		this.drawClass(g, 655, 444, "Tank", classesObject.getAsJsonObject("tank"));
@@ -171,50 +143,48 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		this.drawClass(g, 830, 420, "Mage", classesObject.getAsJsonObject("mage"));
 
 		// Draw class average
-		float classAvg = data.getAsJsonObject("classes").get("average_level").getAsFloat();
-		boolean max = data.getAsJsonObject("classes").get("maxed").getAsBoolean();
-		g.setColor(max ? maxColor : new Color(181, 181, 181));
+		float classAvg = classesObject.get("average").getAsFloat();
+		g.setColor(classAvg >= MAX_CATA ? MAX_COLOR : new Color(181, 181, 181));
 		g.setFont(tinyLight);
 		g.drawString("Class Average", 802, 444);
-		g.setColor(max ? maxColor : Color.WHITE);
+		g.setColor(classAvg >= MAX_CATA ? MAX_COLOR : Color.WHITE);
 		g.setFont(tinyBold);
-		g.drawString(String.valueOf(classAvg), 802 + g.getFontMetrics().stringWidth("Class Average "), 444);
+		g.drawString(NumberUtil.roundToPlace(classAvg, 2), 802 + g.getFontMetrics().stringWidth("Class Average "), 444);
 	}
 
 	private void drawClass(Graphics2D g, int x, int y, String name, JsonObject data) {
 
-		int level = data.getAsJsonObject("level").get("level").getAsInt();
-		int levelMax = data.getAsJsonObject("level").get("maxLevel").getAsInt();
+		double level = data.get("exact_level").getAsDouble();
 
 		// Draw name
-		g.setColor(level >= levelMax ? maxColor : new Color(181, 181, 181));
+		g.setColor(level >= MAX_CATA ? MAX_COLOR : new Color(181, 181, 181));
 		g.setFont(tinyLight);
 		g.drawString(name, x, y);
 
 		// Draw level
-		g.setColor(level >= levelMax ? maxColor : Color.WHITE);
+		g.setColor(level >= MAX_CATA ? MAX_COLOR : Color.WHITE);
 		g.setFont(tinyBold);
-		g.drawString(String.valueOf(level), x + g.getFontMetrics().stringWidth(name + " "), y);
+		g.drawString(NumberUtil.roundToPlace(level, 1), x + g.getFontMetrics().stringWidth(name + " "), y);
 	}
 
 	private void drawSlayer(Graphics2D g, int x, int y, String name, JsonObject data) {
 
 		// Draw the slayer level
-		int level = data.getAsJsonObject("level").get("currentLevel").getAsInt();
-		int maxLevel = data.getAsJsonObject("level").get("maxLevel").getAsInt();
+		int level = data.getAsJsonObject("level").get("level").getAsInt();
+		int maxLevel = data.getAsJsonObject("level").get("max_level").getAsInt();
 		String levelText = " " + level;
-		g.setColor(level >= maxLevel ? maxColor : Color.WHITE);
+		g.setColor(level >= maxLevel ? MAX_COLOR : Color.WHITE);
 		g.setFont(tinyBold);
 		g.drawString(levelText, x - 12 - g.getFontMetrics().stringWidth(levelText), y + 10);
 
 		// Draw the slayer name
-		g.setColor(level >= maxLevel ? maxColor : new Color(181, 181, 181));
+		g.setColor(level >= maxLevel ? MAX_COLOR : new Color(181, 181, 181));
 		g.setFont(tinyLight);
 		g.drawString(name, x - 15 - g.getFontMetrics().stringWidth(name) - g.getFontMetrics().stringWidth(levelText), y + 10);
 
 		// Draw the slayer progress
 		float progress = level == maxLevel ? 1 : data.getAsJsonObject("level").get("progress").getAsFloat();
-		this.drawProgress(g, x, y, 102, 8, progress, level == maxLevel ? maxColor : this.getColor());
+		this.drawProgress(g, x, y, 102, 8, progress, level == maxLevel ? MAX_COLOR : this.getColor());
 	}
 
 	private String getPrefixColor(int level) {

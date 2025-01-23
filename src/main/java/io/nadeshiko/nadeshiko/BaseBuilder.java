@@ -182,7 +182,7 @@ public abstract class BaseBuilder {
             Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
                 "Encountered error while looking up Hypixel status for %s", uuid);
 
-            return null;
+            return new JsonObject();
         }
     }
 

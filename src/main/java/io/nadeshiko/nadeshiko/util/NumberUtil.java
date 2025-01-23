@@ -15,6 +15,9 @@ package io.nadeshiko.nadeshiko.util;
 
 import lombok.experimental.UtilityClass;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 @UtilityClass
 public class NumberUtil {
 
@@ -45,5 +48,11 @@ public class NumberUtil {
         double baseValue = value / powers[exponent];
 
         return String.format("%.1f%s", baseValue, suffixes[exponent]);
+    }
+
+    public String roundToPlace(double value, int places) {
+        BigDecimal bd = new BigDecimal(value);
+        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        return bd.toString();
     }
 }

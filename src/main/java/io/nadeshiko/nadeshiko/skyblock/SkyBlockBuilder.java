@@ -22,14 +22,18 @@ import dev.dewy.nbt.tags.collection.CompoundTag;
 import io.nadeshiko.nadeshiko.BaseBuilder;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
+import io.nadeshiko.nadeshiko.util.hypixel.SkyBlockUtil;
 import io.nadeshiko.networth.item.Item;
 import lombok.NonNull;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 /**
+ * Here be bad code.
  * @since 1.1.0
  * @author chloe
  */
@@ -132,7 +136,9 @@ public class SkyBlockBuilder extends BaseBuilder {
 		final JsonObject hypixelStats = this.fetchHypixelStats(response.get("uuid").getAsString());
 		if (hypixelStats != null) { // Null if the player has no stats (never logged in)
 			response.add("profile", this.buildHypixelProfile(hypixelStats));
-			response.add("skyblock_profile", this.getProfile(playerData.get("id").getAsString(), profile));
+
+			boolean hasRank = !response.getAsJsonObject("profile").get("tag").getAsString().isEmpty();
+			response.add("skyblock_profile", this.getProfile(playerData.get("id").getAsString(), profile, hasRank));
 		}
 
 		return response;
@@ -197,8 +203,10 @@ public class SkyBlockBuilder extends BaseBuilder {
 			}
 
 			// Add item value
-			Item item = Item.fromAttributes(newItem.get("count").getAsInt(), newItem.get("attributes").getAsJsonObject());
-			newItem.addProperty("value", Nadeshiko.INSTANCE.getNetworthCalculator().calculateItem(item));
+			if (newItem.has("attributes")) {
+				Item item = Item.fromAttributes(newItem.get("count").getAsInt(), newItem.get("attributes").getAsJsonObject());
+				newItem.addProperty("value", Nadeshiko.INSTANCE.getNetworthCalculator().calculateItem(item));
+			}
 
 			// Add lore
 			JsonArray lore = new JsonArray();
@@ -222,7 +230,7 @@ public class SkyBlockBuilder extends BaseBuilder {
 			} else if (lastLine.contains("DIVINE")) {
 				newItem.addProperty("rarity", "DIVINE");
 			} else if (lastLine.contains("MYTHIC")) {
-				newItem.addProperty("rarity", "VERY_SPECIAL");
+				newItem.addProperty("rarity", "MYTHIC");
 			} else if (lastLine.contains("LEGENDARY")) {
 				newItem.addProperty("rarity", "LEGENDARY");
 			} else if (lastLine.contains("EPIC")) {
@@ -243,7 +251,7 @@ public class SkyBlockBuilder extends BaseBuilder {
 		return decodedInventory;
 	}
 
-	private JsonObject cleanupProfile(@NonNull JsonObject profile, @NonNull String uuid) {
+	private JsonObject cleanupProfile(@NonNull JsonObject profile, @NonNull String uuid, boolean hasRank) {
 
 		// Add networth
 		try {
@@ -259,6 +267,56 @@ public class SkyBlockBuilder extends BaseBuilder {
 			memberData.entrySet().forEach(e -> profile.add(e.getKey(), e.getValue()));
 		}
 		profile.remove("members");
+
+		// Clean up skills
+		JsonObject skills = new JsonObject();
+		profile.getAsJsonObject("player_data").getAsJsonObject("experience").entrySet().forEach(e -> {
+			String skillName = e.getKey().toLowerCase().substring("SKILL_".length());
+			skills.add(skillName, SkyBlockUtil.expandSkill(e.getKey(), e.getValue().getAsDouble(), profile, hasRank));
+		});
+
+		// Remove old skills and add our new ones
+		profile.getAsJsonObject("player_data").remove("experience");
+		profile.add("skills", skills);
+
+		// Add dungeons level
+		JsonObject catacombs = profile.getAsJsonObject("dungeons").getAsJsonObject("dungeon_types")
+			.getAsJsonObject("catacombs");
+		double catacombsLevel = SkyBlockUtil.calculateCatacombs(catacombs.get("experience").getAsDouble());
+		catacombs.addProperty("exact_level", catacombsLevel);
+		catacombs.addProperty("level", (int) catacombsLevel);
+		catacombs.addProperty("progress", catacombsLevel % 1);
+
+		// Add class levels
+		JsonObject classes = profile.getAsJsonObject("dungeons").getAsJsonObject("player_classes");
+		List<Double> classLevels = new ArrayList<>();
+		classes.entrySet().forEach(e -> {
+			double exp = e.getValue().getAsJsonObject().get("experience").getAsDouble();
+			double classLevel = SkyBlockUtil.calculateCatacombs(exp);
+			classLevels.add(classLevel);
+
+			e.getValue().getAsJsonObject().addProperty("exact_level", classLevel);
+			e.getValue().getAsJsonObject().addProperty("level", (int) classLevel);
+			e.getValue().getAsJsonObject().addProperty("progress", classLevel % 1);
+		});
+
+		// Add class average
+		double classAverage = 0;
+		for (double classLevel : classLevels) {
+			classAverage += classLevel;
+		}
+		classAverage /= classLevels.size();
+		classes.addProperty("average", classAverage);
+
+		// Clean up slayers
+		JsonObject slayerBosses = profile.getAsJsonObject("slayer").getAsJsonObject("slayer_bosses");
+		slayerBosses.entrySet().forEach(e -> {
+			JsonObject slayer = e.getValue().getAsJsonObject();
+			double exp = slayer.has("xp") ? slayer.get("xp").getAsLong() : 0;
+
+			slayer.add("level", SkyBlockUtil.expandSlayer(e.getKey(), exp));
+			slayer.remove("xp");
+		});
 
 		// Decode per-player inventories
 		JsonObject inventories = profile.getAsJsonObject("inventory");
@@ -314,6 +372,37 @@ public class SkyBlockBuilder extends BaseBuilder {
 			sharedInventories.getAsJsonObject("carnival_mask_inventory_contents").get("data").getAsString()
 		));
 
+		// Calculate and add MP
+		int mp = 0;
+
+		// MP from accessories
+		for (JsonElement element : bags.get("talisman_bag").getAsJsonArray()) {
+			if (element.getAsJsonObject().isEmpty()) {
+				continue;
+			}
+
+			mp += SkyBlockUtil.calculateAccessoryMp(element.getAsJsonObject());
+
+			// Special case: for Abicases, add one MP for every two contacts the player has
+			String id = element.getAsJsonObject().getAsJsonObject("attributes").getAsJsonObject("id").get("value").getAsString();
+			if (id.equals("ABICASE")) {
+
+				// Number of contacts
+				JsonArray contacts = profile.getAsJsonObject("nether_island_player_data")
+					.getAsJsonObject("abiphone").getAsJsonArray("active_contacts");
+
+				mp += (int) (contacts.size() / 2d);
+			}
+		}
+
+		// MP from consuming a Rift Prism
+		JsonObject riftAccess = profile.getAsJsonObject("rift").getAsJsonObject("access");
+		if (riftAccess.has("consumed_prism") && riftAccess.get("consumed_prism").getAsBoolean()) {
+			mp += 11;
+		}
+
+		profile.getAsJsonObject("player_stats").addProperty("magical_power", mp);
+
 		return profile;
 	}
 
@@ -322,9 +411,10 @@ public class SkyBlockBuilder extends BaseBuilder {
 	 * @param uuid The UUID of the player to lookup
 	 * @param profileId The optional UUID of the profile to lookup. If none is provided, the player's selected profile
 	 *                is used instead.
+	 * @param hasRank Whether the player being looked up has a rank on Hypixel or not
 	 * @return The SkyBlock profile requested, or {@code null} if something went wrong.
 	 */
-	private JsonObject getProfile(@NonNull String uuid, String profileId) {
+	private JsonObject getProfile(@NonNull String uuid, String profileId, boolean hasRank) {
 		JsonArray profiles = this.getProfiles(uuid);
 
 		// Iterate over profiles
@@ -333,12 +423,12 @@ public class SkyBlockBuilder extends BaseBuilder {
 
 			// If no profile ID was provided, return the selected profile
 			if (profileId == null && profile.has("selected") && profile.get("selected").getAsBoolean()) {
-				return this.cleanupProfile(profile, uuid);
+				return this.cleanupProfile(profile, uuid, hasRank);
 			}
 
 			// If a profile ID was provided, return that profile
 			else if (profile.has("profile_id") && profile.get("profile_id").getAsString().equals(profileId)) {
-				return this.cleanupProfile(profile, uuid);
+				return this.cleanupProfile(profile, uuid, hasRank);
 			}
 		}
 
