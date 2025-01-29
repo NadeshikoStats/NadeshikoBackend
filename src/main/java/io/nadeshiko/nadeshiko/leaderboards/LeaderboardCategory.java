@@ -36,7 +36,23 @@ public enum LeaderboardCategory {
     BUILD_BATTLE(data -> getStats(data).getAsJsonObject("BuildBattle")),
     MURDER_MYSTERY(data -> getStats(data).getAsJsonObject("MurderMystery")),
     TNT_GAMES(data -> getStats(data).getAsJsonObject("TNTGames")),
-    ARCADE(data -> getStats(data).getAsJsonObject("Arcade"));
+    ARCADE(data -> getStats(data).getAsJsonObject("Arcade")),
+    BLITZ(data -> getStats(data).getAsJsonObject("HungerGames")),
+    ARENA_BRAWL(data -> getStats(data).getAsJsonObject("Arena")),
+    PAINTBALL(data -> getStats(data).getAsJsonObject("Paintball")),
+    QUAKECRAFT(data -> getStats(data).getAsJsonObject("Quake")),
+    TURBO_KART_RACERS(data -> getStats(data).getAsJsonObject("Gingerbread")),
+    VAMPIREZ(data -> getStats(data).getAsJsonObject("VampireZ")),
+    WALLS(data -> getStats(data).getAsJsonObject("Walls")),
+    COPS_AND_CRIMS(data -> getStats(data).getAsJsonObject("MCGO")),
+    MEGA_WALLS(data -> getStats(data).getAsJsonObject("Walls3")),
+    SMASH_HEROES(data -> getStats(data).getAsJsonObject("SuperSmash")),
+    SPEED_UHC(data -> getStats(data).getAsJsonObject("SpeedUHC")),
+    UHC(data -> getStats(data).getAsJsonObject("UHC")),
+    WARLORDS(data -> getStats(data).getAsJsonObject("Battleground")),
+    WOOL_GAMES(data -> getStats(data).getAsJsonObject("WoolGames")),
+    FISHING(data -> getStats(data).getAsJsonObject("MainLobby").getAsJsonObject("fishing"));
+
 
     // Different from the others. Takes in the active profile data from the SkyCrypt API.
 //    SKYBLOCK(profile -> profile.getAsJsonObject("data"));
