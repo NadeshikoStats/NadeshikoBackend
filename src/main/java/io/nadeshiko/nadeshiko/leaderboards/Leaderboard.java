@@ -30,7 +30,7 @@ import java.util.function.Function;
 /**
  * Enum of leaderboards and functions to capture leaderboard data
  *
- * @author chloe
+ * @author chloe, Brooke
  * @since 0.9.0
  */
 @RequiredArgsConstructor
@@ -558,9 +558,7 @@ public enum Leaderboard {
     FISHING_TREASURE_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("treasure")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("treasure")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("treasure"))),
     FISHING_JUNK_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("junk")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("junk")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("junk"))),
     FISHING_MYTHICAL_FISH_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("selene")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("helios")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("nyx")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("zeus")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("aphrodite")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("archimedes")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("hades"))),
-
-    FISHING_TOTAL_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("fish")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("fish")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("fish")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("treasure")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("treasure")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("treasure")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("junk")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("junk")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("junk")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("selene")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("helios")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("nyx")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("zeus")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("aphrodite")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("archimedes")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("hades"))),
-
+    FISHING_TOTAL_CAUGHT(FISHING, fish -> FISHING_FISH_CAUGHT.derive(fish).intValue() + FISHING_TREASURE_CAUGHT.derive(fish).intValue() + FISHING_JUNK_CAUGHT.derive(fish).intValue() + FISHING_MYTHICAL_FISH_CAUGHT.derive(fish).intValue()),
 
 //    /**
 //     * SkyBlock leaderboards.
@@ -581,9 +579,6 @@ public enum Leaderboard {
 //    SKYBLOCK_TANK_XP(SKYBLOCK, sb -> sb.getAsJsonObject("dungeons").getAsJsonObject("classes")
 //        .getAsJsonObject("tank").getAsJsonObject("level").get("xp").getAsDouble()),
 
-
-
-
     ;
 
     /**
@@ -596,7 +591,7 @@ public enum Leaderboard {
      * @param category The {@link LeaderboardCategory} this leaderboard should belong to
      * @param deriveFunction The function used to capture the leaderboard stat from the appropriate JSON object
      */
-    Leaderboard(LeaderboardCategory category, Function<JsonObject, Object> deriveFunction) {
+    Leaderboard(LeaderboardCategory category, Function<JsonObject, Number> deriveFunction) {
         this(category, deriveFunction, -1); // default to descending
     }
 
@@ -613,7 +608,7 @@ public enum Leaderboard {
      * For example, network leaderboards take in the {@code profile} object, whereas BedWars leaderboards take in the
      * {@code stats/Bedwars} object.
      */
-    private final Function<JsonObject, Object> derive;
+    private final Function<JsonObject, Number> derive;
 
     /**
      * The direction this leaderboard sorts in: -1 is descending, 1 is ascending. Defaults to descending.
@@ -626,7 +621,7 @@ public enum Leaderboard {
      * @param object The JsonObject to derive the stat from
      * @return The player's stat, or 0 if none exists.
      */
-    public Object derive(JsonObject object) {
+    public Number derive(JsonObject object) {
         try {
             return this.derive.apply(object);
         } catch (Exception e) {
