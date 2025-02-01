@@ -173,12 +173,14 @@ public enum Leaderboard {
     PIT_CHAT_MESSAGES(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("chat_messages").getAsInt()),
     PIT_CLICKS(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("left_clicks").getAsInt()),
     PIT_KILLS(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("kills").getAsInt()),
-    PIT_KDR(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("kills").getAsDouble() /
+    PIT_KDR(PIT, pit -> PIT_KILLS.derive(pit).intValue() /
             Math.max(1, JsonUtil.getNullableDouble(pit.getAsJsonObject("pit_stats_ptl").get("deaths")))),
+    PIT_NIGHT_QUESTS_COMPLETED(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("night_quests_completed").getAsInt()),
     PIT_WHEAT_FARMED(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("wheat_farmed").getAsInt()),
     PIT_RENOWN(PIT, pit -> pit.getAsJsonObject("profile").get("renown").getAsInt()),
     PIT_ITEMS_FISHED(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("fished_anything").getAsInt()),
     PIT_INGOTS_PICKED_UP(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("ingots_picked_up").getAsInt()),
+    PIT_LAUNCHER_LAUNCHES(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("launched_by_launchers").getAsInt()),
     PIT_HIGHEST_KILLSTREAK(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("max_streak").getAsInt()),
     PIT_BOUNTY(PIT, pit -> {
         int totalBounty = 0;
@@ -190,6 +192,11 @@ public enum Leaderboard {
         }
         return totalBounty;
     }),
+    PIT_ITEMS_ENCHANTED(PIT, pit ->
+        JsonUtil.getNullableInt(pit.getAsJsonObject("pit_stats_ptl").get("enchanted_tier1")) +
+        JsonUtil.getNullableInt(pit.getAsJsonObject("pit_stats_ptl").get("enchanted_tier2")) +
+        JsonUtil.getNullableInt(pit.getAsJsonObject("pit_stats_ptl").get("enchanted_tier3"))
+    ),
     /**
      * Build Battle leaderboards.
      * Derivation functions of leaderboards in this category take in the /stats/BuildBattle object.
@@ -245,6 +252,8 @@ public enum Leaderboard {
      * Derivation functions of leaderboards in this category take in the /stats/Arcade object.
      * @see LeaderboardCategory#ARCADE
      */
+    ARCADE_COINS(ARCADE, ar -> ar.get("coins").getAsInt()),
+
     ARCADE_DROPPER_BEST_TIME(ARCADE, ar -> ar.getAsJsonObject("dropper").get("fastest_game").getAsInt(), 1),
     ARCADE_DROPPER_WINS(ARCADE, ar -> ar.getAsJsonObject("dropper").get("wins").getAsInt()),
     ARCADE_HYPIXEL_SAYS_WINS(ARCADE, ar -> ar.get("wins_simon_says").getAsInt()),
@@ -259,7 +268,6 @@ public enum Leaderboard {
     ARCADE_ZOMBIES_WINDOWS_REPAIRED(ARCADE, ar -> ar.get("windows_repaired_zombies").getAsInt()),
     ARCADE_ZOMBIES_PLAYERS_REVIVED(ARCADE, ar -> ar.get("players_revived_zombies").getAsInt()),
     ARCADE_ZOMBIES_DOORS_OPENED(ARCADE, ar -> ar.get("doors_opened_zombies").getAsInt()),
-    ARCADE_COINS(ARCADE, ar -> ar.get("coins").getAsInt()),
     ARCADE_BLOCKING_DEAD_WINS(ARCADE, ar -> ar.get("wins_dayone").getAsInt()),
     ARCADE_BLOCKING_DEAD_KILLS(ARCADE, ar -> ar.get("kills_dayone").getAsInt()),
     ARCADE_BOUNTY_HUNTERS_WINS(ARCADE, ar -> ar.get("wins_oneinthequiver").getAsInt()),
@@ -282,7 +290,6 @@ public enum Leaderboard {
     ARCADE_GALAXY_WARS_WINS(ARCADE, ar -> ar.get("sw_game_wins").getAsInt()),
     ARCADE_GALAXY_WARS_KILLS(ARCADE, ar -> ar.get("sw_kills").getAsInt()),
     ARCADE_GALAXY_WARS_KDR(ARCADE, ar -> ar.get("sw_kills").getAsDouble() / Math.max(ar.get("sw_deaths").getAsDouble(), 1)),
-    ARCADE_HIDE_AND_SEEK_WINS(ARCADE, ar -> JsonUtil.getNullableInt(ar.get("party_pooper_hider_wins_hide_and_seek")) + JsonUtil.getNullableInt(ar.get("hider_wins_hide_and_seek"))),
     ARCADE_HIDE_AND_SEEK_PARTY_POOPER_WINS(ARCADE, ar ->
         JsonUtil.getNullableInt(ar.get("party_pooper_hider_wins_hide_and_seek")) +
         JsonUtil.getNullableInt(ar.get("party_pooper_seeker_wins_hide_and_seek"))
@@ -291,6 +298,7 @@ public enum Leaderboard {
         JsonUtil.getNullableInt(ar.get("prop_hunt_hider_wins_hide_and_seek")) +
         JsonUtil.getNullableInt(ar.get("prop_hunt_seeker_wins_hide_and_seek"))
     ),
+    ARCADE_HIDE_AND_SEEK_WINS(ARCADE, ar -> ARCADE_HIDE_AND_SEEK_PARTY_POOPER_WINS.derive(ar).intValue() + ARCADE_HIDE_AND_SEEK_PROP_HUNT_WINS.derive(ar).intValue()),
     ARCADE_HOLE_IN_THE_WALL_WINS(ARCADE, ar -> ar.get("wins_hole_in_the_wall").getAsInt()),
     ARCADE_HOLE_IN_THE_WALL_QUALIFICATIONS_RECORD(ARCADE, ar -> ar.get("hitw_record_q").getAsInt()),
     ARCADE_HOLE_IN_THE_WALL_FINALS_RECORD(ARCADE, ar -> ar.get("hitw_record_f").getAsInt()),
@@ -306,6 +314,30 @@ public enum Leaderboard {
     ARCADE_HALLOWEEN_SIMULATOR_WINS(ARCADE, ar -> ar.get("wins_halloween_simulator").getAsInt()),
     ARCADE_EASTER_SIMULATOR_WINS(ARCADE, ar -> ar.get("wins_easter_simulator").getAsInt()),
 
+    ARCADE_WINS(ARCADE, ar ->
+        ARCADE_BLOCKING_DEAD_WINS.derive(ar).intValue() +
+        ARCADE_BOUNTY_HUNTERS_WINS.derive(ar).intValue() +
+        ARCADE_DRAGON_WARS_WINS.derive(ar).intValue() +
+        ARCADE_ENDER_SPLEEF_WINS.derive(ar).intValue() +
+        ARCADE_FARM_HUNT_WINS.derive(ar).intValue() +
+        ARCADE_FOOTBALL_WINS.derive(ar).intValue() +
+        ARCADE_GALAXY_WARS_WINS.derive(ar).intValue() +
+        ARCADE_HIDE_AND_SEEK_WINS.derive(ar).intValue() +
+        ARCADE_HOLE_IN_THE_WALL_WINS.derive(ar).intValue() +
+        ARCADE_MINI_WALLS_WINS.derive(ar).intValue() +
+        ARCADE_PARTY_WINS.derive(ar).intValue() +
+        ARCADE_HYPIXEL_SAYS_WINS.derive(ar).intValue() +
+        ARCADE_PIXEL_PAINTERS_WINS.derive(ar).intValue() +
+        ARCADE_THROW_OUT_WINS.derive(ar).intValue() +
+        ARCADE_ZOMBIES_WINS.derive(ar).intValue() +
+        ARCADE_EASTER_SIMULATOR_WINS.derive(ar).intValue() +
+        ARCADE_HALLOWEEN_SIMULATOR_WINS.derive(ar).intValue() +
+        ARCADE_SANTA_SIMULATOR_WINS.derive(ar).intValue() +
+        ARCADE_SCUBA_SIMULATOR_WINS.derive(ar).intValue() +
+        ARCADE_GRINCH_SIMULATOR_WINS.derive(ar).intValue() +
+        ARCADE_DROPPER_WINS.derive(ar).intValue() +
+        ARCADE_PIXEL_PARTY_WINS.derive(ar).intValue()
+    ),
     /**
      * Blitz leaderboards.
      * Derivation functions of leaderboards in this category take in the /stats/HungerGames object.
@@ -313,13 +345,14 @@ public enum Leaderboard {
      */
 
     BLITZ_COINS(BLITZ, bsg -> bsg.get("coins").getAsInt()),
-    BLITZ_WINS(BLITZ, bsg -> JsonUtil.getNullableInt(bsg.get("wins_solo_normal")) + JsonUtil.getNullableInt(bsg.get("wins_team_normal"))),
     BLITZ_SOLO_WINS(BLITZ, bsg -> bsg.get("wins_solo_normal").getAsInt()),
     BLITZ_TEAM_WINS(BLITZ, bsg -> bsg.get("wins_team_normal").getAsInt()),
+    BLITZ_WINS(BLITZ, bsg -> BLITZ_SOLO_WINS.derive(bsg).intValue() + BLITZ_TEAM_WINS.derive(bsg).intValue()),
+
     BLITZ_KILLS(BLITZ, bsg -> bsg.get("kills").getAsInt()),
-    BLITZ_SOLO_KILLS(BLITZ, bsg -> JsonUtil.getNullableInt(bsg.get("kills_team_normal")) - JsonUtil.getNullableInt(bsg.get("kills"))),
     BLITZ_TEAM_KILLS(BLITZ, bsg -> bsg.get("kills_team_normal").getAsInt()),
-    BLITZ_KDR(BLITZ, bsg -> bsg.get("kills").getAsDouble() / Math.max(bsg.get("deaths").getAsDouble(), 1)),
+    BLITZ_SOLO_KILLS(BLITZ, bsg -> BLITZ_TEAM_KILLS.derive(bsg).intValue() - BLITZ_KILLS.derive(bsg).intValue()),
+    BLITZ_KDR(BLITZ, bsg -> BLITZ_KILLS.derive(bsg).doubleValue() / Math.max(bsg.get("deaths").getAsDouble(), 1)),
     BLITZ_DAMAGE_DEALT(BLITZ, bsg -> bsg.get("damage").getAsInt()),
 
     /**
@@ -332,7 +365,7 @@ public enum Leaderboard {
     ARENA_BRAWL_WINS(ARENA_BRAWL, ab -> ab.get("wins").getAsInt()),
     ARENA_BRAWL_KILLS(ARENA_BRAWL, ab -> JsonUtil.getNullableInt(ab.get("kills_1v1")) + JsonUtil.getNullableInt(ab.get("kills_2v2")) + JsonUtil.getNullableInt(ab.get("kills_4v4"))),
     ARENA_BRAWL_KDR(ARENA_BRAWL, ab -> (JsonUtil.getNullableDouble(ab.get("kills_1v1")) + JsonUtil.getNullableDouble(ab.get("kills_2v2")) + JsonUtil.getNullableDouble(ab.get("kills_4v4"))) / Math.max(1, JsonUtil.getNullableDouble(ab.get("deaths_1v1")) + JsonUtil.getNullableDouble(ab.get("deaths_2v2")) + JsonUtil.getNullableDouble(ab.get("deaths_4v4")))),
-    ARENA_BRAWL_WLR(ARENA_BRAWL, ab -> ab.get("wins").getAsDouble() / ((JsonUtil.getNullableInt(ab.get("losses_1v1")) + JsonUtil.getNullableInt(ab.get("losses_2v2")) + JsonUtil.getNullableInt(ab.get("losses_4v4"))))),
+    ARENA_BRAWL_WLR(ARENA_BRAWL, ab -> ARENA_BRAWL_WINS.derive(ab).doubleValue() / ((JsonUtil.getNullableInt(ab.get("losses_1v1")) + JsonUtil.getNullableInt(ab.get("losses_2v2")) + JsonUtil.getNullableInt(ab.get("losses_4v4"))))),
     ARENA_BRAWL_MAGICAL_CHESTS(ARENA_BRAWL, ab -> ab.get("magical_chest").getAsInt()),
 
     /**
@@ -356,7 +389,7 @@ public enum Leaderboard {
     QUAKECRAFT_COINS(QUAKECRAFT, qc -> qc.get("coins").getAsInt()),
     QUAKECRAFT_WINS(QUAKECRAFT, qc -> JsonUtil.getNullableInt(qc.get("wins")) + JsonUtil.getNullableInt(qc.get("wins_teams"))),
     QUAKECRAFT_KILLS(QUAKECRAFT, qc -> JsonUtil.getNullableInt(qc.get("kills")) + JsonUtil.getNullableInt(qc.get("kills_teams"))),
-    QUAKECRAFT_KDR(QUAKECRAFT, qc -> (JsonUtil.getNullableDouble(qc.get("kills")) + JsonUtil.getNullableDouble(qc.get("kills_teams"))) / Math.max(1, JsonUtil.getNullableDouble(qc.get("deaths")) + JsonUtil.getNullableDouble(qc.get("deaths_teams")))),
+    QUAKECRAFT_KDR(QUAKECRAFT, qc -> QUAKECRAFT_KILLS.derive(qc).doubleValue() / Math.max(1, JsonUtil.getNullableDouble(qc.get("deaths")) + JsonUtil.getNullableDouble(qc.get("deaths_teams")))),
     QUAKECRAFT_DISTANCE_TRAVELLED(QUAKECRAFT, qc -> qc.get("distance_travelled").getAsInt()),
 
     /**
@@ -405,9 +438,7 @@ public enum Leaderboard {
 
     COPS_AND_CRIMS_SCORE(COPS_AND_CRIMS, cc -> cc.get("score").getAsInt()),
     COPS_AND_CRIMS_COINS(COPS_AND_CRIMS, cc -> cc.get("coins").getAsInt()),
-    COPS_AND_CRIMS_WINS(COPS_AND_CRIMS, cc -> JsonUtil.getNullableInt(cc.get("game_wins")) + JsonUtil.getNullableInt(cc.get("game_wins_gungame")) + JsonUtil.getNullableInt(cc.get("game_wins_deathmatch"))),
-    COPS_AND_CRIMS_KILLS(COPS_AND_CRIMS, cc -> JsonUtil.getNullableInt(cc.get("kills")) + JsonUtil.getNullableInt(cc.get("kills_deathmatch")) + JsonUtil.getNullableInt(cc.get("kills_gun_game"))),
-    COPS_AND_CRIMS_KDR(COPS_AND_CRIMS, cc -> (JsonUtil.getNullableDouble(cc.get("kills")) + JsonUtil.getNullableDouble(cc.get("kills_deathmatch")) + JsonUtil.getNullableDouble(cc.get("kills_gun_game"))) / Math.max(1, JsonUtil.getNullableDouble(cc.get("deaths")) + JsonUtil.getNullableDouble(cc.get("deaths_deathmatch")) + JsonUtil.getNullableDouble(cc.get("deaths_gun_game")))),
+
     COPS_AND_CRIMS_DEFUSAL_WINS(COPS_AND_CRIMS, cc -> cc.get("game_wins").getAsInt()),
     COPS_AND_CRIMS_DEFUSAL_KILLS(COPS_AND_CRIMS, cc -> cc.get("kills").getAsInt()),
     COPS_AND_CRIMS_DEFUSAL_BOMBS_PLANTED(COPS_AND_CRIMS, cc -> cc.get("bombs_planted").getAsInt()),
@@ -419,8 +450,12 @@ public enum Leaderboard {
     COPS_AND_CRIMS_TEAM_DEATHMATCH_KDR(COPS_AND_CRIMS, cc -> cc.get("kills_deathmatch").getAsDouble() / Math.max(cc.get("deaths_deathmatch").getAsDouble(), 1)),
     COPS_AND_CRIMS_GUN_GAME_WINS(COPS_AND_CRIMS, cc -> cc.get("game_wins_gungame").getAsInt()),
     COPS_AND_CRIMS_GUN_GAME_KILLS(COPS_AND_CRIMS, cc -> cc.get("kills_gungame").getAsInt()),
-    COPS_AND_CRIMS_GUN_GAME_KDR(COPS_AND_CRIMS, cc -> cc.get("kills_gun_game").getAsDouble() / Math.max(cc.get("deaths_gun_game").getAsDouble(), 1)),
+    COPS_AND_CRIMS_GUN_GAME_KDR(COPS_AND_CRIMS, cc -> cc.get("kills_gungame").getAsDouble() / Math.max(cc.get("deaths_gungame").getAsDouble(), 1)),
     COPS_AND_CRIMS_GUN_GAME_FASTEST_WIN(COPS_AND_CRIMS, cc -> cc.get("fastest_win_gungame").getAsInt(), 1),
+
+    COPS_AND_CRIMS_WINS(COPS_AND_CRIMS, cc -> COPS_AND_CRIMS_DEFUSAL_WINS.derive(cc).intValue() + COPS_AND_CRIMS_TEAM_DEATHMATCH_WINS.derive(cc).intValue() + COPS_AND_CRIMS_GUN_GAME_WINS.derive(cc).intValue()),
+    COPS_AND_CRIMS_KILLS(COPS_AND_CRIMS, cc -> COPS_AND_CRIMS_DEFUSAL_KILLS.derive(cc).intValue() + COPS_AND_CRIMS_TEAM_DEATHMATCH_KILLS.derive(cc).intValue() + COPS_AND_CRIMS_GUN_GAME_KILLS.derive(cc).intValue()),
+    COPS_AND_CRIMS_KDR(COPS_AND_CRIMS, cc -> COPS_AND_CRIMS_KILLS.derive(cc).doubleValue() / Math.max(1, JsonUtil.getNullableDouble(cc.get("deaths")) + JsonUtil.getNullableDouble(cc.get("deaths_deathmatch")) + JsonUtil.getNullableDouble(cc.get("deaths_gungame")))),
 
     /**
      * Mega Walls leaderboards.
@@ -435,7 +470,7 @@ public enum Leaderboard {
     MEGA_WALLS_WITHER_KILLS(MEGA_WALLS, mw -> mw.get("wither_kills").getAsInt()),
     MEGA_WALLS_WLR(MEGA_WALLS, mw -> mw.get("wins").getAsDouble() / Math.max(mw.get("losses").getAsDouble(), 1)),
     MEGA_WALLS_FINAL_KILLS(MEGA_WALLS, mw -> JsonUtil.getNullableInt(mw.get("final_kills")) + JsonUtil.getNullableInt(mw.get("finalKills"))),
-    MEGA_WALLS_FKDR(MEGA_WALLS, mw -> (JsonUtil.getNullableDouble(mw.get("final_kills")) + JsonUtil.getNullableDouble(mw.get("finalKills"))) / Math.max(1, JsonUtil.getNullableDouble(mw.get("final_deaths")) + JsonUtil.getNullableDouble(mw.get("finalDeaths")))),
+    MEGA_WALLS_FKDR(MEGA_WALLS, mw -> MEGA_WALLS_FINAL_KILLS.derive(mw).doubleValue() / Math.max(1, JsonUtil.getNullableDouble(mw.get("final_deaths")) + JsonUtil.getNullableDouble(mw.get("finalDeaths")))),
     MEGA_WALLS_KILLS(MEGA_WALLS, mw -> mw.get("kills").getAsInt()),
     MEGA_WALLS_KDR(MEGA_WALLS, mw -> mw.get("kills").getAsDouble() / Math.max(mw.get("deaths").getAsDouble(), 1)),
     MEGA_WALLS_MYTHIC_FAVOR(MEGA_WALLS, mw -> mw.get("mythic_favor").getAsInt()),
@@ -479,7 +514,7 @@ public enum Leaderboard {
     //* wins + wins_solo + wins_no_diamonds + wins_brawl + wins_solo_brawl + wins_duo_brawl + wins_vanilla_doubles
     UHC_WINS(UHC, uhc -> JsonUtil.getNullableInt(uhc.get("wins")) + JsonUtil.getNullableInt(uhc.get("wins_solo")) + JsonUtil.getNullableInt(uhc.get("wins_no_diamonds")) + JsonUtil.getNullableInt(uhc.get("wins_brawl")) + JsonUtil.getNullableInt(uhc.get("wins_solo_brawl")) + JsonUtil.getNullableInt(uhc.get("wins_duo_brawl")) + JsonUtil.getNullableInt(uhc.get("wins_vanilla_doubles"))),
     UHC_KILLS(UHC, uhc -> JsonUtil.getNullableInt(uhc.get("kills")) + JsonUtil.getNullableInt(uhc.get("kills_solo")) + JsonUtil.getNullableInt(uhc.get("kills_no_diamonds")) + JsonUtil.getNullableInt(uhc.get("kills_brawl")) + JsonUtil.getNullableInt(uhc.get("kills_solo_brawl")) + JsonUtil.getNullableInt(uhc.get("kills_duo_brawl")) + JsonUtil.getNullableInt(uhc.get("kills_vanilla_doubles"))),
-    UHC_KDR(UHC, uhc -> (JsonUtil.getNullableDouble(uhc.get("kills")) + JsonUtil.getNullableDouble(uhc.get("kills_solo")) + JsonUtil.getNullableDouble(uhc.get("kills_no_diamonds")) + JsonUtil.getNullableDouble(uhc.get("kills_brawl")) + JsonUtil.getNullableDouble(uhc.get("kills_solo_brawl")) + JsonUtil.getNullableDouble(uhc.get("kills_duo_brawl")) + JsonUtil.getNullableDouble(uhc.get("kills_vanilla_doubles")) / Math.max(1, JsonUtil.getNullableDouble(uhc.get("deaths")) + JsonUtil.getNullableDouble(uhc.get("deaths_solo")) + JsonUtil.getNullableDouble(uhc.get("deaths_no_diamonds")) + JsonUtil.getNullableDouble(uhc.get("deaths_brawl")) + JsonUtil.getNullableDouble(uhc.get("deaths_solo_brawl")) + JsonUtil.getNullableDouble(uhc.get("deaths_duo_brawl")) + JsonUtil.getNullableDouble(uhc.get("deaths_vanilla_doubles"))))),
+    UHC_KDR(UHC, uhc -> UHC_KILLS.derive(uhc).doubleValue() / Math.max(1, JsonUtil.getNullableDouble(uhc.get("deaths")) + JsonUtil.getNullableDouble(uhc.get("deaths_solo")) + JsonUtil.getNullableDouble(uhc.get("deaths_no_diamonds")) + JsonUtil.getNullableDouble(uhc.get("deaths_brawl")) + JsonUtil.getNullableDouble(uhc.get("deaths_solo_brawl")) + JsonUtil.getNullableDouble(uhc.get("deaths_duo_brawl")) + JsonUtil.getNullableDouble(uhc.get("deaths_vanilla_doubles")))),
     UHC_TEAMS_WINS(UHC, uhc -> uhc.get("wins").getAsInt()),
     UHC_TEAMS_KILLS(UHC, uhc -> uhc.get("kills").getAsInt()),
     UHC_TEAMS_KDR(UHC, uhc -> uhc.get("kills").getAsDouble() / Math.max(uhc.get("deaths").getAsDouble(), 1)),
@@ -528,10 +563,6 @@ public enum Leaderboard {
 
     WOOL_GAMES_WOOL(WOOL_GAMES, wg -> wg.get("coins").getAsInt()),
     WOOL_GAMES_LEVEL(WOOL_GAMES, wg -> wg.getAsJsonObject("progression").get("experience").getAsInt()),
-    WOOL_GAMES_WINS(WOOL_GAMES, wg -> JsonUtil.getNullableInt(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("wins")) + JsonUtil.getNullableInt(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("wins")) + JsonUtil.getNullableInt(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("participated_wins"))),
-    WOOL_GAMES_KILLS(WOOL_GAMES, wg -> JsonUtil.getNullableInt(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("kills")) + JsonUtil.getNullableInt(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("kills")) + JsonUtil.getNullableInt(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("kills"))),
-    WOOL_GAMES_KDR(WOOL_GAMES, wg -> (JsonUtil.getNullableDouble(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("kills")) + JsonUtil.getNullableDouble(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("kills")) + JsonUtil.getNullableDouble(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("kills"))) / Math.max(1, JsonUtil.getNullableDouble(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("deaths")) + JsonUtil.getNullableDouble(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("deaths")) + JsonUtil.getNullableDouble(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("deaths")))),
-    WOOL_GAMES_WLR(WOOL_GAMES, wg -> (JsonUtil.getNullableInt(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("wins")) + JsonUtil.getNullableInt(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("wins")) + JsonUtil.getNullableInt(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("participated_wins"))) / Math.max(1, JsonUtil.getNullableInt(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("games_played")) - JsonUtil.getNullableInt(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("wins")) + JsonUtil.getNullableInt(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("losses")) + JsonUtil.getNullableInt(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("participated_losses")))),
 
     WOOL_GAMES_SHEEP_WARS_WINS(WOOL_GAMES, wg -> wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("wins").getAsInt()),
     WOOL_GAMES_SHEEP_WARS_KDR(WOOL_GAMES, wg -> wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("kills").getAsDouble() / Math.max(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("deaths").getAsDouble(), 1)),
@@ -547,6 +578,14 @@ public enum Leaderboard {
     WOOL_GAMES_CAPTURE_THE_WOOL_KDR(WOOL_GAMES, wg -> wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("kills").getAsDouble() / Math.max(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("deaths").getAsDouble(), 1)),
     WOOL_GAMES_CAPTURE_THE_WOOL_KILLS(WOOL_GAMES, wg -> wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("kills").getAsInt()),
     WOOL_GAMES_CAPTURE_THE_WOOL_WLR(WOOL_GAMES, wg -> wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("participated_wins").getAsDouble() / Math.max(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("participated_losses").getAsDouble(), 1)),
+
+    WOOL_GAMES_WINS(WOOL_GAMES, wg -> WOOL_GAMES_SHEEP_WARS_WINS.derive(wg).intValue() + WOOL_GAMES_WOOL_WARS_WINS.derive(wg).intValue() + WOOL_GAMES_CAPTURE_THE_WOOL_WINS.derive(wg).intValue()),
+    WOOL_GAMES_KILLS(WOOL_GAMES, wg -> WOOL_GAMES_SHEEP_WARS_KILLS.derive(wg).intValue() + WOOL_GAMES_WOOL_WARS_KILLS.derive(wg).intValue() + WOOL_GAMES_CAPTURE_THE_WOOL_KILLS.derive(wg).intValue()),
+
+    WOOL_GAMES_WLR(WOOL_GAMES, wg -> WOOL_GAMES_WINS.derive(wg).doubleValue() / Math.max(1, JsonUtil.getNullableInt(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("games_played")) - JsonUtil.getNullableInt(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("wins")) + JsonUtil.getNullableInt(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("losses")) + JsonUtil.getNullableInt(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("participated_losses")))),
+
+    WOOL_GAMES_KDR(WOOL_GAMES, wg -> WOOL_GAMES_KILLS.derive(wg).doubleValue() / Math.max(1, JsonUtil.getNullableDouble(wg.getAsJsonObject("wool_wars").getAsJsonObject("stats").get("deaths")) + JsonUtil.getNullableDouble(wg.getAsJsonObject("sheep_wars").getAsJsonObject("stats").get("deaths")) + JsonUtil.getNullableDouble(wg.getAsJsonObject("capture_the_wool").getAsJsonObject("stats").get("deaths")))),
+
 
     /**
      * Fishing leaderboards.
