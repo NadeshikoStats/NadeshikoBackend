@@ -41,7 +41,7 @@ public enum LeaderboardCategory {
     ARENA_BRAWL(data -> getStats(data).getAsJsonObject("Arena")),
     PAINTBALL(data -> getStats(data).getAsJsonObject("Paintball")),
     QUAKECRAFT(data -> getStats(data).getAsJsonObject("Quake")),
-    TURBO_KART_RACERS(data -> getStats(data).getAsJsonObject("Gingerbread")),
+    TURBO_KART_RACERS(data -> getStats(data).getAsJsonObject("GingerBread")),
     VAMPIREZ(data -> getStats(data).getAsJsonObject("VampireZ")),
     WALLS(data -> getStats(data).getAsJsonObject("Walls")),
     COPS_AND_CRIMS(data -> getStats(data).getAsJsonObject("MCGO")),

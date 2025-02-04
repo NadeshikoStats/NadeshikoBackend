@@ -197,6 +197,7 @@ public enum Leaderboard {
         JsonUtil.getNullableInt(pit.getAsJsonObject("pit_stats_ptl").get("enchanted_tier2")) +
         JsonUtil.getNullableInt(pit.getAsJsonObject("pit_stats_ptl").get("enchanted_tier3"))
     ),
+    PIT_CONTRACTS_COMPLETED(PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("contracts_completed").getAsInt()),
     /**
      * Build Battle leaderboards.
      * Derivation functions of leaderboards in this category take in the /stats/BuildBattle object.
@@ -346,12 +347,12 @@ public enum Leaderboard {
 
     BLITZ_COINS(BLITZ, bsg -> bsg.get("coins").getAsInt()),
     BLITZ_SOLO_WINS(BLITZ, bsg -> bsg.get("wins_solo_normal").getAsInt()),
-    BLITZ_TEAM_WINS(BLITZ, bsg -> bsg.get("wins_team_normal").getAsInt()),
+    BLITZ_TEAM_WINS(BLITZ, bsg -> bsg.get("wins_teams_normal").getAsInt()),
     BLITZ_WINS(BLITZ, bsg -> BLITZ_SOLO_WINS.derive(bsg).intValue() + BLITZ_TEAM_WINS.derive(bsg).intValue()),
 
     BLITZ_KILLS(BLITZ, bsg -> bsg.get("kills").getAsInt()),
-    BLITZ_TEAM_KILLS(BLITZ, bsg -> bsg.get("kills_team_normal").getAsInt()),
-    BLITZ_SOLO_KILLS(BLITZ, bsg -> BLITZ_TEAM_KILLS.derive(bsg).intValue() - BLITZ_KILLS.derive(bsg).intValue()),
+    BLITZ_TEAM_KILLS(BLITZ, bsg -> bsg.get("kills_teams_normal").getAsInt()),
+    BLITZ_SOLO_KILLS(BLITZ, bsg -> BLITZ_KILLS.derive(bsg).intValue() - BLITZ_TEAM_KILLS.derive(bsg).intValue()),
     BLITZ_KDR(BLITZ, bsg -> BLITZ_KILLS.derive(bsg).doubleValue() / Math.max(bsg.get("deaths").getAsDouble(), 1)),
     BLITZ_DAMAGE_DEALT(BLITZ, bsg -> bsg.get("damage").getAsInt()),
 
@@ -379,6 +380,7 @@ public enum Leaderboard {
     PAINTBALL_KILLS(PAINTBALL, pb -> pb.get("kills").getAsInt()),
     PAINTBALL_KDR(PAINTBALL, pb -> pb.get("kills").getAsDouble() / Math.max(pb.get("deaths").getAsDouble(), 1)),
     PAINTBALL_KILLSTREAKS(PAINTBALL, pb -> pb.get("killstreaks").getAsInt()),
+    PAINTBALL_SHOTS_FIRED(PAINTBALL, pb -> pb.get("shots_fired").getAsInt()),
 
     /**
      * Quakecraft leaderboards.
@@ -411,9 +413,9 @@ public enum Leaderboard {
      */
 
     VAMPIREZ_COINS(VAMPIREZ, vz -> vz.get("coins").getAsInt()),
-    VAMPIREZ_HUMAN_WINS(VAMPIREZ, vz -> vz.get("wins_human").getAsInt()),
+    VAMPIREZ_HUMAN_WINS(VAMPIREZ, vz -> vz.get("human_wins").getAsInt()),
     VAMPIREZ_HUMAN_KILLS(VAMPIREZ, vz -> vz.get("human_kills").getAsInt()),
-    VAMPIREZ_VAMPIRE_WINS(VAMPIREZ, vz -> vz.get("wins_vampire").getAsInt()),
+    VAMPIREZ_VAMPIRE_WINS(VAMPIREZ, vz -> vz.get("vampire_wins").getAsInt()),
     VAMPIREZ_VAMPIRE_KILLS(VAMPIREZ, vz -> vz.get("vampire_kills").getAsInt()),
     VAMPIREZ_ZOMBIE_KILLS(VAMPIREZ, vz -> vz.get("zombie_kills").getAsInt()),
 
@@ -500,6 +502,7 @@ public enum Leaderboard {
     SMASH_HEROES_COINS(SMASH_HEROES, sh -> sh.get("coins").getAsInt()),
     SMASH_HEROES_WINS(SMASH_HEROES, sh -> sh.get("wins").getAsInt()),
     SMASH_HEROES_WLR(SMASH_HEROES, sh -> sh.get("wins").getAsDouble() / Math.max(sh.get("losses").getAsDouble(), 1)),
+    SMASH_HEROES_KILLS(SMASH_HEROES, sh -> sh.get("kills").getAsInt()),
     SMASH_HEROES_KDR(SMASH_HEROES, sh -> sh.get("kills").getAsDouble() / Math.max(sh.get("deaths").getAsDouble(), 1)),
     SMASH_HEROES_SMASH_LEVEL(SMASH_HEROES, sh -> sh.get("smashLevel").getAsInt()),
 
