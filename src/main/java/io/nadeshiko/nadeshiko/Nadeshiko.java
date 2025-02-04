@@ -191,7 +191,7 @@ public class Nadeshiko {
 		spark.get("/guild", GuildController.serveGuildEndpoint);
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/quests", QuestsController.serveQuestsEndpoint);
-		spark.get("/leaderboard", LeaderboardController.serverLeaderboardEndpoint);
+		spark.get("/leaderboard", LeaderboardController.serveLeaderboardEndpoint);
 		spark.get("/", (request, response) -> "nadeshiko backend version " + VERSION);
 
 		// Set up the shutdown method on JVM stop

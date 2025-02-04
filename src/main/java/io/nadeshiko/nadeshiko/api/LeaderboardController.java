@@ -32,7 +32,7 @@ public class LeaderboardController {
     /**
      * Route provider to serve the /leaderboard endpoint of the API
      */
-    public static Route serverLeaderboardEndpoint = (Request request, Response response) -> {
+    public static Route serveLeaderboardEndpoint = (Request request, Response response) -> {
 
         // Ensure that a leaderboard was provided
         if (!request.queryParams().contains("leaderboard")) {

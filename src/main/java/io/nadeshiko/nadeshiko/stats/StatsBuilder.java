@@ -276,25 +276,30 @@ public class StatsBuilder {
 	private JsonObject fetchHypixelStatus(@NonNull String uuid) {
 		try {
 			HTTPUtil.Response response =
-				HTTPUtil.get("https://api.hypixel.net/v2/status?uuid=" + uuid +
-					"&key=" + Nadeshiko.INSTANCE.getHypixelKey());
+					HTTPUtil.get("https://api.hypixel.net/v2/status?uuid=" + uuid +
+							"&key=" + Nadeshiko.INSTANCE.getHypixelKey());
 
 			JsonObject jsonResponse = JsonParser.parseString(response.response()).getAsJsonObject();
-			JsonObject session = jsonResponse.getAsJsonObject("session");
 			JsonObject object = new JsonObject();
 
-			if (session.has("online")) {
-				object.addProperty("online", session.get("online").getAsBoolean());
+			if (jsonResponse.has("session") && !jsonResponse.get("session").isJsonNull()) {
+				JsonObject session = jsonResponse.getAsJsonObject("session");
+
+				if (session.has("online")) {
+					object.addProperty("online", session.get("online").getAsBoolean());
+				} else {
+					object.addProperty("online", false);
+				}
+
+				if (session.has("gameType")) {
+					object.addProperty("game", session.get("gameType").getAsString());
+				}
+
+				if (session.has("mode")) {
+					object.addProperty("mode", session.get("mode").getAsString());
+				}
 			} else {
 				object.addProperty("online", false);
-			}
-
-			if (session.has("gameType")) {
-				object.addProperty("game", session.get("gameType").getAsString());
-			}
-
-			if (session.has("mode")) {
-				object.addProperty("mode", session.get("mode").getAsString());
 			}
 
 			return object;
@@ -302,7 +307,7 @@ public class StatsBuilder {
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Encountered error while looking up Hypixel status for {}", uuid, e);
 			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
-				"Encountered error while looking up Hypixel status for %s", uuid);
+					"Encountered error while looking up Hypixel status for %s", uuid);
 
 			return null;
 		}
