@@ -112,7 +112,19 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		this.drawSlayer(g, 1332, 421, "Vamp", slayersObject.getAsJsonObject("vampire"));
 
 		// Draw bottom stuff
-		int mp = profileData.getAsJsonObject("accessories").getAsJsonObject("magical_power").get("total").getAsInt();
+		int mp = 0;
+		JsonObject profileDataJson = profileData.getAsJsonObject();
+
+		if (profileDataJson.has("accessories")) {
+			JsonObject accessoriesJson = profileDataJson.getAsJsonObject("accessories");
+			if (accessoriesJson.has("magical_power")) {
+				JsonObject magicalPowerJson = accessoriesJson.getAsJsonObject("magical_power");
+				if (magicalPowerJson.has("total")) {
+					mp = magicalPowerJson.get("total").getAsInt();
+				}
+			}
+		}
+
 		double networth = profileData.getAsJsonObject("networth").get("networth").getAsDouble();
 		double purse = profileData.getAsJsonObject("networth").get("purse").getAsDouble();
 		double bank = profileData.getAsJsonObject("networth").get("bank").getAsDouble();

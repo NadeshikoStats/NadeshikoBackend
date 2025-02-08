@@ -47,6 +47,10 @@ public enum Leaderboard {
     NETWORK_KARMA(NETWORK, profile -> profile.get("karma").getAsInt()),
     NETWORK_RANKS_GIFTED(NETWORK, profile -> profile.get("ranks_gifted").getAsInt()),
     NETWORK_QUESTS_COMPLETED(NETWORK, profile -> profile.get("quests_completed").getAsInt()),
+    /*UUID(DATA, d -> { // This is too stupid
+        String firstSeven = d.get("uuid").getAsString().substring(0, 7);
+        return Integer.parseInt(firstSeven, 16);
+    }),*/
 
     /**
      * Bed Wars leaderboards.
