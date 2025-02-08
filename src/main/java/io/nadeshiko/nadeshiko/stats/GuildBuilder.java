@@ -141,6 +141,8 @@ public class GuildBuilder {
      */
     private JsonObject fetchGuildFromName(@NonNull String name) {
         try {
+            // Encode spaces
+            name = name.replace(" ", "%20");
             HTTPUtil.Response response =
                 HTTPUtil.get("https://api.hypixel.net/v2/guild?name=" + name +
                     "&key=" + Nadeshiko.INSTANCE.getHypixelKey());
