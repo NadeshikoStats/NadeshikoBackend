@@ -99,11 +99,11 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 		private final JsonObject data;
 
 		/**
-		 * Gets the time at which this cache entry expires - five minutes after it was created
-		 * @return The timestamp five minutes after this cache was created
+		 * Gets the time at which this cache entry expires - ten minutes after it was created
+		 * @return The timestamp ten minutes after this cache was created
 		 */
 		public long getExpiryTime() {
-			return this.cacheTime + (5 * 60 * 1000);
+			return this.cacheTime + (10 * 60 * 1000);
 		}
 
 		/**

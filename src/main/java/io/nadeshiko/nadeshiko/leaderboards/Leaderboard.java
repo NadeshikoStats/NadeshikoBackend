@@ -599,12 +599,30 @@ public enum Leaderboard {
      * Derivation functions of leaderboards in this category take in the /stats/MainLobby/fishing object.
      * @see LeaderboardCategory#FISHING
      */
+    FISHING_WATER_FISH_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("fish"))),
+    FISHING_WATER_TREASURE_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("treasure"))),
+    FISHING_WATER_JUNK_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("junk"))),
+    FISHING_WATER_TOTAL_CAUGHT(FISHING, fish -> FISHING_WATER_FISH_CAUGHT.derive(fish).intValue() + FISHING_WATER_TREASURE_CAUGHT.derive(fish).intValue() + FISHING_WATER_JUNK_CAUGHT.derive(fish).intValue()),
 
-    FISHING_FISH_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("fish")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("fish")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("fish"))),
-    FISHING_TREASURE_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("treasure")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("treasure")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("treasure"))),
-    FISHING_JUNK_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("junk")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("junk")) + JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("junk"))),
+    FISHING_LAVA_FISH_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("fish"))),
+    FISHING_LAVA_TREASURE_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("treasure"))),
+    FISHING_LAVA_JUNK_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("junk"))),
+    FISHING_LAVA_TOTAL_CAUGHT(FISHING, fish -> FISHING_LAVA_FISH_CAUGHT.derive(fish).intValue() + FISHING_LAVA_TREASURE_CAUGHT.derive(fish).intValue() + FISHING_LAVA_JUNK_CAUGHT.derive(fish).intValue()),
+
+    FISHING_ICE_FISH_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("fish"))),
+    FISHING_ICE_TREASURE_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("treasure"))),
+    FISHING_ICE_JUNK_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("junk"))),
+    FISHING_ICE_TOTAL_CAUGHT(FISHING, fish -> FISHING_ICE_FISH_CAUGHT.derive(fish).intValue() + FISHING_ICE_TREASURE_CAUGHT.derive(fish).intValue() + FISHING_ICE_JUNK_CAUGHT.derive(fish).intValue()),
+
+    FISHING_FISH_CAUGHT(FISHING, fish -> FISHING_WATER_FISH_CAUGHT.derive(fish).intValue() + FISHING_LAVA_FISH_CAUGHT.derive(fish).intValue() + FISHING_ICE_FISH_CAUGHT.derive(fish).intValue()),
+    FISHING_TREASURE_CAUGHT(FISHING, fish -> FISHING_WATER_TREASURE_CAUGHT.derive(fish).intValue() + FISHING_LAVA_TREASURE_CAUGHT.derive(fish).intValue() + FISHING_ICE_TREASURE_CAUGHT.derive(fish).intValue()),
+    FISHING_JUNK_CAUGHT(FISHING, fish -> FISHING_WATER_JUNK_CAUGHT.derive(fish).intValue() + FISHING_LAVA_JUNK_CAUGHT.derive(fish).intValue() + FISHING_ICE_JUNK_CAUGHT.derive(fish).intValue()),
     FISHING_MYTHICAL_FISH_CAUGHT(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("selene")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("helios")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("nyx")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("zeus")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("aphrodite")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("archimedes")) + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("hades"))),
+
     FISHING_TOTAL_CAUGHT(FISHING, fish -> FISHING_FISH_CAUGHT.derive(fish).intValue() + FISHING_TREASURE_CAUGHT.derive(fish).intValue() + FISHING_JUNK_CAUGHT.derive(fish).intValue() + FISHING_MYTHICAL_FISH_CAUGHT.derive(fish).intValue()),
+
+    FISHING_BIGGEST_DAEDALUS(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").getAsJsonObject("weight").get("archimedes"))),
+    FISHING_BIGGEST_HADES(FISHING, fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").getAsJsonObject("weight").get("hades"))),
 
 //    /**
 //     * SkyBlock leaderboards.
