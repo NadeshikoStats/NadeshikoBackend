@@ -1,4 +1,0 @@
-2025-02-08 23:35:45.310 [main/WARN] nadeshiko: No badges.json was found! Is this intentional? Badges will not function.
-2025-02-08 23:35:45.313 [main/INFO] nadeshiko: Loaded and cached player badges
-2025-02-08 23:35:45.695 [main/INFO] nadeshiko: Igniting nadeshiko... (version 1.0.4)
-2025-02-08 23:35:45.696 [main/ERROR] nadeshiko: No config.json was found! Halting.
