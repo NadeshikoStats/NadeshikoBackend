@@ -345,7 +345,7 @@ public class Nadeshiko {
 	}
 
 	/**
-	 * Create the global Nadeshiko instance and start it
+	 * Create the global nadeshiko instance and start it
 	 * @param args ignored
 	 */
 	public static void main(String[] args) {

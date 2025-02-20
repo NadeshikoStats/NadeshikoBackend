@@ -245,7 +245,7 @@ public class StatisticsService implements Runnable {
 	}
 
 	/**
-	 * Represents a data state for a single abstract request to the Nadeshiko player API
+	 * Represents a data state for a single abstract request to the nadeshiko player API
 	 */
 	@Getter
 	@RequiredArgsConstructor
