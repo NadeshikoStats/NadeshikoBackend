@@ -1,5 +1,5 @@
 /*
- * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ * This file is a part of the nadeshiko project. nadeshiko is free software, licensed under the MIT license.
  *
  * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
  * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
@@ -111,13 +111,13 @@ public class StatisticsService implements Runnable {
 	 * @return A URL using the {@code quickchart.io} API for a graph displaying both requests types by hour
 	 */
 	private String buildRequestsGraph() {
-		
+
 		Map<Integer, Integer> hourlyStatsRequests = new HashMap<>();
 		Map<Integer, Integer> hourlyCardRequests = new HashMap<>();
-		
+
 		this.statsRequests.forEach(request -> {
 			int hour = this.getTimestampHour(request.getTime());
-			
+
 			if (hourlyStatsRequests.containsKey(hour)) {
 				int currentValue = hourlyStatsRequests.get(hour);
 				hourlyStatsRequests.remove(hour);
@@ -138,7 +138,7 @@ public class StatisticsService implements Runnable {
 				hourlyCardRequests.put(hour, 1);
 			}
 		});
-		
+
 		return "https://quickchart.io/chart?c={type:'bar'," +
 
 			// Graph data

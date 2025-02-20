@@ -1,3 +1,16 @@
+/*
+ * This file is a part of the nadeshiko project. nadeshiko is free software, licensed under the MIT license.
+ *
+ * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
+ * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
+ * included in all copies or substantial portions of this software.
+ *
+ * These works are provided "AS IS" with absolutely no warranty of any kind, either expressed or implied.
+ *
+ * You should have received a copy of the MIT License alongside this software; refer to LICENSE for information.
+ * If not, refer to https://mit-license.org.
+ */
+
 package io.nadeshiko.nadeshiko.leaderboards;
 
 import java.util.Arrays;
@@ -123,7 +136,7 @@ public class LeaderboardRegistry {
 
         new Leaderboard("BLITZ_CHESTS_OPENED", BLITZ,
                 bsg -> bsg.get("chests_opened").getAsInt());
-        
+
         new Leaderboard("BLITZ_STARS_FOUND", ACHIEVEMENTS,
                 ap -> ap.get("blitz_treasure_seeker").getAsInt());
 
@@ -136,11 +149,11 @@ public class LeaderboardRegistry {
 
             new Leaderboard("BLITZ_" + blitzKitUpper + "_KILLS", BLITZ,
                     bsg -> JsonUtil.getNullableInt(bsg.get("kills_" + kit)));
-            
+
             new Leaderboard("BLITZ_" + blitzKitUpper + "_WINS", BLITZ,
-                    bsg -> JsonUtil.getNullableInt(bsg.get("wins_" + kit)) + 
+                    bsg -> JsonUtil.getNullableInt(bsg.get("wins_" + kit)) +
                     JsonUtil.getNullableInt(bsg.get("wins_teams_" + kit)));
-           
+
             new Leaderboard("BLITZ_" + blitzKitUpper + "_PLAYTIME", BLITZ,
                     bsg -> JsonUtil.getNullableInt(bsg.get("time_played_" + kit)));
 
@@ -149,7 +162,7 @@ public class LeaderboardRegistry {
 
             new Leaderboard("BLITZ_" + blitzKitUpper + "_DAMAGE_TAKEN", BLITZ,
                     bsg -> JsonUtil.getNullableInt(bsg.get("damage_taken_" + kit)));
-                    
+
         }
 
         new Leaderboard("BLITZ_RANDOM_KILLS", BLITZ, // These have different formatting for some reason???
@@ -157,8 +170,8 @@ public class LeaderboardRegistry {
 
         new Leaderboard("BLITZ_RANDOM_WINS", BLITZ,
                 bsg -> bsg.get("random_wins").getAsInt());
-                
-                
+
+
     }
 
     private static void registerNetworkLeaderboards() {
@@ -618,7 +631,7 @@ public class LeaderboardRegistry {
                         JsonUtil.getNullableDouble(cc.get("deaths"))
                                 + JsonUtil.getNullableDouble(cc.get("deaths_deathmatch"))
                                 + JsonUtil.getNullableDouble(cc.get("deaths_gungame"))));
-    
+
         for (String gun : COPS_AND_CRIMS_GUNS) {
             new Leaderboard("COPS_AND_CRIMS_GUN_" + gun.toUpperCase() + "_KILLS", COPS_AND_CRIMS,
                     cc -> cc.get(gun + "Kills").getAsInt());
@@ -667,7 +680,7 @@ public class LeaderboardRegistry {
         new Leaderboard("MEGA_WALLS_FACEOFF_KILLS", MEGA_WALLS, mw -> mw.get("kills_face_off").getAsInt());
         new Leaderboard("MEGA_WALLS_FACEOFF_KDR", MEGA_WALLS,
                 mw -> mw.get("kills_face_off").getAsDouble() / Math.max(mw.get("deaths_face_off").getAsDouble(), 1));
-    
+
         for (String cls : MEGA_WALLS_CLASSES) {
             String clsUpper = cls.toUpperCase();
 

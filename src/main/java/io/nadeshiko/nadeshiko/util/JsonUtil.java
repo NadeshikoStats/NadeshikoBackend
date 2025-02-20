@@ -1,5 +1,5 @@
 /*
- * This file is a part of the Nadeshiko project. Nadeshiko is free software, licensed under the MIT license.
+ * This file is a part of the nadeshiko project. nadeshiko is free software, licensed under the MIT license.
  *
  * Usage of these works (including, yet not limited to, reuse, modification, copying, distribution, and selling) is
  * permitted, provided that the relevant copyright notice and permission notice (as specified in LICENSE) shall be
