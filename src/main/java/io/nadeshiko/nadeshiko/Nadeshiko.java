@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import io.nadeshiko.nadeshiko.api.*;
 import io.nadeshiko.nadeshiko.cards.CardsCache;
 import io.nadeshiko.nadeshiko.leaderboards.LeaderboardService;
+import io.nadeshiko.nadeshiko.leaderboards.LeaderboardRegistry;
 import io.nadeshiko.nadeshiko.monitoring.DiscordMonitor;
 import io.nadeshiko.nadeshiko.monitoring.StatisticsService;
 import io.nadeshiko.nadeshiko.stats.GuildCache;
@@ -48,7 +49,7 @@ public class Nadeshiko {
 	/**
 	 * nadeshiko version number
 	 */
-	public static String VERSION = "1.0.4";
+	public static String VERSION = "1.0.6-no-skyblock";
 
 	/**
 	 * Setting fallbacks (if missing from config.json)
@@ -153,6 +154,7 @@ public class Nadeshiko {
 		// Connect to the leaderboard database, creating the collections if required
 		String uri = this.config.containsKey("database") ? (String) this.config.get("database") : DEFAULT_DATABASE;
 		this.leaderboardService.connect(uri);
+		LeaderboardRegistry.registerAll();
 
 		// Read the API key from the config file
 		this.hypixelKey = (String) this.config.get("hypixel_key");

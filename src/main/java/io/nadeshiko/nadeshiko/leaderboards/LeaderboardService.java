@@ -109,7 +109,7 @@ public class LeaderboardService {
 //            }
 
             JsonObject leaderboardInput = leaderboard.getCategory().getDeriveInput(player);
-            playerDocument.append(leaderboard.name(), leaderboard.derive(leaderboardInput));
+            playerDocument.append(leaderboard.getName(), leaderboard.derive(leaderboardInput));
         }
 
         // Delete old player stats, if present
@@ -130,7 +130,7 @@ public class LeaderboardService {
         JsonArray array = new JsonArray();
 
         long entries = this.nadeshikoDatabase.getCollection("stats").countDocuments(
-            new Document(leaderboard.name(), new Document("$exists", true).append("$ne", 0))
+            new Document(leaderboard.getName(), new Document("$exists", true).append("$ne", 0))
         );
 
         List<Document> documents = this.getDocuments(leaderboard, page);
@@ -139,7 +139,7 @@ public class LeaderboardService {
             Document document = documents.get(i);
             int start = (page - 1) * 100 + 1;
 
-            if (document.get(leaderboard.name()) == null) {
+            if (document.get(leaderboard.getName()) == null) {
                 continue;
             }
 
@@ -149,7 +149,7 @@ public class LeaderboardService {
             entry.addProperty("tagged_name", document.getString("tagged_name"));
             entry.addProperty("ranking", start + i);
             entry.addProperty("percentile", 100 - ((start + i) / (double) entries) * 100);
-            entry.addProperty("value", document.get(leaderboard.name()).toString());
+            entry.addProperty("value", document.get(leaderboard.getName()).toString());
             array.add(entry);
         }
 
@@ -159,8 +159,8 @@ public class LeaderboardService {
     }
 
     private List<Document> getDocuments(Leaderboard leaderboard, int page) {
-        Document filter = new Document(leaderboard.name(), new Document("$exists", true).append("$ne", 0));
-        Document sort = new Document(leaderboard.name(), leaderboard.getSortDirection()).append("uuid", -1);
+        Document filter = new Document(leaderboard.getName(), new Document("$exists", true).append("$ne", 0));
+        Document sort = new Document(leaderboard.getName(), leaderboard.getSortDirection()).append("uuid", -1);
 
         // Query the stats collection, apply the filter, sort and limit the results
         try (MongoCursor<Document> cursor = this.nadeshikoDatabase.getCollection("stats")
@@ -193,7 +193,7 @@ public class LeaderboardService {
 
             for (Leaderboard leaderboard : values()) {
                 if (leaderboard.getCategory().equals(category)) {
-                    array.add(leaderboard.name());
+                    array.add(leaderboard.getName());
                 }
             }
 
