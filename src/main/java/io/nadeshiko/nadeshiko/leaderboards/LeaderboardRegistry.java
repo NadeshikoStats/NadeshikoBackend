@@ -102,7 +102,12 @@ public class LeaderboardRegistry {
         registerFishingLeaderboards();
         registerBlitzLeaderboards();
 
-        // Add other registration methods
+        /* 
+        System.out.println("=== All the leaderboards ===");
+        LEADERBOARDS.keySet().stream()
+            .sorted()
+            .forEach(System.out::println);
+        System.out.println("Total leaderboards: " + LEADERBOARDS.size());*/
     }
 
     private static void registerBlitzLeaderboards() {
@@ -358,6 +363,8 @@ public class LeaderboardRegistry {
         new Leaderboard("PIT_CLICKS", PIT, pit -> pit.getAsJsonObject("pit_stats_ptl").get("left_clicks").getAsInt());
         new Leaderboard("PIT_NIGHT_QUESTS_COMPLETED", PIT,
                 pit -> pit.getAsJsonObject("pit_stats_ptl").get("night_quests_completed").getAsInt());
+        new Leaderboard("PIT_CONTRACTS_COMPLETED", PIT,
+                pit -> pit.getAsJsonObject("pit_stats_ptl").get("contracts_completed").getAsInt());
         new Leaderboard("PIT_WHEAT_FARMED", PIT,
                 pit -> pit.getAsJsonObject("pit_stats_ptl").get("wheat_farmed").getAsInt());
         new Leaderboard("PIT_RENOWN", PIT, pit -> pit.getAsJsonObject("profile").get("renown").getAsInt());
