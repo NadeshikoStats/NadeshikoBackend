@@ -199,6 +199,22 @@ public class StatsBuilder {
 			} else {
 				response.add("quests", new JsonObject()); // Fallback if quests are missing
 			}
+
+			// Add daily rewards data
+			JsonObject rewards = new JsonObject();
+			if (hypixelStats.has("rewardScore")) {
+				rewards.addProperty("current_reward_streak", hypixelStats.get("rewardScore").getAsInt());
+			} else {
+				rewards.addProperty("current_reward_streak", 0);
+			}
+
+			if (hypixelStats.has("rewardHighScore")) {
+				rewards.addProperty("highest_reward_streak", hypixelStats.get("rewardHighScore").getAsInt());
+			} else {
+				rewards.addProperty("highest_reward_streak", 0);
+			}
+
+			response.add("rewards", rewards);
 		}
 
 		return response;

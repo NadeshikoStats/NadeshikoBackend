@@ -49,6 +49,7 @@ import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.COPS_AND_C
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.MEGA_WALLS;
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.SMASH_HEROES;
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.ACHIEVEMENTS;
+import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.REWARDS;
 public class LeaderboardRegistry {
     private static final List<String> BLITZ_KITS = Arrays.asList(
         "arachnologist","archer","armorer","astronaut","baker","blaze","creepertamer","diver","donkeytamer","farmer","fisherman","florist","golem","guardian","horsetamer","hunter","hype train","jockey","knight","meatmaster","milkman","necromancer","paladin","phoenix","pigman","ranger","reaper","reddragon","rogue","scout","shadow knight","shark","slimeyslime","snowman","speleologist","tim","toxicologist","troll","viking","warlock","warrior","wolftamer","rambo"
@@ -140,6 +141,19 @@ public class LeaderboardRegistry {
         new Leaderboard("BLITZ_STARS_FOUND", ACHIEVEMENTS,
                 ap -> ap.get("blitz_treasure_seeker").getAsInt());
 
+        // Number of kits you have with prestige 2+
+        new Leaderboard("BLITZ_PRESTIGE_TWOS", BLITZ,
+                bsg -> {
+                    int prestigeTwos = 0;
+                    for (String kit : BLITZ_KITS) {
+                        String prestigeKey = "p" + kit;
+                        if (bsg.has(prestigeKey) && bsg.get(prestigeKey).getAsInt() >= 2) {
+                            prestigeTwos++;
+                        }
+                    }
+                    return prestigeTwos;
+                });
+
         // Kit-specific leaderboards!
         for (String kit : BLITZ_KITS) {
 
@@ -187,6 +201,10 @@ public class LeaderboardRegistry {
                 profile -> profile.get("ranks_gifted").getAsInt());
         new Leaderboard("NETWORK_QUESTS_COMPLETED", NETWORK,
                 profile -> profile.get("quests_completed").getAsInt());
+        new Leaderboard("NETWORK_REWARDS_CURRENT_STREAK", REWARDS,
+                profile -> profile.get("current_reward_streak").getAsInt());
+        new Leaderboard("NETWORK_REWARDS_HIGHEST_STREAK", REWARDS,
+                profile -> profile.get("highest_reward_streak").getAsInt());
     }
 
     private static void registerBedWarsLeaderboards() {
@@ -600,6 +618,9 @@ public class LeaderboardRegistry {
         new Leaderboard("COPS_AND_CRIMS_DEFUSAL_ROUND_WINS", COPS_AND_CRIMS, cc -> cc.get("round_wins").getAsInt());
         new Leaderboard("COPS_AND_CRIMS_DEFUSAL_KDR", COPS_AND_CRIMS,
                 cc -> cc.get("kills").getAsDouble() / Math.max(cc.get("deaths").getAsDouble(), 1));
+        addToLookup(new Leaderboard("COPS_AND_CRIMS_DEFUSAL_ASSISTS", COPS_AND_CRIMS,
+                cc -> cc.get("assists").getAsInt()));
+
         addToLookup(new Leaderboard("COPS_AND_CRIMS_TEAM_DEATHMATCH_WINS", COPS_AND_CRIMS,
                 cc -> cc.get("game_wins_deathmatch").getAsInt()));
         addToLookup(new Leaderboard("COPS_AND_CRIMS_TEAM_DEATHMATCH_KILLS", COPS_AND_CRIMS,
@@ -607,6 +628,9 @@ public class LeaderboardRegistry {
         new Leaderboard("COPS_AND_CRIMS_TEAM_DEATHMATCH_KDR", COPS_AND_CRIMS,
                 cc -> cc.get("kills_deathmatch").getAsDouble()
                         / Math.max(cc.get("deaths_deathmatch").getAsDouble(), 1));
+        addToLookup(new Leaderboard("COPS_AND_CRIMS_TEAM_DEATHMATCH_ASSISTS", COPS_AND_CRIMS,
+                cc -> cc.get("assists_deathmatch").getAsInt()));
+
         addToLookup(new Leaderboard("COPS_AND_CRIMS_GUN_GAME_WINS", COPS_AND_CRIMS,
                 cc -> cc.get("game_wins_gungame").getAsInt()));
         addToLookup(new Leaderboard("COPS_AND_CRIMS_GUN_GAME_KILLS", COPS_AND_CRIMS,
@@ -615,6 +639,9 @@ public class LeaderboardRegistry {
                 cc -> cc.get("kills_gungame").getAsDouble() / Math.max(cc.get("deaths_gungame").getAsDouble(), 1));
         new Leaderboard("COPS_AND_CRIMS_GUN_GAME_FASTEST_WIN", COPS_AND_CRIMS,
                 cc -> cc.get("fastest_win_gungame").getAsInt(), 1);
+        addToLookup(new Leaderboard("COPS_AND_CRIMS_GUN_GAME_ASSISTS", COPS_AND_CRIMS,
+                cc -> cc.get("assists_gungame").getAsInt()));
+
 
         new Leaderboard("COPS_AND_CRIMS_WINS", COPS_AND_CRIMS,
                 cc -> LEADERBOARDS.get("COPS_AND_CRIMS_DEFUSAL_WINS").derive(cc).intValue()
@@ -631,6 +658,10 @@ public class LeaderboardRegistry {
                         JsonUtil.getNullableDouble(cc.get("deaths"))
                                 + JsonUtil.getNullableDouble(cc.get("deaths_deathmatch"))
                                 + JsonUtil.getNullableDouble(cc.get("deaths_gungame"))));
+        new Leaderboard("COPS_AND_CRIMS_ASSISTS", COPS_AND_CRIMS,
+                cc -> LEADERBOARDS.get("COPS_AND_CRIMS_DEFUSAL_ASSISTS").derive(cc).intValue()
+                        + LEADERBOARDS.get("COPS_AND_CRIMS_TEAM_DEATHMATCH_ASSISTS").derive(cc).intValue()
+                        + LEADERBOARDS.get("COPS_AND_CRIMS_GUN_GAME_ASSISTS").derive(cc).intValue());
 
         for (String gun : COPS_AND_CRIMS_GUNS) {
             new Leaderboard("COPS_AND_CRIMS_GUN_" + gun.toUpperCase() + "_KILLS", COPS_AND_CRIMS,
@@ -680,6 +711,40 @@ public class LeaderboardRegistry {
         new Leaderboard("MEGA_WALLS_FACEOFF_KILLS", MEGA_WALLS, mw -> mw.get("kills_face_off").getAsInt());
         new Leaderboard("MEGA_WALLS_FACEOFF_KDR", MEGA_WALLS,
                 mw -> mw.get("kills_face_off").getAsDouble() / Math.max(mw.get("deaths_face_off").getAsDouble(), 1));
+
+        new Leaderboard("MEGA_WALLS_PRESTIGE_FOURS", MEGA_WALLS, mw -> {
+            int prestigeFours = 0;
+            if (mw.has("classes") && !mw.get("classes").isJsonNull()) {
+                JsonObject classes = mw.getAsJsonObject("classes");
+                for (String cls : MEGA_WALLS_CLASSES) {
+                    if (classes.has(cls) && !classes.get(cls).isJsonNull()) {
+                        JsonObject classObj = classes.getAsJsonObject(cls);
+                        if (classObj.has("prestige") && !classObj.get("prestige").isJsonNull() 
+                            && classObj.get("prestige").getAsInt() >= 4) {
+                            prestigeFours++;
+                        }
+                    }
+                }
+            }
+            return prestigeFours;
+        });
+
+        new Leaderboard("MEGA_WALLS_PRESTIGE_FIVES", MEGA_WALLS, mw -> {
+            int prestigeFives = 0;
+            if (mw.has("classes") && !mw.get("classes").isJsonNull()) {
+                JsonObject classes = mw.getAsJsonObject("classes");
+                for (String cls : MEGA_WALLS_CLASSES) {
+                    if (classes.has(cls) && !classes.get(cls).isJsonNull()) {
+                        JsonObject classObj = classes.getAsJsonObject(cls);
+                        if (classObj.has("prestige") && !classObj.get("prestige").isJsonNull() 
+                            && classObj.get("prestige").getAsInt() >= 5) {
+                            prestigeFives++;
+                        }
+                    }
+                }
+            }
+            return prestigeFives;
+        });
 
         for (String cls : MEGA_WALLS_CLASSES) {
             String clsUpper = cls.toUpperCase();

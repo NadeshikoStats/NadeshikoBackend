@@ -52,7 +52,8 @@ public enum LeaderboardCategory {
     WARLORDS(data -> getStats(data).getAsJsonObject("Battleground")),
     WOOL_GAMES(data -> getStats(data).getAsJsonObject("WoolGames")),
     FISHING(data -> getStats(data).getAsJsonObject("MainLobby").getAsJsonObject("fishing")),
-    ACHIEVEMENTS(data -> data.getAsJsonObject("achievements"));
+    ACHIEVEMENTS(data -> data.getAsJsonObject("achievements")),
+    REWARDS(data -> data.getAsJsonObject("rewards"));
 
 
     // Different from the others. Takes in the active profile data from the SkyCrypt API.
