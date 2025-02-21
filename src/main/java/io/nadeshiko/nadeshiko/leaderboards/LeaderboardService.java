@@ -17,32 +17,22 @@ import static io.nadeshiko.nadeshiko.leaderboards.Leaderboard.*;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.mongodb.*;
 import com.mongodb.client.*;
 import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.*;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import redis.clients.jedis.resps.Tuple;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 
 /**
- * Service to manage leaderboards.
- * <p>
- * The leaderboard system contains two databases: one containing a large list of players and their stats, and one which
- * contains the same players and their leaderboard positions for each stat.
- * <p>
- * The second database, referred to as the placement database, is derived from the first database, referred to as the
- * stat database. The stat database is updated in real time as players are searched - either inserting a new entry (if
- * a player has never been searched on nadeshiko before), or updating an existing one. The placement database is heavily
- * cached due to the scale of the operation that is generating it. The placement database is regenerated at a regular
- * interval by the {@link LeaderboardService#update()} method.
- * <p>
- * While referred to as "databases", the two databases exist as collections within the "nadeshiko" Mongo database.
+ * Service to manage leaderboards using Redis.Uses ZSET to maintain player rankings.
  *
- * @author chloe
  * @since 0.9.0
  */
 public class LeaderboardService {
@@ -53,151 +43,228 @@ public class LeaderboardService {
     private final Logger logger = LoggerFactory.getLogger("Leaderboard Service");
 
     /**
-     * The {@link MongoClient} used to connect to the nadeshiko database
+     * The Redis connection pool
      */
-    private MongoClient mongoClient;
+    private JedisPool jedisPool;
 
     /**
-     * A {@link MongoDatabase} reference to the nadeshiko database
+     * Maximum number of retries for Redis operations
      */
-    private MongoDatabase nadeshikoDatabase;
+    private static final int MAX_RETRIES = 3;
 
     /**
-     * Called on server startup - connect the service to Mongo, creating the database and collections if required
-     * @param uri The URI of the Mongo instance to connect to
+     * Called on server startup - connect the service to Redis
+     * @param uri The URI of the Redis instance to connect to
      */
     public void connect(String uri) {
         this.logger.info("Connecting to {}...", uri);
+        
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxTotal(128);
+        poolConfig.setMaxIdle(16);
+        poolConfig.setMinIdle(8);
+        poolConfig.setMinEvictableIdleDuration(Duration.ofMinutes(5));
+        poolConfig.setTimeBetweenEvictionRuns(Duration.ofMinutes(1));
+        poolConfig.setBlockWhenExhausted(true);
+        poolConfig.setMaxWait(Duration.ofSeconds(30));
+        poolConfig.setTestOnBorrow(true);
+        
+        this.jedisPool = new JedisPool(poolConfig, uri);
+        
+        try (Jedis jedis = jedisPool.getResource()) {
+            jedis.ping();
+            
+            // Configure Redis persistence
+            configureRedisPersistence(jedis);
+            
+            this.logger.info("Successfully connected to Redis!");
+            
+            // Initialize leaderboards
+            initializeLeaderboards();
+        } catch (Exception e) {
+            this.logger.error("Failed to connect to Redis", e);
+            throw e;
+        }
+    }
 
-        this.mongoClient = MongoClients.create(new ConnectionString(uri));
-        this.nadeshikoDatabase = this.mongoClient.getDatabase("nadeshiko");
-
-        // Dump leaderboards
-//        this.dumpLeaderboards();
+    //Configure Redis persistence settings for data safety
+    private void configureRedisPersistence(Jedis jedis) {
+        // Configure RDB (snapshot) persistence
+        jedis.configSet("save", "3600 1"); // every hour if one key changed
+        jedis.configSet("save", "900 100"); // every 15 minutes if 100 keys changed
+        
+        // aof persistence
+        jedis.configSet("appendonly", "yes");
+        jedis.configSet("appendfsync", "no"); // lets the OS handle this
+        
+        logger.info("Configured Redis persistence settings");
     }
 
     /**
-     * Called on server shutdown - cleanly disconnect from Mongo
+     * Execute a Redis operation with automatic retry on connection failure
+     */
+    private <T> T executeWithRetry(RedisOperation<T> operation) {
+        int attempts = 0;
+        while (attempts < MAX_RETRIES) {
+            try (Jedis jedis = jedisPool.getResource()) {
+                return operation.execute(jedis);
+            } catch (JedisConnectionException e) {
+                attempts++;
+                if (attempts == MAX_RETRIES) {
+                    logger.error("Failed to execute Redis operation after {} attempts! Is the Redis server running?", MAX_RETRIES, e);
+                    throw e;
+                }
+                logger.warn("Redis connection failed, attempt {}/{}", attempts, MAX_RETRIES);
+                try {
+                    Thread.sleep(1000 * attempts); // Exponential backoff
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted during retry! This should not happen.", ie);
+                }
+            }
+        }
+        throw new RuntimeException("nadeshiko backend has completed the challenge [How Did We Get Here?]");
+    }
+
+    /**
+     * Called on server shutdown - cleanly disconnect from Redis
      */
     public void disconnect() {
-        this.mongoClient.close();
+        if (jedisPool != null && !jedisPool.isClosed()) {
+            try (Jedis jedis = jedisPool.getResource()) {
+                jedis.save(); // Force sync save before shutdown
+                logger.info("Forced final Redis save before shutdown");
+            } catch (Exception e) {
+                logger.error("Failed to force final Redis save", e);
+            }
+            jedisPool.close();
+        }
+    }
+
+    // Initialize all leaderboards in Redis if they don't exist
+    private void initializeLeaderboards() {
+        executeWithRetry(jedis -> {
+            Pipeline pipeline = jedis.pipelined();
+            
+            // Create metadata about available leaderboards
+            for (LeaderboardCategory category : LeaderboardCategory.values()) {
+                String categoryKey = "category:" + category.name();
+                pipeline.del(categoryKey); // Clear existing category data
+                
+                for (Leaderboard leaderboard : values()) {
+                    if (leaderboard.getCategory().equals(category)) {
+                        // Add leaderboard to category set
+                        pipeline.sadd(categoryKey, leaderboard.getName());
+                        
+                        // Ensure the leaderboard sorted set exists
+                        String lbKey = "lb:" + leaderboard.getName();
+                        pipeline.exists(lbKey);
+                    }
+                }
+            }
+            
+            pipeline.sync();
+            logger.info("Initialized leaderboard structure in Redis");
+            return null;
+        });
     }
 
     /**
-     * Called when a player is searched on nadeshiko. Insert them into the stat database.
+     * Called when a player is searched on nadeshiko. Update their Redis data
      * @param player The JsonObject containing the player's stats.
      */
     public synchronized void insertPlayer(JsonObject player) {
-
-        Document playerDocument = new Document();
-
-        // Base
+        String uuid = player.get("uuid").getAsString();
         JsonObject profile = player.getAsJsonObject("profile");
-        playerDocument
-            .append("uuid", player.get("uuid").getAsString())
-            .append("badge", player.get("badge").getAsString())
-            .append("tagged_name", profile.get("tagged_name").getAsString())
-            .append("time", System.currentTimeMillis());
-
-        // Populate leaderboards
-        for (Leaderboard leaderboard : values()) {
-
-            // Handle SkyBlock separately
-//            if (leaderboard.getCategory().equals(LeaderboardCategory.SKYBLOCK)) {
-//                insertSkyBlock(player.get("uuid").getAsString(), playerDocument);
-//                continue;
-//            }
-
-            JsonObject leaderboardInput = leaderboard.getCategory().getDeriveInput(player);
-            playerDocument.append(leaderboard.getName(), leaderboard.derive(leaderboardInput));
-        }
-
-        // Delete old player stats, if present
-        this.nadeshikoDatabase.getCollection("stats")
-            .deleteMany(new Document("uuid", player.get("uuid").getAsString()));
-
-        // Insert new stats
-        this.nadeshikoDatabase.getCollection("stats").insertOne(playerDocument);
-    }
-
-    private void insertSkyBlock(String uuid, Document playerDocument) {
-        // TODO: request SkyBlock API
-    }
-
-    // TODO: THIS NEEDS CACHING!
-    public synchronized JsonObject get(Leaderboard leaderboard, int page) {
-        JsonObject object = new JsonObject();
-        JsonArray array = new JsonArray();
-
-        long entries = this.nadeshikoDatabase.getCollection("stats").countDocuments(
-            new Document(leaderboard.getName(), new Document("$exists", true).append("$ne", 0))
-        );
-
-        List<Document> documents = this.getDocuments(leaderboard, page);
-        for (int i = 0; i < documents.size(); i++) {
-
-            Document document = documents.get(i);
-            int start = (page - 1) * 100 + 1;
-
-            if (document.get(leaderboard.getName()) == null) {
-                continue;
+        
+        executeWithRetry(jedis -> {
+            Pipeline pipeline = jedis.pipelined();
+            
+            // The hash for player data
+            pipeline.hset("player:" + uuid, "badge", player.get("badge").getAsString());
+            pipeline.hset("player:" + uuid, "tagged_name", profile.get("tagged_name").getAsString());
+            pipeline.hset("player:" + uuid, "time", String.valueOf(System.currentTimeMillis()));
+            
+            // Update leaderboard scores/vals
+            for (Leaderboard leaderboard : values()) {
+                JsonObject leaderboardInput = leaderboard.getCategory().getDeriveInput(player);
+                Number scoreNum = leaderboard.derive(leaderboardInput);
+                double score = scoreNum.doubleValue();
+                
+                if (score != 0) {  // Store nonzero scores
+                    pipeline.zadd("lb:" + leaderboard.getName(), score, uuid);
+                }
             }
-
-            JsonObject entry = new JsonObject();
-            entry.addProperty("uuid", document.getString("uuid"));
-            entry.addProperty("badge", document.getString("badge"));
-            entry.addProperty("tagged_name", document.getString("tagged_name"));
-            entry.addProperty("ranking", start + i);
-            entry.addProperty("percentile", 100 - ((start + i) / (double) entries) * 100);
-            entry.addProperty("value", document.get(leaderboard.getName()).toString());
-            array.add(entry);
-        }
-
-        object.addProperty("count", entries);
-        object.add("data", array);
-        return object;
-    }
-
-    private List<Document> getDocuments(Leaderboard leaderboard, int page) {
-        Document filter = new Document(leaderboard.getName(), new Document("$exists", true).append("$ne", 0));
-        Document sort = new Document(leaderboard.getName(), leaderboard.getSortDirection()).append("uuid", -1);
-
-        // Query the stats collection, apply the filter, sort and limit the results
-        try (MongoCursor<Document> cursor = this.nadeshikoDatabase.getCollection("stats")
-                .find(filter)
-                .sort(sort)
-                .skip((page - 1) * 100)
-                .limit(100)
-                .iterator()) {
-
-            List<Document> results = new ArrayList<>();
-            while (cursor.hasNext()) {
-                results.add(cursor.next());
-            }
-            return results;
-        }
+            
+            pipeline.sync();
+            return null;
+        });
     }
 
     /**
-     * Called at a regular interval. Regenerate the placement database from the stat database.
+     * Get a list of all leaderboards in a category. This is only used for dumping leaderboards
+     * @param category The category to get leaderboards for
+     * @return A JsonArray of leaderboard names
      */
-    private void update() {
+    public JsonArray getLeaderboardsInCategory(LeaderboardCategory category) {
+        return executeWithRetry(jedis -> {
+            JsonArray array = new JsonArray();
+            String categoryKey = "category:" + category.name();
+            for (String leaderboardName : jedis.smembers(categoryKey)) {
+                array.add(leaderboardName);
+            }
+            return array;
+        });
+    }
 
+    public synchronized JsonObject get(Leaderboard leaderboard, int page) {
+        return executeWithRetry(jedis -> {
+            JsonObject object = new JsonObject();
+            JsonArray array = new JsonArray();
+            String lbKey = "lb:" + leaderboard.getName();
+            
+            // Get total number of entries
+            long totalEntries = jedis.zcard(lbKey);
+            
+            // Calculate range for pagination (zero-based)
+            int start = (page - 1) * 100;
+            int end = start + 99;
+            
+            // Get sorted set entries with scores
+            List<Tuple> results = jedis.zrevrangeWithScores(lbKey, start, end);
+            
+            int rank = start + 1;
+            for (Tuple result : results) {
+                String uuid = result.getElement();
+                double score = result.getScore();
+                
+                // Get player details
+                String badge = jedis.hget("player:" + uuid, "badge");
+                String taggedName = jedis.hget("player:" + uuid, "tagged_name");
+                
+                JsonObject entry = new JsonObject();
+                entry.addProperty("uuid", uuid);
+                entry.addProperty("badge", badge);
+                entry.addProperty("tagged_name", taggedName);
+                entry.addProperty("ranking", rank);
+                entry.addProperty("percentile", 100 - (rank / (double) totalEntries) * 100);
+                entry.addProperty("value", String.valueOf(score));
+                array.add(entry);
+                
+                rank++;
+            }
+            
+            object.addProperty("count", totalEntries);
+            object.add("data", array);
+            return object;
+        });
     }
 
     private void dumpLeaderboards() {
         JsonObject lbsObject = new JsonObject();
 
         for (LeaderboardCategory category : LeaderboardCategory.values()) {
-            JsonArray array = new JsonArray();
-
-            for (Leaderboard leaderboard : values()) {
-                if (leaderboard.getCategory().equals(category)) {
-                    array.add(leaderboard.getName());
-                }
-            }
-
-            lbsObject.add(category.name(), array);
+            lbsObject.add(category.name(), getLeaderboardsInCategory(category));
         }
 
         try {
@@ -207,5 +274,83 @@ public class LeaderboardService {
         } catch (Exception e) {
             logger.error("Failed to dump leaderboards!", e);
         }
+    }
+
+    public void migrateFromMongo(String mongoUri) {
+        logger.info("Starting migration");
+        
+        try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
+            MongoDatabase db = mongoClient.getDatabase("nadeshiko");
+            MongoCollection<Document> stats = db.getCollection("stats");
+            
+            long totalDocuments = stats.countDocuments();
+            long processedDocuments = 0;
+            long startTime = System.currentTimeMillis();
+            
+            logger.info("Found {} documents to migrate", totalDocuments);
+            
+            // Process documents in batches
+            try (MongoCursor<Document> cursor = stats.find().iterator()) {
+                while (cursor.hasNext()) {
+                    Document doc = cursor.next();
+                    String uuid = doc.getString("uuid");
+                    
+                    executeWithRetry(jedis -> {
+                        Pipeline pipeline = jedis.pipelined();
+                        
+                        pipeline.hset("player:" + uuid, "badge", doc.getString("badge"));
+                        pipeline.hset("player:" + uuid, "tagged_name", doc.getString("tagged_name"));
+                        pipeline.hset("player:" + uuid, "time", String.valueOf(doc.getLong("time")));
+                        
+                        for (Leaderboard leaderboard : values()) {
+                            String lbName = leaderboard.getName();
+                            Object score = doc.get(lbName);
+                            
+                            if (score != null) {
+                                double numScore;
+                                if (score instanceof Integer) {
+                                    numScore = ((Integer) score).doubleValue();
+                                } else if (score instanceof Long) {
+                                    numScore = ((Long) score).doubleValue();
+                                } else if (score instanceof Double) {
+                                    numScore = (Double) score;
+                                } else {
+                                    continue;
+                                }
+                                
+                                if (numScore != 0) {
+                                    pipeline.zadd("lb:" + lbName, numScore, uuid);
+                                }
+                            }
+                        }
+                        
+                        pipeline.sync();
+                        return null;
+                    });
+                    
+                    processedDocuments++;
+                    if (processedDocuments % 1000 == 0) {
+                        long elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000;
+                        double docsPerSecond = processedDocuments / (double) elapsedSeconds;
+                        logger.info("Migrated {}/{} documents ({:.2f}%, {:.2f} docs/sec)", 
+                            processedDocuments, totalDocuments,
+                            (processedDocuments * 100.0) / totalDocuments,
+                            docsPerSecond);
+                    }
+                }
+            }
+            
+            long totalTime = (System.currentTimeMillis() - startTime) / 1000;
+            logger.info("Migration completed! Migrated {} documents in {} seconds", processedDocuments, totalTime);
+            
+        } catch (Exception e) {
+            logger.error("Failed to migrate data from MongoDB!", e);
+            throw new RuntimeException("Migration failed", e);
+        }
+    }
+
+    @FunctionalInterface
+    private interface RedisOperation<T> {
+        T execute(Jedis jedis);
     }
 }

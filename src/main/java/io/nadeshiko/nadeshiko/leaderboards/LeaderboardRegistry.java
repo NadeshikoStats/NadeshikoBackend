@@ -554,7 +554,7 @@ public class LeaderboardRegistry {
                                         + JsonUtil.getNullableDouble(ab.get("deaths_2v2"))
                                         + JsonUtil.getNullableDouble(ab.get("deaths_4v4"))));
         new Leaderboard("ARENA_BRAWL_WLR", ARENA_BRAWL,
-                ab -> LEADERBOARDS.get("ARENA_BRAWL_WINS").derive(ab).doubleValue() / ((JsonUtil.getNullableInt(ab.get("losses_1v1"))
+                ab -> LEADERBOARDS.get("ARENA_BRAWL_WINS").derive(ab).doubleValue() / Math.max(1, (JsonUtil.getNullableInt(ab.get("losses_1v1"))
                         + JsonUtil.getNullableInt(ab.get("losses_2v2"))
                         + JsonUtil.getNullableInt(ab.get("losses_4v4")))));
         new Leaderboard("ARENA_BRAWL_MAGICAL_CHESTS", ARENA_BRAWL, ab -> ab.get("magical_chest").getAsInt());
