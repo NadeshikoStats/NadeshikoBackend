@@ -17,6 +17,8 @@ import static io.nadeshiko.nadeshiko.leaderboards.Leaderboard.*;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.mongodb.client.*;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.*;
@@ -229,14 +231,7 @@ public class LeaderboardService {
             int end = start + 99;
             
             // Get sorted set entries with scores
-            List<Tuple> results;
-            if (leaderboard.getSortDirection() == 1) {
-                // lowest first
-                results = jedis.zrangeWithScores(lbKey, start, end);
-            } else {
-                // highest first
-                results = jedis.zrevrangeWithScores(lbKey, start, end);
-            }
+            List<Tuple> results = jedis.zrevrangeWithScores(lbKey, start, end);
             
             int rank = start + 1;
             for (Tuple result : results) {
@@ -278,6 +273,79 @@ public class LeaderboardService {
             logger.info("Dumped leaderboards to leaderboards.json");
         } catch (Exception e) {
             logger.error("Failed to dump leaderboards!", e);
+        }
+    }
+
+    public void migrateFromMongo(String mongoUri) {
+        logger.info("Starting migration");
+        
+        try (MongoClient mongoClient = MongoClients.create(mongoUri)) {
+            MongoDatabase db = mongoClient.getDatabase("nadeshiko");
+            MongoCollection<Document> stats = db.getCollection("stats");
+            
+            long totalDocuments = stats.countDocuments();
+            long processedDocuments = 0;
+            long startTime = System.currentTimeMillis();
+            
+            logger.info("Found {} documents to migrate", totalDocuments);
+            
+            // Process documents in batches
+            try (MongoCursor<Document> cursor = stats.find().iterator()) {
+                while (cursor.hasNext()) {
+                    Document doc = cursor.next();
+                    String uuid = doc.getString("uuid");
+                    
+                    executeWithRetry(jedis -> {
+                        Pipeline pipeline = jedis.pipelined();
+                        
+                        pipeline.hset("player:" + uuid, "badge", doc.getString("badge"));
+                        pipeline.hset("player:" + uuid, "tagged_name", doc.getString("tagged_name"));
+                        pipeline.hset("player:" + uuid, "time", String.valueOf(doc.getLong("time")));
+                        
+                        for (Leaderboard leaderboard : values()) {
+                            String lbName = leaderboard.getName();
+                            Object score = doc.get(lbName);
+                            
+                            if (score != null) {
+                                double numScore;
+                                if (score instanceof Integer) {
+                                    numScore = ((Integer) score).doubleValue();
+                                } else if (score instanceof Long) {
+                                    numScore = ((Long) score).doubleValue();
+                                } else if (score instanceof Double) {
+                                    numScore = (Double) score;
+                                } else {
+                                    continue;
+                                }
+                                
+                                if (numScore != 0) {
+                                    pipeline.zadd("lb:" + lbName, numScore, uuid);
+                                }
+                            }
+                        }
+                        
+                        pipeline.sync();
+                        return null;
+                    });
+                    
+                    processedDocuments++;
+                    if (processedDocuments % 1000 == 0) {
+                        long elapsedSeconds = (System.currentTimeMillis() - startTime) / 1000;
+                        double docsPerSecond = processedDocuments / (double) elapsedSeconds;
+                        logger.info("Migrated {}/{} documents ({:.2f}%, {:.2f} docs/sec)", 
+                            processedDocuments, totalDocuments,
+                            (processedDocuments * 100.0) / totalDocuments,
+                            docsPerSecond);
+                    }
+                }
+            }
+            
+            long totalTime = (System.currentTimeMillis() - startTime) / 1000;
+            logger.info("Migration completed! Migrated {} documents in {} seconds", processedDocuments, totalTime);
+            
+        } catch (Exception e) {
+            logger.error("Failed to migrate data from MongoDB!", e);
+            throw new RuntimeException("Migration failed", e);
         }
     }
 
