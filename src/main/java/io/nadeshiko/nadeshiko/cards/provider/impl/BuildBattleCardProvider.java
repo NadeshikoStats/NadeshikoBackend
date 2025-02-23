@@ -33,6 +33,31 @@ public class BuildBattleCardProvider extends CardProvider {
 
 	@Override
 	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
+		// Get the size from the data object
+		CardGame.CardSize size = CardGame.CardSize.FULL; // Default to FULL
+				
+		if (data.has("size")) {
+			try {
+				String sizeStr = data.get("size").getAsString().toUpperCase();
+				size = CardGame.CardSize.valueOf(sizeStr);
+			} catch (IllegalArgumentException ignored) {
+				// Bad size
+			}
+		}
+
+		// pick a size
+		switch (size) {
+			case TINY:
+				generateTiny(image, stats);
+				break;
+			case FULL:
+			default:
+				generateFull(image, stats);
+				break;
+		}
+	}
+
+	private void generateFull(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		JsonObject buildBattle = stats.getAsJsonObject("stats").getAsJsonObject("BuildBattle");
 
@@ -42,7 +67,7 @@ public class BuildBattleCardProvider extends CardProvider {
 		int wins = buildBattle.get("wins").getAsInt();
 		int losses = buildBattle.get("games_played").getAsInt() - wins;
 		int score = buildBattle.get("score").getAsInt();
-				int votes = buildBattle.has("total_votes") ? buildBattle.get("total_votes").getAsInt() : 0;
+		int votes = buildBattle.has("total_votes") ? buildBattle.get("total_votes").getAsInt() : 0;
 		int coins = buildBattle.get("coins").getAsInt();
 		int highestScore = stats.getAsJsonObject("achievements").get("buildbattle_build_battle_points").getAsInt();
 
@@ -90,6 +115,59 @@ public class BuildBattleCardProvider extends CardProvider {
 		this.drawMode(g, Mode.PRO, buildBattle, 1212, 318);
 		this.drawMode(g, Mode.GTB, buildBattle, 635, 438);
 		this.drawMode(g, Mode.SPEED_BUILDERS, buildBattle, 1068, 438);
+	}
+
+	private void generateTiny(BufferedImage image, JsonObject stats) {
+		Graphics2D g = (Graphics2D) image.getGraphics();
+		JsonObject buildBattle = stats.getAsJsonObject("stats").getAsJsonObject("BuildBattle");
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		int wins = buildBattle.get("wins").getAsInt();
+		int losses = buildBattle.get("games_played").getAsInt() - wins;
+		int score = buildBattle.get("score").getAsInt();
+		int votes = buildBattle.has("total_votes") ? buildBattle.get("total_votes").getAsInt() : 0;
+		int coins = buildBattle.get("coins").getAsInt();
+		int highestScore = stats.getAsJsonObject("achievements").get("buildbattle_build_battle_points").getAsInt();
+
+		// Draw title
+		g.setColor(Color.WHITE);
+		MinecraftRenderer.drawMinecraftString(g, Title.get(score).format(score), 763, 44, 30);
+
+		// Set up the stat font
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
+
+		// Draw W/L ratio
+		String wlr = (Math.round((wins / (double) losses) * 100) / 100d) + "";
+		g.drawString(wlr, 615 - (g.getFontMetrics().stringWidth(wlr) / 2), 118);
+		this.drawProgress(g, 534, 133, 177, wins / (double) (wins + losses));
+
+		// Draw stats
+		g.setColor(new Color(138, 138, 138));
+		g.setFont(smallLight);
+
+		int scoreWidth = g.getFontMetrics().stringWidth("Score");
+		int winsWidth = g.getFontMetrics().stringWidth("Wins");
+		int votesWidth = g.getFontMetrics().stringWidth("Votes");
+		int coinsWidth = g.getFontMetrics().stringWidth("Coins");
+		int highestScoreWidth = g.getFontMetrics().stringWidth("Highest Score");
+
+		g.drawString("Score", 800, 100);
+		g.drawString("Wins", 800, 133);
+		g.drawString("Votes", 800, 166);
+		g.drawString("Coins", 1025, 100);
+		g.drawString("Highest Score", 1025, 133);
+
+		g.setColor(Color.WHITE);
+		g.setFont(smallBold);
+
+		g.drawString(String.format("%,d", score), 800 + scoreWidth + 10, 100);
+		g.drawString(String.format("%,d", wins), 800 + winsWidth + 10, 133);
+		g.drawString(String.format("%,d", votes), 800 + votesWidth + 10, 166);
+		g.drawString(String.format("%,d", coins), 1025 + coinsWidth + 10, 100);
+		g.drawString(String.format("%,d", highestScore), 1025 + highestScoreWidth + 10, 133);
 	}
 
 	private void drawMode(Graphics2D g, @NonNull Mode mode, @NonNull JsonObject stats, int baseX, int baseY) {
