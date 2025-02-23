@@ -49,7 +49,7 @@ public class Nadeshiko {
 	/**
 	 * nadeshiko version number
 	 */
-	public static String VERSION = "1.1.3-no-skyblock";
+	public static String VERSION = "1.1.4-no-skyblock";
 
 	/**
 	 * Setting fallbacks (if missing from config.json)

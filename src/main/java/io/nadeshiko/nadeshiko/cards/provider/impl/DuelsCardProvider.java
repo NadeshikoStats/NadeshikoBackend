@@ -35,12 +35,35 @@ import java.util.Locale;
 
 public class DuelsCardProvider extends CardProvider {
 
+	private record DuelsStats(
+		int kills,
+		int deaths,
+		int wins,
+		int losses,
+		int winstreak,
+		int bestWinstreak,
+		double kdr,
+		double wlr,
+		boolean hasWinstreak,
+		String activeTitle
+	) {}
+
+	private record ModeStats(
+		int kills,
+		int deaths,
+		int wins,
+		int losses,
+		double kdr,
+		double wlr
+	) {}
+
+	private final HashMap<Duels, BufferedImage> iconMap = new HashMap<>();
+
 	public DuelsCardProvider() {
 		super(CardGame.DUELS);
 
 		// Read the duel icons from resources into the cache
 		for (Duels duel : Duels.values()) {
-
 			if (duel.getTextureName() == null) {
 				continue; // If the duel has no texture, skip it
 			}
@@ -63,46 +86,140 @@ public class DuelsCardProvider extends CardProvider {
 		}
 	}
 
-	private final HashMap<Duels, BufferedImage> iconMap = new HashMap<>();
+	private DuelsStats extractStats(JsonObject duels) {
+		// Default values in case stats are missing
+		int kills = 0;
+		int deaths = 1; // Avoid div0
+		int wins = 0;
+		int losses = 1; // Avoid div0
+		int winstreak = 0;
+		int bestWinstreak = 0;
+		boolean hasWinstreak = false;
+		String activeTitle = "";
+
+		// Safely extract stats if they exist
+		if (duels != null) {
+			try {
+				if (duels.has("kills") && !duels.get("kills").isJsonNull()) {
+					kills = duels.get("kills").getAsInt();
+				}
+				if (duels.has("deaths") && !duels.get("deaths").isJsonNull()) {
+					deaths = Math.max(1, duels.get("deaths").getAsInt()); // Fixes divzero problem
+				}
+				if (duels.has("wins") && !duels.get("wins").isJsonNull()) {
+					wins = duels.get("wins").getAsInt();
+				}
+				if (duels.has("losses") && !duels.get("losses").isJsonNull()) {
+					losses = Math.max(1, duels.get("losses").getAsInt()); // Fixes divzero problem
+				}
+				if (duels.has("current_winstreak") && !duels.get("current_winstreak").isJsonNull() &&
+					duels.has("best_overall_winstreak") && !duels.get("best_overall_winstreak").isJsonNull()) {
+					hasWinstreak = true;
+					winstreak = duels.get("current_winstreak").getAsInt();
+					bestWinstreak = duels.get("best_overall_winstreak").getAsInt();
+				}
+				if (duels.has("active_cosmetictitle") && !duels.get("active_cosmetictitle").isJsonNull()) {
+					activeTitle = duels.get("active_cosmetictitle").getAsString();
+				}
+			} catch (Exception e) {
+				// If any parsing fails, we'll use the default values
+				Nadeshiko.INSTANCE.alert("Failed to parse duels stats: %s", e.getMessage());
+			}
+		}
+
+		double kdr = Math.round((kills / (double) deaths) * 100) / 100d;
+		double wlr = Math.round((wins / (double) losses) * 100) / 100d;
+
+		return new DuelsStats(kills, deaths, wins, losses, winstreak, bestWinstreak, kdr, wlr, hasWinstreak, activeTitle);
+	}
+
+	private ModeStats extractModeStats(JsonObject duelsStats, Duels mode) {
+		int kills = 0;
+		int deaths = 1;
+		int wins = 0;
+		int losses = 1;
+
+		try {
+			if (duelsStats.has(mode.getApiName() + "_kills") && !duelsStats.get(mode.getApiName() + "_kills").isJsonNull()) {
+				kills = duelsStats.get(mode.getApiName() + "_kills").getAsInt();
+			} else if (mode.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_kills") && !duelsStats.get("bridge_kills").isJsonNull()) {
+				// Inconsistent API naming breaks with bridge duels...
+				kills = duelsStats.get("bridge_kills").getAsInt();
+			}
+
+			if (duelsStats.has(mode.getApiName() + "_deaths") && !duelsStats.get(mode.getApiName() + "_deaths").isJsonNull()) {
+				deaths = Math.max(1, duelsStats.get(mode.getApiName() + "_deaths").getAsInt());
+			} else if (mode.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_deaths") && !duelsStats.get("bridge_deaths").isJsonNull()) {
+				// Inconsistent API naming breaks with bridge duels...
+				deaths = Math.max(1, duelsStats.get("bridge_deaths").getAsInt());
+			}
+
+			if (duelsStats.has(mode.getApiName() + "_wins") && !duelsStats.get(mode.getApiName() + "_wins").isJsonNull()) {
+				wins = duelsStats.get(mode.getApiName() + "_wins").getAsInt();
+			}
+
+			if (duelsStats.has(mode.getApiName() + "_losses") && !duelsStats.get(mode.getApiName() + "_losses").isJsonNull()) {
+				losses = Math.max(1, duelsStats.get(mode.getApiName() + "_losses").getAsInt());
+			}
+		} catch (Exception e) {
+			// If any parsing fails, we'll use the default values
+			Nadeshiko.INSTANCE.alert("Failed to parse mode stats for %s: %s", mode.getDisplayName(), e.getMessage());
+		}
+
+		double kdr = Math.round((kills / (double) deaths) * 100) / 100d;
+		double wlr = Math.round((wins / (double) losses) * 100) / 100d;
+
+		return new ModeStats(kills, deaths, wins, losses, kdr, wlr);
+	}
 
 	@Override
 	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
+		// Get the size from the data object
+		CardGame.CardSize size = CardGame.CardSize.FULL; // Default to FULL
+				
+		if (data.has("size")) {
+			try {
+				String sizeStr = data.get("size").getAsString().toUpperCase();
+				size = CardGame.CardSize.valueOf(sizeStr);
+			} catch (IllegalArgumentException ignored) {
+				// Bad size
+			}
+		}
+
+		// pick a size
+		switch (size) {
+			case TINY:
+				generateTiny(image, stats);
+				break;
+			case FULL:
+			default:
+				generateFull(image, stats);
+				break;
+		}
+	}
+
+	private void generateFull(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		JsonObject duels = stats.getAsJsonObject("stats").getAsJsonObject("Duels");
+		DuelsStats duelsStats = extractStats(duels);
 
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
-		int kills = duels.get("kills").getAsInt();
-		int deaths = duels.get("deaths").getAsInt();
-		int wins = duels.get("wins").getAsInt();
-		int losses = duels.get("losses").getAsInt();
-
-		int winstreak = 0;
-		int best_winstreak = 0;
-
-		// Winstreaks can be disabled from the API
-		if (duels.has("current_winstreak")) {
-			winstreak = duels.get("current_winstreak").getAsInt();
-			best_winstreak = duels.get("best_overall_winstreak").getAsInt();
-		}
-
 		// Draw title
-		this.drawTitle(g, duels);
+		this.drawTitle(g, duels, false);
 
 		// Set up the stat font
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
 
 		// Draw K/D ratio
-		String kdr = (Math.round((kills / (double) deaths) * 100) / 100d) + "";
-		g.drawString(kdr, 750 - (g.getFontMetrics().stringWidth(kdr) / 2), 158);
-		this.drawProgress(g, 664, 173, 177, kills / (double) (kills + deaths));
+		g.drawString(String.valueOf(duelsStats.kdr), 750 - (g.getFontMetrics().stringWidth(String.valueOf(duelsStats.kdr)) / 2), 158);
+		this.drawProgress(g, 664, 173, 177, duelsStats.kills / (double) (duelsStats.kills + duelsStats.deaths));
 
 		// Draw W/L ratio
-		String wlr = (Math.round((wins / (double) losses) * 100) / 100d) + "";
-		g.drawString(wlr, 1007 - (g.getFontMetrics().stringWidth(wlr) / 2), 158);
-		this.drawProgress(g, 921, 173, 177, wins / (double) (wins + losses));
+		g.drawString(String.valueOf(duelsStats.wlr), 1007 - (g.getFontMetrics().stringWidth(String.valueOf(duelsStats.wlr)) / 2), 158);
+		this.drawProgress(g, 921, 173, 177, duelsStats.wins / (double) (duelsStats.wins + duelsStats.losses));
 
 		// Draw wins and winstreak
 		g.setColor(new Color(138, 138, 138));
@@ -118,12 +235,12 @@ public class DuelsCardProvider extends CardProvider {
 
 		g.setColor(Color.WHITE);
 		g.setFont(smallBold);
-		g.drawString(String.format("%,d", wins), 1175 + winsWidth + 10, 140);
+		g.drawString(String.format("%,d", duelsStats.wins), 1175 + winsWidth + 10, 140);
 
 		// Winstreaks might be disabled on the API
-		if (duels.has("current_winstreak")) {
-			g.drawString(String.format("%,d", winstreak), 1175 + winstreakWidth + 10, 178);
-			g.drawString(String.format("%,d", best_winstreak), 1175 + bestWinstreakWidth + 10, 208);
+		if (duelsStats.hasWinstreak) {
+			g.drawString(String.format("%,d", duelsStats.winstreak), 1175 + winstreakWidth + 10, 178);
+			g.drawString(String.format("%,d", duelsStats.bestWinstreak), 1175 + bestWinstreakWidth + 10, 208);
 		} else {
 			g.setColor(new Color(138, 138, 138));
 			g.setFont(smallLight);
@@ -137,8 +254,58 @@ public class DuelsCardProvider extends CardProvider {
 		this.drawDuel(g, topDuels.get(1), duels, 1068);
 	}
 
-	private void drawTitle(Graphics g, @NonNull JsonObject duelsStats) {
+	private void generateTiny(BufferedImage image, JsonObject stats) {
+		Graphics2D g = (Graphics2D) image.getGraphics();
+		JsonObject duels = stats.getAsJsonObject("stats").getAsJsonObject("Duels");
+		DuelsStats duelsStats = extractStats(duels);
 
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		// Draw title
+		this.drawTitle(g, duels, true);
+
+		// Set up the stat font
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
+
+		// Draw K/D ratio
+		g.drawString(String.valueOf(duelsStats.kdr), 615 - (g.getFontMetrics().stringWidth(String.valueOf(duelsStats.kdr)) / 2), 118);
+		this.drawProgress(g, 534, 133, 177, duelsStats.kills / (double) (duelsStats.kills + duelsStats.deaths));
+
+		// Draw W/L ratio
+		g.drawString(String.valueOf(duelsStats.wlr), 860 - (g.getFontMetrics().stringWidth(String.valueOf(duelsStats.wlr)) / 2), 118);
+		this.drawProgress(g, 776, 133, 177, duelsStats.wins / (double) (duelsStats.wins + duelsStats.losses));
+
+		// Draw wins and winstreak
+		g.setColor(new Color(138, 138, 138));
+		g.setFont(smallLight);
+
+		int winsWidth = g.getFontMetrics().stringWidth("Wins");
+		int winstreakWidth = g.getFontMetrics().stringWidth("Winstreak");
+		int bestWinstreakWidth = g.getFontMetrics().stringWidth("Best Winstreak");
+
+		g.drawString("Wins", 1015, 100);
+		g.drawString("Winstreak", 1015, 125);
+		g.drawString("Best Winstreak", 1015, 165);
+
+		g.setColor(Color.WHITE);
+		g.setFont(smallBold);
+		g.drawString(String.format("%,d", duelsStats.wins), 1015 + winsWidth + 10, 100);
+
+		// Winstreaks might be disabled on the API
+		if (duelsStats.hasWinstreak) {
+			g.drawString(String.format("%,d", duelsStats.winstreak), 1015 + winstreakWidth + 10, 125);
+			g.drawString(String.format("%,d", duelsStats.bestWinstreak), 1015 + bestWinstreakWidth + 10, 165);
+		} else {
+			g.setColor(new Color(138, 138, 138));
+			g.setFont(smallLight);
+			g.drawString("Unknown", 1015 + winstreakWidth + 5, 125);
+			g.drawString("Unknown", 1015 + bestWinstreakWidth + 5, 165);
+		}
+	}
+
+	private void drawTitle(Graphics g, @NonNull JsonObject duelsStats, boolean isTiny) {
 		// Ensure the player actually has a title
 		if (!duelsStats.has("active_cosmetictitle")) {
 			return;
@@ -156,7 +323,11 @@ public class DuelsCardProvider extends CardProvider {
 
 		// Draw the hyphen after "Duels Stats"
 		g.setColor(Color.WHITE);
-		g.fillRect(808, 56, 16, 4);
+		if (isTiny) {
+			g.fillRect(654, 33, 16, 3);
+		} else {
+			g.fillRect(808, 56, 16, 4);
+		}
 
 		finalTitle += title.getColor();
 		finalTitle += duel.getDisplayName();
@@ -176,34 +347,16 @@ public class DuelsCardProvider extends CardProvider {
 			finalTitle += RomanNumerals.arabicToRoman(level);
 		}
 
-		MinecraftRenderer.drawMinecraftString(g, finalTitle, 845, 67, 30);
+		// Draw at different positions based on card size
+		if (isTiny) {
+			MinecraftRenderer.drawMinecraftString(g, finalTitle, 683, 44, 30);
+		} else {
+			MinecraftRenderer.drawMinecraftString(g, finalTitle, 845, 67, 30);
+		}
 	}
 
 	private void drawDuel(Graphics2D g, @NonNull Duels duel, @NonNull JsonObject duelsStats, int baseX) {
-
-		int kills = 0, deaths = 1, wins = 0, losses = 1;
-
-		if (duelsStats.has(duel.getApiName() + "_kills")) {
-			kills = duelsStats.get(duel.getApiName() + "_kills").getAsInt();
-		} else if (duel.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_kills")) {
-			// Inconsistent API naming breaks with bridge duels...
-			kills = duelsStats.get("bridge_kills").getAsInt();
-		}
-
-		if (duelsStats.has(duel.getApiName() + "_deaths")) {
-			deaths = duelsStats.get(duel.getApiName() + "_deaths").getAsInt();
-		} else if (duel.equals(Duels.BRIDGE_SOLO) && duelsStats.has("bridge_deaths")) {
-			// Inconsistent API naming breaks with bridge duels...
-			deaths = duelsStats.get("bridge_deaths").getAsInt();
-		}
-
-		if (duelsStats.has(duel.getApiName() + "_wins")) {
-			wins = duelsStats.get(duel.getApiName() + "_wins").getAsInt();
-		}
-
-		if (duelsStats.has(duel.getApiName() + "_losses")) {
-			losses = duelsStats.get(duel.getApiName() + "_losses").getAsInt();
-		}
+		ModeStats stats = extractModeStats(duelsStats, duel);
 
 		// Set up the name font
 		g.setColor(Color.WHITE);
@@ -225,18 +378,16 @@ public class DuelsCardProvider extends CardProvider {
 		g.setFont(new Font("Inter Bold", Font.BOLD, 24));
 
 		// Draw K/D ratio
-		String kdr = (Math.round((kills / (double) deaths) * 100) / 100d) + "";
-		g.drawString(kdr, baseX + 78 - (g.getFontMetrics().stringWidth(kdr) / 2), 340);
-		this.drawProgress(g, baseX + 6, 354, 146, kills / (double) (kills + deaths));
+		g.drawString(String.valueOf(stats.kdr), baseX + 78 - (g.getFontMetrics().stringWidth(String.valueOf(stats.kdr)) / 2), 340);
+		this.drawProgress(g, baseX + 6, 354, 146, stats.kills / (double) (stats.kills + stats.deaths));
 
 		// Draw W/L ratio
-		String wlr = (Math.round((wins / (double) losses) * 100) / 100d) + "";
-		g.drawString(wlr, baseX + 261 - (g.getFontMetrics().stringWidth(wlr) / 2), 340);
-		this.drawProgress(g, baseX + 189, 354, 146, wins / (double) (wins + losses));
+		g.drawString(String.valueOf(stats.wlr), baseX + 261 - (g.getFontMetrics().stringWidth(String.valueOf(stats.wlr)) / 2), 340);
+		this.drawProgress(g, baseX + 189, 354, 146, stats.wins / (double) (stats.wins + stats.losses));
 
 		// Draw kills
 		int killsWidth = g.getFontMetrics(smallLight).stringWidth("Kills  ");
-		int killsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", kills));
+		int killsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", stats.kills));
 		int killsTotalWidth = killsWidth + killsCountWidth;
 		int killsLeftX = baseX + 80 - (killsTotalWidth / 2);
 
@@ -245,11 +396,11 @@ public class DuelsCardProvider extends CardProvider {
 		g.drawString("Kills", killsLeftX, 425);
 		g.setColor(Color.WHITE);
 		g.setFont(smallBold);
-		g.drawString(String.format("%,d", kills), killsLeftX + killsWidth, 425);
+		g.drawString(String.format("%,d", stats.kills), killsLeftX + killsWidth, 425);
 
 		// Draw wins
 		int winsWidth = g.getFontMetrics(smallLight).stringWidth("Wins  ");
-		int winsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", wins));
+		int winsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", stats.wins));
 		int winsTotalWidth = winsWidth + winsCountWidth;
 		int winsLeftX = baseX + 263 - (winsTotalWidth / 2);
 
@@ -258,7 +409,7 @@ public class DuelsCardProvider extends CardProvider {
 		g.drawString("Wins", winsLeftX, 425);
 		g.setColor(Color.WHITE);
 		g.setFont(smallBold);
-		g.drawString(String.format("%,d", wins), winsLeftX + winsWidth, 425);
+		g.drawString(String.format("%,d", stats.wins), winsLeftX + winsWidth, 425);
 	}
 
 	private ArrayList<Duels> getTopDuels(JsonObject duelsStats) {
@@ -352,17 +503,17 @@ public class DuelsCardProvider extends CardProvider {
 	@Getter
 	@AllArgsConstructor
 	private enum Title {
-		ROOKIE("Rookie", "§7"),
+		ROOKIE("Rookie", "§8"),
 		IRON("Iron", "§f"),
 		GOLD("Gold", "§6"),
 		DIAMOND("Diamond", "§3"),
 		MASTER("Master", "§2"),
-		LEGEND("Legend", "§l§4"),
-		GRANDMASTER("Grandmaster", "§l§e"),
-		GODLIKE("Godlike", "§l§5"),
-		CELESTIAL("CELESTIAL", "§l§b"),
-		DIVINE("DIVINE", "§l§d"),
-		ASCENDED("ASCENDED", "§l§c");
+		LEGEND("Legend", "§4§l"),
+		GRANDMASTER("Grandmaster", "§e§l"),
+		GODLIKE("Godlike", "§5§l"),
+		CELESTIAL("CELESTIAL", "§b§l"),
+		DIVINE("DIVINE", "§d§l"),
+		ASCENDED("ASCENDED", "§c§l");
 
 		private final String name;
 		private final String color;
