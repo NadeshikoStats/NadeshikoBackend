@@ -49,13 +49,12 @@ public class Nadeshiko {
 	/**
 	 * nadeshiko version number
 	 */
-	public static String VERSION = "1.0.8-no-skyblock";
+	public static String VERSION = "1.1.1-no-skyblock";
 
 	/**
 	 * Setting fallbacks (if missing from config.json)
 	 */
 	public static String DEFAULT_DATABASE = "redis://localhost:6379";
-	public static String DEFAULT_MONGO = "mongodb://localhost:27017";
 	public static int DEFAULT_PORT = 2000;
 
 	/**
@@ -152,17 +151,11 @@ public class Nadeshiko {
 		this.igniteDiscordMonitor();
 		discordMonitor.log("Igniting nadeshiko...");
 
-		// Connect to Redis and migrate data from MongoDB if needed
+		// Connect to Redis
 		String redisUri = this.config.containsKey("database") ? (String) this.config.get("database") : DEFAULT_DATABASE;
-		String mongoUri = this.config.containsKey("mongodb") ? (String) this.config.get("mongodb") : DEFAULT_MONGO;
 		
 		this.leaderboardService.connect(redisUri);
 		LeaderboardRegistry.registerAll();
-
-		if (this.config.containsKey("migrate_mongo") && (boolean) this.config.get("migrate_mongo")) { // gonna delete this soon
-			logger.info("Migrating database");
-			this.leaderboardService.migrateFromMongo(mongoUri);
-		}
 
 		// Read the API key from the config file
 		this.hypixelKey = (String) this.config.get("hypixel_key");
