@@ -34,6 +34,31 @@ public class NetworkCardProvider extends CardProvider {
 
 	@Override
 	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
+		// Get the size from the data object
+		CardGame.CardSize size = CardGame.CardSize.FULL; // Default to FULL
+
+		if (data.has("size")) {
+			try {
+				String sizeStr = data.get("size").getAsString().toUpperCase();
+				size = CardGame.CardSize.valueOf(sizeStr);
+			} catch (IllegalArgumentException ignored) {
+				// Bad size
+			}
+		}
+
+		// pick a size
+		switch (size) {
+			case TINY:
+				generateTiny(image, stats);
+				break;
+			case FULL:
+			default:
+				generateFull(image, stats);
+				break;
+		}
+	}
+
+	private void generateFull(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		JsonObject profile = stats.getAsJsonObject("profile");
 		JsonObject guild = stats.get("guild") instanceof JsonNull ? null : stats.getAsJsonObject("guild");
@@ -61,30 +86,82 @@ public class NetworkCardProvider extends CardProvider {
 
 		// Draw the first login date
 		this.drawLabelValuePair(g, "First Login",
-			this.formatDate(profile.get("first_login").getAsLong()), 635, 205);
+				this.formatDate(profile.get("first_login").getAsLong()), 635, 205);
 
 		// Draw the last login date
 		if (profile.get("last_login").getAsInt() > 0) {
 			this.drawLabelValuePair(g, "Last Login",
-				this.formatDate(profile.get("last_login").getAsLong()), 1065, 205);
+					this.formatDate(profile.get("last_login").getAsLong()), 1065, 205);
 		}
 
 		// Draw the general stats card
-		this.drawGeneral(g, profile);
+		this.drawGeneralFull(g, profile);
 
 		// Draw the guild card
 		this.drawGuild(g, guild);
 	}
 
-	private void drawGeneral(Graphics2D g, JsonObject profile) {
+	private void generateTiny(BufferedImage image, JsonObject stats) {
+		Graphics2D g = (Graphics2D) image.getGraphics();
+		JsonObject profile = stats.getAsJsonObject("profile");
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		// Draw the network level
+		int networkLevel = profile.get("network_level").getAsInt();
+		double networkLevelProgress = profile.get("network_level").getAsDouble() % 1;
+
+		g.setColor(networkLevel > 250 ? new Color(255, 138, 0) : LIGHT_GRAY);
+		g.setFont(smallLight);
+		g.drawString("Level", 504, 96);
+		
+		g.setColor(networkLevel > 250 ? new Color(255, 138, 0) : Color.WHITE);
+		g.setFont(smallBold);
+		g.drawString(Integer.toString(networkLevel), 560, 96);
+
+		// Draw the network multiplier
+		int levelWidth = g.getFontMetrics().stringWidth(Integer.toString(networkLevel));
+		g.setColor(Color.GRAY);
+		g.setFont(smallLight);
+		g.drawString("(" + profile.get("coin_multiplier") + "x)", 560 + 5 + levelWidth, 96);
+
+		// Draw the network level progress bar
+		this.drawProgress(g, 504, 103, 167, 7, networkLevelProgress);
+
+		// Draw the first login date
+		this.drawLabelValuePair(g, "First Login",
+				this.formatDate(profile.get("first_login").getAsLong()), 504, 145);
+
+		// Draw the last login date
+		if (profile.get("last_login").getAsInt() > 0) {
+			this.drawLabelValuePair(g, "Last Login",
+					this.formatDate(profile.get("last_login").getAsLong()), 504, 168);
+		}
+
+		this.drawGeneralTiny(g, profile);
+	}
+
+	private void drawGeneralFull(Graphics2D g, JsonObject profile) {
 		this.drawLabelValuePair(g, "Achievement Points",
-			String.format("%,d", profile.get("achievement_points").getAsInt()), 635, 325);
+				String.format("%,d", profile.get("achievement_points").getAsInt()), 635, 325);
 		this.drawLabelValuePair(g, "Karma",
-			String.format("%,d", profile.get("karma").getAsLong()), 635, 357);
+				String.format("%,d", profile.get("karma").getAsLong()), 635, 357);
 		this.drawLabelValuePair(g, "Quests Completed",
-			String.format("%,d", profile.get("quests_completed").getAsInt()), 635, 389);
+				String.format("%,d", profile.get("quests_completed").getAsInt()), 635, 389);
 		this.drawLabelValuePair(g, "Ranks Gifted",
-			String.format("%,d", profile.get("ranks_gifted").getAsInt()), 635, 422);
+				String.format("%,d", profile.get("ranks_gifted").getAsInt()), 635, 422);
+	}
+
+	private void drawGeneralTiny(Graphics2D g, JsonObject profile) {
+		this.drawLabelValuePair(g, "Achievement Points",
+				String.format("%,d", profile.get("achievement_points").getAsInt()), 938, 100);
+		this.drawLabelValuePair(g, "Karma",
+				String.format("%,d", profile.get("karma").getAsLong()), 938, 123);
+		this.drawLabelValuePair(g, "Quests Completed",
+				String.format("%,d", profile.get("quests_completed").getAsInt()), 938, 146);
+		this.drawLabelValuePair(g, "Ranks Gifted",
+				String.format("%,d", profile.get("ranks_gifted").getAsInt()), 938, 168);
 	}
 
 	private void drawGuild(Graphics2D g, JsonObject guild) {
@@ -116,14 +193,14 @@ public class NetworkCardProvider extends CardProvider {
 			name += "...";
 		}
 		MinecraftRenderer.drawCustomString(g,
-			name + " " + guild.get("tag").getAsString(), 1125, 325);
+				name + " " + guild.get("tag").getAsString(), 1125, 325);
 
 		this.drawLabelValuePair(g, "Level",
-			String.format("%,d", guild.get("level").getAsInt()), 1065, 357);
+				String.format("%,d", guild.get("level").getAsInt()), 1065, 357);
 		this.drawLabelValuePair(g, "Members",
-			String.format("%,d", guild.get("members").getAsInt()), 1065, 389);
+				String.format("%,d", guild.get("members").getAsInt()), 1065, 389);
 		this.drawLabelValuePair(g, "Joined",
-			this.formatDate(guild.get("joined").getAsLong()), 1065, 422);
+				this.formatDate(guild.get("joined").getAsLong()), 1065, 422);
 	}
 
 	private void drawLabelValuePair(Graphics2D g, String label, Object value, int x, int y) {
@@ -141,4 +218,3 @@ public class NetworkCardProvider extends CardProvider {
 		return format.format(date);
 	}
 }
-
