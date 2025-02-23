@@ -86,9 +86,10 @@ public class BuildBattleCardProvider extends CardProvider {
 
 		// Draw top modes
 		this.drawMode(g, Mode.SOLO, buildBattle, 635, 318);
-		this.drawMode(g, Mode.TEAM, buildBattle, 1068, 318);
-		this.drawMode(g, Mode.PRO, buildBattle, 635, 438);
-		this.drawMode(g, Mode.GTB, buildBattle, 1068, 438);
+		this.drawMode(g, Mode.TEAM, buildBattle, 923, 318);
+		this.drawMode(g, Mode.PRO, buildBattle, 1212, 318);
+		this.drawMode(g, Mode.GTB, buildBattle, 635, 438);
+		this.drawMode(g, Mode.SPEED_BUILDERS, buildBattle, 1068, 438);
 	}
 
 	private void drawMode(Graphics2D g, @NonNull Mode mode, @NonNull JsonObject stats, int baseX, int baseY) {
@@ -120,7 +121,8 @@ public class BuildBattleCardProvider extends CardProvider {
 		SOLO("solo_normal", "Solo"),
 		TEAM("teams_normal", "Teams"),
 		PRO("solo_pro", "Pro"),
-		GTB("guess_the_build", "Guess The Build");
+		GTB("guess_the_build", "Guess The Build"),
+		SPEED_BUILDERS("speed_builders", "Speed Builders");
 
 		private final String apiName;
 		private final String displayName;
