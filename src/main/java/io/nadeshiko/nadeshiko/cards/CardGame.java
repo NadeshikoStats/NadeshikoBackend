@@ -32,6 +32,11 @@ public enum CardGame {
 
 	private CardProvider provider = null;
 
+	public enum CardSize {
+		FULL,
+		TINY
+	}
+
 	@SneakyThrows
 	public CardProvider getProvider() {
 		if (this.provider == null) {

@@ -79,5 +79,14 @@ public abstract class CardProvider {
 		g.setColor(originalColor);
 	}
 
-	public abstract void generate(BufferedImage image, JsonObject stats);
+	public abstract void generate(BufferedImage image, JsonObject data, JsonObject stats);
+
+	/**
+	 * @deprecated Use {@link #generate(BufferedImage, JsonObject, JsonObject)} instead
+	 */
+	@Deprecated
+	public void generate(BufferedImage image, JsonObject stats) {
+		// Default implementation for backward compatibility
+		generate(image, new JsonObject(), stats);
+	}
 }

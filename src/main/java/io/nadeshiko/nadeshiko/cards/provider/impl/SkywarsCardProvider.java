@@ -32,7 +32,7 @@ public class SkywarsCardProvider extends CardProvider {
 	}
 
 	@Override
-	public void generate(BufferedImage image, JsonObject stats) {
+	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		JsonObject skywars = stats.getAsJsonObject("stats").getAsJsonObject("SkyWars");
 

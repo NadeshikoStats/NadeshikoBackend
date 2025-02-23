@@ -66,7 +66,7 @@ public class DuelsCardProvider extends CardProvider {
 	private final HashMap<Duels, BufferedImage> iconMap = new HashMap<>();
 
 	@Override
-	public void generate(BufferedImage image, JsonObject stats) {
+	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		JsonObject duels = stats.getAsJsonObject("stats").getAsJsonObject("Duels");
 

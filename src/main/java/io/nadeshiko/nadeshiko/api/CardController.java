@@ -84,7 +84,7 @@ public class CardController {
 		}
 
 		// Log the request
-		Nadeshiko.logger.info("Serving {} card for {}", data.get("game"), data.get("name"));
+		Nadeshiko.logger.info("Serving {} card for {} with size {}", data.get("game"), data.get("name"), data.get("size"));
 
 		// Register the request with the stats service
 		Nadeshiko.INSTANCE.getStatsService().registerCardRequest(data.get("name").getAsString(), game);

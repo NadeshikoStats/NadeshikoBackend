@@ -33,7 +33,7 @@ public class NetworkCardProvider extends CardProvider {
 	}
 
 	@Override
-	public void generate(BufferedImage image, JsonObject stats) {
+	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		JsonObject profile = stats.getAsJsonObject("profile");
 		JsonObject guild = stats.get("guild") instanceof JsonNull ? null : stats.getAsJsonObject("guild");

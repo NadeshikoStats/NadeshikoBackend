@@ -29,46 +29,120 @@ import java.util.function.Function;
 
 public class BedwarsCardProvider extends CardProvider {
 
+	private record BedwarsStats(
+		int finalKills,
+		int finalDeaths,
+		int wins,
+		int losses,
+		int winstreak,
+		double fkdr,
+		double wlr,
+		boolean hasWinstreak
+	) {}
+
 	public BedwarsCardProvider() {
 		super(CardGame.BEDWARS);
 	}
 
 	@Override
 	public void generate(BufferedImage image, JsonObject stats) {
+		System.out.println("how did this even get called?");
+		generateFull(image, stats);
+	}
+
+	/**
+	 * Generate a card with the given data and stats
+	 * @param image The image to draw on
+	 * @param data The data object containing parameters like size
+	 * @param stats The stats object containing player stats
+	 */
+	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
+		// Get the size from the data object
+		CardGame.CardSize size = CardGame.CardSize.FULL; // Default to FULL
+				
+		if (data.has("size")) {
+			try {
+				String sizeStr = data.get("size").getAsString().toUpperCase();
+				size = CardGame.CardSize.valueOf(sizeStr);
+			} catch (IllegalArgumentException ignored) {
+				// Bad size
+			}
+		}
+
+		// pick a size
+		switch (size) {
+			case TINY:
+				generateTiny(image, stats);
+				break;
+			case FULL:
+			default:
+				generateFull(image, stats);
+				break;
+		}
+	}
+
+	private BedwarsStats extractStats(JsonObject bedwars) {
+		// Default values in case stats are missing
+		int finalKills = 0;
+		int finalDeaths = 1; // Avoid division by zero
+		int wins = 0;
+		int losses = 1; // Avoid division by zero
+		int winstreak = 0;
+		boolean hasWinstreak = false;
+
+		// Safely extract stats if they exist
+		if (bedwars != null) {
+			if (bedwars.has("final_kills_bedwars") && !bedwars.get("final_kills_bedwars").isJsonNull()) {
+				finalKills = bedwars.get("final_kills_bedwars").getAsInt();
+			}
+			if (bedwars.has("final_deaths_bedwars") && !bedwars.get("final_deaths_bedwars").isJsonNull()) {
+				finalDeaths = Math.max(1, bedwars.get("final_deaths_bedwars").getAsInt()); // Fixes divzero problem
+			}
+			if (bedwars.has("wins_bedwars") && !bedwars.get("wins_bedwars").isJsonNull()) {
+				wins = bedwars.get("wins_bedwars").getAsInt();
+			}
+			if (bedwars.has("losses_bedwars") && !bedwars.get("losses_bedwars").isJsonNull()) {
+				losses = Math.max(1, bedwars.get("losses_bedwars").getAsInt());
+			}
+			if (bedwars.has("winstreak") && !bedwars.get("winstreak").isJsonNull()) {
+				hasWinstreak = true;
+				winstreak = bedwars.get("winstreak").getAsInt();
+			}
+		}
+
+		double fkdr = Math.round((finalKills / (double) finalDeaths) * 100) / 100d;
+		double wlr = Math.round((wins / (double) losses) * 100) / 100d;
+
+		return new BedwarsStats(finalKills, finalDeaths, wins, losses, winstreak, fkdr, wlr, hasWinstreak);
+	}
+
+	private void generateFull(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
-		JsonObject bedwars = stats.getAsJsonObject("stats").getAsJsonObject("Bedwars");
+		// Safely get Bedwars stats, defaulting to empty object if not found
+		JsonObject bedwars = stats.has("stats") && !stats.get("stats").isJsonNull() 
+			? stats.getAsJsonObject("stats").has("Bedwars") && !stats.getAsJsonObject("stats").get("Bedwars").isJsonNull()
+				? stats.getAsJsonObject("stats").getAsJsonObject("Bedwars")
+				: new JsonObject()
+			: new JsonObject();
+		BedwarsStats bwStats = extractStats(bedwars);
 
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 
-		int finalKills = bedwars.get("final_kills_bedwars").getAsInt();
-		int finalDeaths = bedwars.get("final_deaths_bedwars").getAsInt();
-		int wins = bedwars.get("wins_bedwars").getAsInt();
-		int losses = bedwars.get("losses_bedwars").getAsInt();
-
-		int winstreak = 0;
-
-		// Winstreaks can be disabled from the API
-		if (bedwars.has("winstreak")) {
-			winstreak = bedwars.get("winstreak").getAsInt();
-		}
-
 		// Draw stars
-		this.drawStar(g, bedwars);
+		this.drawStar(g, bedwars, 900, 67, 30);
 
 		// Set up the stat font
 		g.setColor(Color.WHITE);
 		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
 
 		// Draw final K/D ratio
-		String fkdr = (Math.round((finalKills / (double) finalDeaths) * 100) / 100d) + "";
-		g.drawString(fkdr, 750 - (g.getFontMetrics().stringWidth(fkdr) / 2), 158);
-		this.drawProgress(g, 664, 173, 177, finalKills / (double) (finalKills + finalDeaths));
+		g.drawString(String.valueOf(bwStats.fkdr), 750 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.fkdr)) / 2), 158);
+		this.drawProgress(g, 664, 173, 177, bwStats.finalKills / (double) (bwStats.finalKills + bwStats.finalDeaths));
 
 		// Draw W/L ratio
-		String wlr = (Math.round((wins / (double) losses) * 100) / 100d) + "";
-		g.drawString(wlr, 1007 - (g.getFontMetrics().stringWidth(wlr) / 2), 158);
-		this.drawProgress(g, 921, 173, 177, wins / (double) (wins + losses));
+		g.drawString(String.valueOf(bwStats.wlr), 1007 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.wlr)) / 2), 158);
+		this.drawProgress(g, 921, 173, 177, bwStats.wins / (double) (bwStats.wins + bwStats.losses));
 
 		// Draw wins and winstreak
 		g.setColor(new Color(138, 138, 138));
@@ -84,12 +158,12 @@ public class BedwarsCardProvider extends CardProvider {
 
 		g.setColor(Color.WHITE);
 		g.setFont(smallBold);
-		g.drawString(String.format("%,d", wins), 1175 + winsWidth + 10, 140);
-		g.drawString(String.format("%,d", finalKills), 1175 + finalsWidth + 10, 170);
+		g.drawString(String.format("%,d", bwStats.wins), 1175 + winsWidth + 10, 140);
+		g.drawString(String.format("%,d", bwStats.finalKills), 1175 + finalsWidth + 10, 170);
 
 		// Winstreaks might be disabled on the API
-		if (bedwars.has("winstreak")) {
-			g.drawString(String.format("%,d", winstreak), 1175 + winstreakWidth + 10, 208);
+		if (bwStats.hasWinstreak) {
+			g.drawString(String.format("%,d", bwStats.winstreak), 1175 + winstreakWidth + 10, 208);
 		} else {
 			g.setColor(new Color(138, 138, 138));
 			g.setFont(smallLight);
@@ -102,7 +176,62 @@ public class BedwarsCardProvider extends CardProvider {
 		this.drawMode(g, topModes.get(1), bedwars, 1068);
 	}
 
-	private void drawStar(Graphics2D g, @NonNull JsonObject bedwarsStats) {
+	private void generateTiny(BufferedImage image, JsonObject stats) {
+		Graphics2D g = (Graphics2D) image.getGraphics();
+		// Safely get Bedwars stats, defaulting to empty object if not found
+		JsonObject bedwars = stats.has("stats") && !stats.get("stats").isJsonNull() 
+			? stats.getAsJsonObject("stats").has("Bedwars") && !stats.getAsJsonObject("stats").get("Bedwars").isJsonNull()
+				? stats.getAsJsonObject("stats").getAsJsonObject("Bedwars")
+				: new JsonObject()
+			: new JsonObject();
+		BedwarsStats bwStats = extractStats(bedwars);
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		// Draw stars
+		this.drawStar(g, bedwars, 738, 44, 30);
+
+		// Set up the stat font
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
+
+		// Draw final K/D ratio
+		g.drawString(String.valueOf(bwStats.fkdr), 615 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.fkdr)) / 2), 118);
+		this.drawProgress(g, 534, 133, 177, bwStats.finalKills / (double) (bwStats.finalKills + bwStats.finalDeaths));
+
+		// Draw W/L ratio
+		g.drawString(String.valueOf(bwStats.wlr), 860 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.wlr)) / 2), 118);
+		this.drawProgress(g, 776, 133, 177, bwStats.wins / (double) (bwStats.wins + bwStats.losses));
+
+		// Draw wins and winstreak
+		g.setColor(new Color(138, 138, 138));
+		g.setFont(smallLight);
+
+		int winsWidth = g.getFontMetrics().stringWidth("Wins");
+		int finalsWidth = g.getFontMetrics().stringWidth("Final Kills");
+		int winstreakWidth = g.getFontMetrics().stringWidth("Winstreak");
+
+		g.drawString("Wins", 1015, 100);
+		g.drawString("Final Kills", 1015, 125);
+		g.drawString("Winstreak", 1015, 165);
+
+		g.setColor(Color.WHITE);
+		g.setFont(smallBold);
+		g.drawString(String.format("%,d", bwStats.wins), 1015 + winsWidth + 10, 100);
+		g.drawString(String.format("%,d", bwStats.finalKills), 1015 + finalsWidth + 10, 125);
+
+		// Winstreaks might be disabled on the API
+		if (bwStats.hasWinstreak) {
+			g.drawString(String.format("%,d", bwStats.winstreak), 1015 + winstreakWidth + 10, 165);
+		} else {
+			g.setColor(new Color(138, 138, 138));
+			g.setFont(smallLight);
+			g.drawString("Unknown", 1015 + winstreakWidth + 5, 165);
+		}
+	}
+
+	private void drawStar(Graphics2D g, JsonObject bedwarsStats, int x, int y, int size) {
 		if (!bedwarsStats.has("Experience")) {
 			return;
 		}
@@ -114,7 +243,7 @@ public class BedwarsCardProvider extends CardProvider {
 			return;
 		}
 
-		MinecraftRenderer.drawMinecraftString(g, prestige.format(star), 900, 67, 30);
+		MinecraftRenderer.drawMinecraftString(g, prestige.format(star), x, y, size);
 	}
 
 	private void drawMode(Graphics2D g, @NonNull Mode mode, @NonNull JsonObject bedwarsStats, int baseX) {

@@ -14,14 +14,13 @@
 package io.nadeshiko.nadeshiko.cards;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
-import io.nadeshiko.nadeshiko.stats.StatsBuilder;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.ImageUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftRenderer;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -52,20 +51,56 @@ public class CardGenerator {
 
 		BufferedImage card;
 		Graphics graphics;
+		AffineTransform originalTransform = null;
+
+		// Get size from the data
+		String sizeStr = data.has("size") ? data.get("size").getAsString().toUpperCase() : "FULL";
+		CardGame.CardSize size;
+		try {
+			size = CardGame.CardSize.valueOf(sizeStr);
+		} catch (IllegalArgumentException e) {
+			size = CardGame.CardSize.FULL;
+		}
 
 		// Read the template from the resources
-		try (InputStream templateStream = CardGenerator.class.
-			getResourceAsStream("/cards/templates/" + game.name() + ".png")) {
-
+		String templatePath = "/cards/templates/" + game.name() + 
+			(size == CardGame.CardSize.TINY ? "_TINY" : "") + ".png"; // Tiny cards use the same file name but with _TINY
+		
+		try (InputStream templateStream = CardGenerator.class.getResourceAsStream(templatePath)) {
 			byte[] cardTemplateBytes;
 
 			if (templateStream != null) {
 				cardTemplateBytes = templateStream.readAllBytes();
 				card = ImageUtil.createImageFromBytes(cardTemplateBytes);
 				graphics = card.getGraphics();
+				
+				if (size == CardGame.CardSize.TINY) {
+					Graphics2D g2d = (Graphics2D) graphics;
+					// Save the original transform
+					originalTransform = g2d.getTransform();
+					// scale to two-thirds, fix antialiasing (which we need because weird scaling)
+					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					g2d.scale(0.66, 0.66);
+					g2d.translate(40, -80);
+				}
 			} else {
-				Nadeshiko.INSTANCE.alert("Failed reading card template for %s!", game.name());
-				return null;
+				// if tiny template doesn't exist
+				if (size == CardGame.CardSize.TINY) {
+					templatePath = "/cards/templates/" + game.name() + ".png";
+					try (InputStream fallbackStream = CardGenerator.class.getResourceAsStream(templatePath)) {
+						if (fallbackStream != null) {
+							cardTemplateBytes = fallbackStream.readAllBytes();
+							card = ImageUtil.createImageFromBytes(cardTemplateBytes);
+							graphics = card.getGraphics();
+						} else {
+							Nadeshiko.INSTANCE.alert("Failed reading card template for %s!", game.name());
+							return null;
+						}
+					}
+				} else {
+					Nadeshiko.INSTANCE.alert("Failed reading card template for %s!", game.name());
+					return null;
+				}
 			}
 		}
 
@@ -112,6 +147,7 @@ public class CardGenerator {
 		// Draw the name tag
 		int width = MinecraftRenderer.minecraftWidth(graphics, profileObject.get("tagged_name").getAsString(), 40);
 		int textX = 300;
+		int nameplateYOffset = size == CardGame.CardSize.TINY ? 20 : 0; // nameplate closer to the player in tiny cards
 
 		if (hasBadge) {
 			width += 34 + 10;
@@ -119,15 +155,14 @@ public class CardGenerator {
 		}
 
 		graphics.setColor(new Color(0, 0, 0, 128));
-		graphics.fillRect(300 - (width / 2) - 10, 83, width + 20, 50);
+		graphics.fillRect(300 - (width / 2) - 10, 83 + nameplateYOffset, width + 20, 50);
 
 		int nameWidth = MinecraftRenderer.minecraftWidth(graphics, profileObject.get("tagged_name").getAsString(), 40);
 		MinecraftRenderer.drawCenterMinecraftString(graphics,
-			profileObject.get("tagged_name").getAsString(), textX, 120, 40);
+			profileObject.get("tagged_name").getAsString(), textX, 120 + nameplateYOffset, 40);
 
 		// Add the badge, if applicable
 		if (hasBadge) {
-
 			// Read the badge from the resources
 			try (InputStream glowStream = CardGenerator.class.
 				getResourceAsStream("/cards/badge/" + badge + ".png")) {
@@ -137,7 +172,7 @@ public class CardGenerator {
 					BufferedImage badgeImage = ImageUtil.createImageFromBytes(badgeBytes);
 
 					// Draw the badge
-					graphics.drawImage(badgeImage, textX + (nameWidth / 2) + 10, 91, null);
+					graphics.drawImage(badgeImage, textX + (nameWidth / 2) + 10, 91 + nameplateYOffset, null);
 				} else {
 					Nadeshiko.INSTANCE.alert("Failed reading badge file for %s!", badge);
 					return null;
@@ -145,8 +180,13 @@ public class CardGenerator {
 			}
 		}
 
+		// Reset transform before game-specific stats
+		if (size == CardGame.CardSize.TINY) {
+			((Graphics2D) graphics).setTransform(originalTransform);
+		}
+
 		// Populate the template using the game's provider
-		game.getProvider().generate(card, statsResponse);
+		game.getProvider().generate(card, data, statsResponse);
 
 		return ImageUtil.getBytesFromImage(card);
 	}
