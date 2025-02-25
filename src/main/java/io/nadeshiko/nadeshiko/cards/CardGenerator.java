@@ -13,8 +13,11 @@
 
 package io.nadeshiko.nadeshiko.cards;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
+import io.nadeshiko.nadeshiko.cards.provider.impl.SkyBlockGeneralCardProvider;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.ImageUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftRenderer;
@@ -24,6 +27,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @since 0.1.0
@@ -114,6 +118,26 @@ public class CardGenerator {
 			return statsResponse.toString().getBytes();
 		}
 
+		// If this is a SkyBlock card, fetch SkyBlock data early to check ironman status
+		JsonObject skyblockProfileData = null;
+		if (game == CardGame.SKYBLOCK_GENERAL) {
+			try {
+				JsonObject skyblockProfiles = JsonParser.parseString(HTTPUtil.get("https://sky.shiiyu.moe/api/v2/profile/" +
+					name).response()).getAsJsonObject().getAsJsonObject("profiles");
+
+				// Find active profile
+				for (Map.Entry<String, JsonElement> entry : skyblockProfiles.entrySet()) {
+					JsonObject entryObject = entry.getValue().getAsJsonObject();
+					if (entryObject.has("current") && entryObject.get("current").getAsBoolean()) {
+						skyblockProfileData = entryObject.getAsJsonObject("data");
+						break;
+					}
+				}
+			} catch (Exception e) {
+				Nadeshiko.INSTANCE.alert("Failed fetching SkyBlock data for %s!", name);
+			}
+		}
+
 		// Add glow, if applicable
 		if (hasBadge) {
 
@@ -145,7 +169,34 @@ public class CardGenerator {
 		graphics.drawImage(playerImage, 138, 165, null);
 
 		// Draw the name tag
-		int width = MinecraftRenderer.minecraftWidth(graphics, profileObject.get("tagged_name").getAsString(), 40);
+		String displayName = profileObject.get("tagged_name").getAsString();
+		
+		// Get game mode and determine icon
+		String gameMode = null;
+		int gameModeIconWidth = 0;
+		String gameModeIconPath = null;
+		if (skyblockProfileData != null && 
+			skyblockProfileData.has("profile") && 
+			skyblockProfileData.getAsJsonObject("profile").has("game_mode")) {
+			
+			gameMode = skyblockProfileData.getAsJsonObject("profile").get("game_mode").getAsString();
+			switch (gameMode) {
+				case "ironman":
+					gameModeIconWidth = 40;
+					gameModeIconPath = "/cards/skyblock/IRONMAN2.png";
+					break;
+				case "island":
+					gameModeIconWidth = 22;
+					gameModeIconPath = "/cards/skyblock/STRANDED2.png";
+					break;
+				case "bingo":
+					gameModeIconWidth = 38;
+					gameModeIconPath = "/cards/skyblock/BINGO2.png";
+					break;
+			}
+		}
+
+		int width = MinecraftRenderer.minecraftWidth(graphics, displayName, 40);
 		int textX = 300;
 		int nameplateYOffset = size == CardGame.CardSize.TINY ? 20 : 0; // nameplate closer to the player in tiny cards
 
@@ -153,13 +204,17 @@ public class CardGenerator {
 			width += 34 + 10;
 			textX -= (34 + 10) / 2;
 		}
+		if (gameModeIconPath != null) {
+			width += gameModeIconWidth + 10;
+			textX -= (gameModeIconWidth + 10) / 2;
+		}
 
 		graphics.setColor(new Color(0, 0, 0, 128));
 		graphics.fillRect(300 - (width / 2) - 10, 83 + nameplateYOffset, width + 20, 50);
 
-		int nameWidth = MinecraftRenderer.minecraftWidth(graphics, profileObject.get("tagged_name").getAsString(), 40);
+		int nameWidth = MinecraftRenderer.minecraftWidth(graphics, displayName, 40);
 		MinecraftRenderer.drawCenterMinecraftString(graphics,
-			profileObject.get("tagged_name").getAsString(), textX, 120 + nameplateYOffset, 40);
+			displayName, textX, 120 + nameplateYOffset, 40);
 
 		// Add the badge, if applicable
 		if (hasBadge) {
@@ -180,13 +235,39 @@ public class CardGenerator {
 			}
 		}
 
+		// Add the game mode icon if applicable
+		if (gameModeIconPath != null) {
+			try (InputStream iconStream = CardGenerator.class.
+				getResourceAsStream(gameModeIconPath)) {
+
+				if (iconStream != null) {
+					byte[] iconBytes = iconStream.readAllBytes();
+					BufferedImage iconImage = ImageUtil.createImageFromBytes(iconBytes);
+
+					// Draw the game mode icon after the badge if present
+					int iconX = textX + (nameWidth / 2) + 10;
+					if (hasBadge) {
+						iconX += 34 + 10; // Add space after badge
+					}
+					graphics.drawImage(iconImage, iconX, 86 + nameplateYOffset, null);
+				} else {
+					Nadeshiko.INSTANCE.alert("Failed reading game mode icon for %s!", gameMode);
+					return null;
+				}
+			}
+		}
+
 		// Reset transform before game-specific stats
 		if (size == CardGame.CardSize.TINY) {
 			((Graphics2D) graphics).setTransform(originalTransform);
 		}
 
-		// Populate the template using the game's provider
-		game.getProvider().generate(card, data, statsResponse);
+		if (game == CardGame.SKYBLOCK_GENERAL) {
+			// Pass already fetched SkyBlock data
+			((SkyBlockGeneralCardProvider) game.getProvider()).generate(card, data, statsResponse, skyblockProfileData);
+		} else {
+			game.getProvider().generate(card, data, statsResponse);
+		}
 
 		return ImageUtil.getBytesFromImage(card);
 	}
