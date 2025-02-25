@@ -225,51 +225,51 @@ public class LeaderboardRegistry {
         new Leaderboard("BEDWARS_WINSTREAK", BEDWARS, bw -> bw.get("winstreak").getAsInt());
         new Leaderboard("BEDWARS_WINS", BEDWARS, bw -> bw.get("wins_bedwars").getAsInt());
         new Leaderboard("BEDWARS_WLR", BEDWARS,
-                bw -> bw.get("wins_bedwars").getAsDouble() / bw.get("losses_bedwars").getAsDouble());
+                bw -> JsonUtil.getNullableDouble(bw.get("wins_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("losses_bedwars")), 1));
         new Leaderboard("BEDWARS_FINALS", BEDWARS, bw -> bw.get("final_kills_bedwars").getAsInt());
         new Leaderboard("BEDWARS_FKDR", BEDWARS,
-                bw -> bw.get("final_kills_bedwars").getAsDouble() / bw.get("final_deaths_bedwars").getAsDouble());
+                bw -> JsonUtil.getNullableDouble(bw.get("final_kills_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("final_deaths_bedwars")), 1));
         new Leaderboard("BEDWARS_KILLS", BEDWARS, bw -> bw.get("kills_bedwars").getAsInt());
         new Leaderboard("BEDWARS_KDR", BEDWARS,
-                bw -> bw.get("kills_bedwars").getAsDouble() / bw.get("deaths_bedwars").getAsDouble());
+                bw -> JsonUtil.getNullableDouble(bw.get("kills_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("deaths_bedwars")), 1));
         new Leaderboard("BEDWARS_BEDS", BEDWARS, bw -> bw.get("beds_broken_bedwars").getAsInt());
         new Leaderboard("BEDWARS_BBLR", BEDWARS,
-                bw -> bw.get("beds_broken_bedwars").getAsDouble() / bw.get("beds_lost_bedwars").getAsDouble());
+                bw -> JsonUtil.getNullableDouble(bw.get("beds_broken_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("beds_lost_bedwars")), 1));
         new Leaderboard("BEDWARS_SOLO_WINSTREAK", BEDWARS, bw -> bw.get("eight_one_winstreak").getAsInt());
         new Leaderboard("BEDWARS_SOLO_WINS", BEDWARS, bw -> bw.get("eight_one_wins_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_SOLO_WLR", BEDWARS, bw -> bw.get("eight_one_wins_bedwars").getAsDouble()
-                / bw.get("eight_one_losses_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_SOLO_WLR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("eight_one_wins_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("eight_one_losses_bedwars")), 1));
         new Leaderboard("BEDWARS_SOLO_FINALS", BEDWARS, bw -> bw.get("eight_one_final_kills_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_SOLO_FKDR", BEDWARS, bw -> bw.get("eight_one_final_kills_bedwars").getAsDouble()
-                / bw.get("eight_one_final_deaths_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_SOLO_FKDR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("eight_one_final_kills_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("eight_one_final_deaths_bedwars")), 1));
         new Leaderboard("BEDWARS_DOUBLES_WINSTREAK", BEDWARS, bw -> bw.get("eight_two_winstreak").getAsInt());
         new Leaderboard("BEDWARS_DOUBLES_WINS", BEDWARS, bw -> bw.get("eight_two_wins_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_DOUBLES_WLR", BEDWARS, bw -> bw.get("eight_two_wins_bedwars").getAsDouble()
-                / bw.get("eight_two_losses_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_DOUBLES_WLR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("eight_two_wins_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("eight_two_losses_bedwars")), 1));
         new Leaderboard("BEDWARS_DOUBLES_FINALS", BEDWARS, bw -> bw.get("eight_two_final_kills_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_DOUBLES_FKDR", BEDWARS, bw -> bw.get("eight_two_final_kills_bedwars").getAsDouble()
-                / bw.get("eight_two_final_deaths_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_DOUBLES_FKDR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("eight_two_final_kills_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("eight_two_final_deaths_bedwars")), 1));
         new Leaderboard("BEDWARS_THREES_WINSTREAK", BEDWARS, bw -> bw.get("four_three_winstreak").getAsInt());
         new Leaderboard("BEDWARS_THREES_WINS", BEDWARS, bw -> bw.get("four_three_wins_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_THREES_WLR", BEDWARS, bw -> bw.get("four_three_wins_bedwars").getAsDouble()
-                / bw.get("four_three_losses_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_THREES_WLR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("four_three_wins_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("four_three_losses_bedwars")), 1));
         new Leaderboard("BEDWARS_THREES_FINALS", BEDWARS, bw -> bw.get("four_three_final_kills_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_THREES_FKDR", BEDWARS, bw -> bw.get("four_three_final_kills_bedwars").getAsDouble()
-                / bw.get("four_three_final_deaths_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_THREES_FKDR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("four_three_final_kills_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("four_three_final_deaths_bedwars")), 1));
         new Leaderboard("BEDWARS_FOURS_WINSTREAK", BEDWARS, bw -> bw.get("four_four_winstreak").getAsInt());
         new Leaderboard("BEDWARS_FOURS_WINS", BEDWARS, bw -> bw.get("four_four_wins_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_FOURS_WLR", BEDWARS, bw -> bw.get("four_four_wins_bedwars").getAsDouble()
-                / bw.get("four_four_losses_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_FOURS_WLR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("four_four_wins_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("four_four_losses_bedwars")), 1));
         new Leaderboard("BEDWARS_FOURS_FINALS", BEDWARS, bw -> bw.get("four_four_final_kills_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_FOURS_FKDR", BEDWARS, bw -> bw.get("four_four_final_kills_bedwars").getAsDouble()
-                / bw.get("four_four_final_deaths_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_FOURS_FKDR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("four_four_final_kills_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("four_four_final_deaths_bedwars")), 1));
         new Leaderboard("BEDWARS_FOURVFOUR_WINSTREAK", BEDWARS, bw -> bw.get("two_four_winstreak").getAsInt());
         new Leaderboard("BEDWARS_FOURVFOUR_WINS", BEDWARS, bw -> bw.get("two_four_wins_bedwars").getAsInt());
         new Leaderboard("BEDWARS_FOURVFOUR_WLR", BEDWARS,
-                bw -> bw.get("two_four_wins_bedwars").getAsDouble() / bw.get("two_four_losses_bedwars").getAsDouble());
+                bw -> JsonUtil.getNullableDouble(bw.get("two_four_wins_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("two_four_losses_bedwars")), 1));
         new Leaderboard("BEDWARS_FOURVFOUR_FINALS", BEDWARS, bw -> bw.get("two_four_final_kills_bedwars").getAsInt());
-        new Leaderboard("BEDWARS_FOURVFOUR_FKDR", BEDWARS, bw -> bw.get("two_four_final_kills_bedwars").getAsDouble()
-                / bw.get("two_four_final_deaths_bedwars").getAsDouble());
+        new Leaderboard("BEDWARS_FOURVFOUR_FKDR", BEDWARS, 
+                bw -> JsonUtil.getNullableDouble(bw.get("two_four_final_kills_bedwars")) / Math.max(JsonUtil.getNullableDouble(bw.get("two_four_final_deaths_bedwars")), 1));
         new Leaderboard("BEDWARS_COLLECTED_IRON", BEDWARS, bw -> bw.get("iron_resources_collected_bedwars").getAsInt());
         new Leaderboard("BEDWARS_COLLECTED_GOLD", BEDWARS, bw -> bw.get("gold_resources_collected_bedwars").getAsInt());
         new Leaderboard("BEDWARS_TOKENS", BEDWARS, bw -> bw.get("coins").getAsInt());
@@ -279,7 +279,7 @@ public class LeaderboardRegistry {
         new Leaderboard("DUELS_CLICKS", DUELS, duels -> duels.get("melee_swings").getAsInt());
         new Leaderboard("DUELS_WINS", DUELS, duels -> duels.get("wins").getAsInt());
         new Leaderboard("DUELS_WLR", DUELS,
-                duels -> duels.get("wins").getAsDouble() / duels.get("losses").getAsDouble());
+                duels -> JsonUtil.getNullableDouble(duels.get("wins")) / Math.max(JsonUtil.getNullableDouble(duels.get("losses")), 1));
         new Leaderboard("DUELS_KILLS", DUELS, duels -> duels.get("kills").getAsInt());
         new Leaderboard("DUELS_DAMAGE_DEALT", DUELS, duels -> duels.get("damage_dealt").getAsLong());
         new Leaderboard("DUELS_HEALTH_REGENERATED", DUELS, duels -> duels.get("health_regenerated").getAsLong());
@@ -307,41 +307,43 @@ public class LeaderboardRegistry {
     private static void registerSkyWarsLeaderboards() {
         new Leaderboard("SKYWARS_EXP", SKYWARS, sw -> sw.get("skywars_experience").getAsInt());
         new Leaderboard("SKYWARS_WINS", SKYWARS, sw -> sw.get("wins").getAsInt());
-        new Leaderboard("SKYWARS_WLR", SKYWARS, sw -> sw.get("wins").getAsDouble() / sw.get("losses").getAsDouble());
+        new Leaderboard("SKYWARS_WLR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("wins")) / Math.max(JsonUtil.getNullableDouble(sw.get("losses")), 1));
         new Leaderboard("SKYWARS_KILLS", SKYWARS, sw -> sw.get("kills").getAsInt());
-        new Leaderboard("SKYWARS_KDR", SKYWARS, sw -> sw.get("kills").getAsDouble() / sw.get("deaths").getAsDouble());
+        new Leaderboard("SKYWARS_KDR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("kills")) / Math.max(JsonUtil.getNullableDouble(sw.get("deaths")), 1));
         new Leaderboard("SKYWARS_SOLO_NORMAL_WINS", SKYWARS, sw -> sw.get("wins_solo_normal").getAsInt());
-        new Leaderboard("SKYWARS_SOLO_NORMAL_WLR", SKYWARS, sw -> sw.get("wins_solo_normal").getAsDouble()
-                / Math.max(sw.get("losses_solo_normal").getAsDouble(), 1));
+        new Leaderboard("SKYWARS_SOLO_NORMAL_WLR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_solo_normal")) / Math.max(JsonUtil.getNullableDouble(sw.get("losses_solo_normal")), 1));
         new Leaderboard("SKYWARS_SOLO_NORMAL_KILLS", SKYWARS, sw -> sw.get("kills_solo_normal").getAsInt());
-        new Leaderboard("SKYWARS_SOLO_NORMAL_KDR", SKYWARS, sw -> sw.get("kills_solo_normal").getAsDouble()
-                / Math.max(sw.get("deaths_solo_normal").getAsDouble(), 1));
+        new Leaderboard("SKYWARS_SOLO_NORMAL_KDR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_solo_normal")) / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_solo_normal")), 1));
         new Leaderboard("SKYWARS_SOLO_INSANE_WINS", SKYWARS, sw -> sw.get("wins_solo_insane").getAsInt());
-        new Leaderboard("SKYWARS_SOLO_INSANE_WLR", SKYWARS, sw -> sw.get("wins_solo_insane").getAsDouble()
-                / Math.max(sw.get("losses_solo_insane").getAsDouble(), 1));
+        new Leaderboard("SKYWARS_SOLO_INSANE_WLR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_solo_insane")) / Math.max(JsonUtil.getNullableDouble(sw.get("losses_solo_insane")), 1));
         new Leaderboard("SKYWARS_SOLO_INSANE_KILLS", SKYWARS, sw -> sw.get("kills_solo_insane").getAsInt());
-        new Leaderboard("SKYWARS_SOLO_INSANE_KDR", SKYWARS, sw -> sw.get("kills_solo_insane").getAsDouble()
-                / Math.max(sw.get("deaths_solo_insane").getAsDouble(), 1));
+        new Leaderboard("SKYWARS_SOLO_INSANE_KDR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_solo_insane")) / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_solo_insane")), 1));
         new Leaderboard("SKYWARS_TEAM_NORMAL_WINS", SKYWARS, sw -> sw.get("wins_team_normal").getAsInt());
-        new Leaderboard("SKYWARS_TEAM_NORMAL_WLR", SKYWARS, sw -> sw.get("wins_team_normal").getAsDouble()
-                / Math.max(sw.get("losses_team_normal").getAsDouble(), 1));
+        new Leaderboard("SKYWARS_TEAM_NORMAL_WLR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_team_normal")) / Math.max(JsonUtil.getNullableDouble(sw.get("losses_team_normal")), 1));
         new Leaderboard("SKYWARS_TEAM_NORMAL_KILLS", SKYWARS, sw -> sw.get("kills_team_normal").getAsInt());
-        new Leaderboard("SKYWARS_TEAM_NORMAL_KDR", SKYWARS, sw -> sw.get("kills_team_normal").getAsDouble()
-                / Math.max(sw.get("deaths_team_normal").getAsDouble(), 1));
+        new Leaderboard("SKYWARS_TEAM_NORMAL_KDR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_team_normal")) / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_team_normal")), 1));
         new Leaderboard("SKYWARS_TEAM_INSANE_WINS", SKYWARS, sw -> sw.get("wins_team_insane").getAsInt());
-        new Leaderboard("SKYWARS_TEAM_INSANE_WLR", SKYWARS, sw -> sw.get("wins_team_insane").getAsDouble()
-                / Math.max(sw.get("losses_team_insane").getAsDouble(), 1));
+        new Leaderboard("SKYWARS_TEAM_INSANE_WLR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_team_insane")) / Math.max(JsonUtil.getNullableDouble(sw.get("losses_team_insane")), 1));
         new Leaderboard("SKYWARS_TEAM_INSANE_KILLS", SKYWARS, sw -> sw.get("kills_team_insane").getAsInt());
-        new Leaderboard("SKYWARS_TEAM_INSANE_KDR", SKYWARS, sw -> sw.get("kills_team_insane").getAsDouble()
-                / Math.max(sw.get("deaths_team_insane").getAsDouble(), 1));
+        new Leaderboard("SKYWARS_TEAM_INSANE_KDR", SKYWARS, 
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_team_insane")) / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_team_insane")), 1));
         new Leaderboard("SKYWARS_COINS", SKYWARS, sw -> sw.get("coins").getAsInt());
         new Leaderboard("SKYWARS_TOKENS", SKYWARS, sw -> sw.get("cosmetic_tokens").getAsInt());
         new Leaderboard("SKYWARS_LAB_WINS", SKYWARS, sw -> sw.get("wins_lab").getAsInt());
         new Leaderboard("SKYWARS_LAB_WLR", SKYWARS,
-                sw -> sw.get("wins_lab").getAsDouble() / Math.max(sw.get("losses_lab").getAsDouble(), 1));
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_lab")) / Math.max(JsonUtil.getNullableDouble(sw.get("losses_lab")), 1));
         new Leaderboard("SKYWARS_LAB_KILLS", SKYWARS, sw -> sw.get("kills_lab").getAsInt());
         new Leaderboard("SKYWARS_LAB_KDR", SKYWARS,
-                sw -> sw.get("kills_lab").getAsDouble() / Math.max(sw.get("deaths_lab").getAsDouble(), 1));
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_lab")) / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_lab")), 1));
         new Leaderboard("SKYWARS_LUCKY_BLOCK_WINS", SKYWARS, sw -> sw.get("lab_win_lucky_blocks_lab").getAsInt());
     }
 
@@ -479,7 +481,7 @@ public class LeaderboardRegistry {
         addToLookup(new Leaderboard("ARCADE_GALAXY_WARS_WINS", ARCADE, ar -> ar.get("sw_game_wins").getAsInt()));
         new Leaderboard("ARCADE_GALAXY_WARS_KILLS", ARCADE, ar -> ar.get("sw_kills").getAsInt());
         new Leaderboard("ARCADE_GALAXY_WARS_KDR", ARCADE,
-                ar -> ar.get("sw_kills").getAsDouble() / Math.max(ar.get("sw_deaths").getAsDouble(), 1));
+                ar -> JsonUtil.getNullableDouble(ar.get("sw_kills")) / Math.max(JsonUtil.getNullableDouble(ar.get("sw_deaths")), 1));
         addToLookup(new Leaderboard("ARCADE_HIDE_AND_SEEK_PARTY_POOPER_WINS", ARCADE,
                 ar -> JsonUtil.getNullableInt(ar.get("party_pooper_hider_wins_hide_and_seek"))
                         + JsonUtil.getNullableInt(ar.get("party_pooper_seeker_wins_hide_and_seek"))));
@@ -565,7 +567,7 @@ public class LeaderboardRegistry {
         new Leaderboard("PAINTBALL_WINS", PAINTBALL, pb -> pb.get("wins").getAsInt());
         new Leaderboard("PAINTBALL_KILLS", PAINTBALL, pb -> pb.get("kills").getAsInt());
         new Leaderboard("PAINTBALL_KDR", PAINTBALL,
-                pb -> pb.get("kills").getAsDouble() / Math.max(pb.get("deaths").getAsDouble(), 1));
+                pb -> JsonUtil.getNullableDouble(pb.get("kills")) / Math.max(JsonUtil.getNullableDouble(pb.get("deaths")), 1));
         new Leaderboard("PAINTBALL_KILLSTREAKS", PAINTBALL, pb -> pb.get("killstreaks").getAsInt());
         new Leaderboard("PAINTBALL_SHOTS_FIRED", PAINTBALL, pb -> pb.get("shots_fired").getAsInt());
     }
@@ -576,8 +578,8 @@ public class LeaderboardRegistry {
                 qc -> JsonUtil.getNullableInt(qc.get("wins")) + JsonUtil.getNullableInt(qc.get("wins_teams")));
         addToLookup(new Leaderboard("QUAKECRAFT_KILLS", QUAKECRAFT,
                 qc -> JsonUtil.getNullableInt(qc.get("kills")) + JsonUtil.getNullableInt(qc.get("kills_teams"))));
-        new Leaderboard("QUAKECRAFT_KDR", QUAKECRAFT, qc -> LEADERBOARDS.get("QUAKECRAFT_KILLS").derive(qc).doubleValue() / Math.max(1,
-                JsonUtil.getNullableDouble(qc.get("deaths")) + JsonUtil.getNullableDouble(qc.get("deaths_teams"))));
+        new Leaderboard("QUAKECRAFT_KDR", QUAKECRAFT, 
+                qc -> JsonUtil.getNullableDouble(qc.get("kills")) / Math.max(1, JsonUtil.getNullableDouble(qc.get("deaths")) + JsonUtil.getNullableDouble(qc.get("deaths_teams"))));
         new Leaderboard("QUAKECRAFT_DISTANCE_TRAVELLED", QUAKECRAFT, qc -> qc.get("distance_travelled").getAsInt());
     }
 
@@ -607,7 +609,7 @@ public class LeaderboardRegistry {
         new Leaderboard("WALLS_WINS", WALLS, wl -> wl.get("wins").getAsInt());
         new Leaderboard("WALLS_KILLS", WALLS, wl -> wl.get("kills").getAsInt());
         new Leaderboard("WALLS_KDR", WALLS,
-                wl -> wl.get("kills").getAsDouble() / Math.max(wl.get("deaths").getAsDouble(), 1));
+                wl -> JsonUtil.getNullableDouble(wl.get("kills")) / Math.max(JsonUtil.getNullableDouble(wl.get("deaths")), 1));
         new Leaderboard("WALLS_ASSISTS", WALLS, wl -> wl.get("assists").getAsInt());
     }
 
@@ -624,7 +626,7 @@ public class LeaderboardRegistry {
                 cc -> cc.get("bombs_defused").getAsInt());
         new Leaderboard("COPS_AND_CRIMS_DEFUSAL_ROUND_WINS", COPS_AND_CRIMS, cc -> cc.get("round_wins").getAsInt());
         new Leaderboard("COPS_AND_CRIMS_DEFUSAL_KDR", COPS_AND_CRIMS,
-                cc -> cc.get("kills").getAsDouble() / Math.max(cc.get("deaths").getAsDouble(), 1));
+                cc -> JsonUtil.getNullableDouble(cc.get("kills")) / Math.max(JsonUtil.getNullableDouble(cc.get("deaths")), 1));
         addToLookup(new Leaderboard("COPS_AND_CRIMS_DEFUSAL_ASSISTS", COPS_AND_CRIMS,
                 cc -> cc.get("assists").getAsInt()));
 
@@ -633,8 +635,7 @@ public class LeaderboardRegistry {
         addToLookup(new Leaderboard("COPS_AND_CRIMS_TEAM_DEATHMATCH_KILLS", COPS_AND_CRIMS,
                 cc -> cc.get("kills_deathmatch").getAsInt()));
         new Leaderboard("COPS_AND_CRIMS_TEAM_DEATHMATCH_KDR", COPS_AND_CRIMS,
-                cc -> cc.get("kills_deathmatch").getAsDouble()
-                        / Math.max(cc.get("deaths_deathmatch").getAsDouble(), 1));
+                cc -> JsonUtil.getNullableDouble(cc.get("kills_deathmatch")) / Math.max(JsonUtil.getNullableDouble(cc.get("deaths_deathmatch")), 1));
         addToLookup(new Leaderboard("COPS_AND_CRIMS_TEAM_DEATHMATCH_ASSISTS", COPS_AND_CRIMS,
                 cc -> cc.get("assists_deathmatch").getAsInt()));
 
@@ -643,7 +644,7 @@ public class LeaderboardRegistry {
         addToLookup(new Leaderboard("COPS_AND_CRIMS_GUN_GAME_KILLS", COPS_AND_CRIMS,
                 cc -> cc.get("kills_gungame").getAsInt()));
         new Leaderboard("COPS_AND_CRIMS_GUN_GAME_KDR", COPS_AND_CRIMS,
-                cc -> cc.get("kills_gungame").getAsDouble() / Math.max(cc.get("deaths_gungame").getAsDouble(), 1));
+                cc -> JsonUtil.getNullableDouble(cc.get("kills_gungame")) / Math.max(JsonUtil.getNullableDouble(cc.get("deaths_gungame")), 1));
         new Leaderboard("COPS_AND_CRIMS_GUN_GAME_FASTEST_WIN", COPS_AND_CRIMS,
                 cc -> cc.get("fastest_win_gungame").getAsInt(), 1);
         addToLookup(new Leaderboard("COPS_AND_CRIMS_GUN_GAME_ASSISTS", COPS_AND_CRIMS,
@@ -683,41 +684,40 @@ public class LeaderboardRegistry {
         new Leaderboard("MEGA_WALLS_WINS", MEGA_WALLS, mw -> mw.get("wins").getAsInt());
         new Leaderboard("MEGA_WALLS_WITHER_KILLS", MEGA_WALLS, mw -> mw.get("wither_kills").getAsInt());
         new Leaderboard("MEGA_WALLS_WLR", MEGA_WALLS,
-                mw -> mw.get("wins").getAsDouble() / Math.max(mw.get("losses").getAsDouble(), 1));
+                mw -> JsonUtil.getNullableDouble(mw.get("wins")) / Math.max(JsonUtil.getNullableDouble(mw.get("losses")), 1));
         addToLookup(new Leaderboard("MEGA_WALLS_FINAL_KILLS", MEGA_WALLS,
                 mw -> JsonUtil.getNullableInt(mw.get("final_kills")) + JsonUtil.getNullableInt(mw.get("finalKills"))));
         new Leaderboard("MEGA_WALLS_FKDR", MEGA_WALLS,
-                mw -> LEADERBOARDS.get("MEGA_WALLS_FINAL_KILLS").derive(mw).doubleValue()
-                        / Math.max(1, JsonUtil.getNullableDouble(mw.get("final_deaths"))
-                                + JsonUtil.getNullableDouble(mw.get("finalDeaths"))));
+                mw -> JsonUtil.getNullableDouble(mw.get("final_kills")) / Math.max(JsonUtil.getNullableDouble(mw.get("final_deaths"))
+                        + JsonUtil.getNullableDouble(mw.get("finalDeaths")), 1.0));
         new Leaderboard("MEGA_WALLS_KILLS", MEGA_WALLS, mw -> mw.get("kills").getAsInt());
         new Leaderboard("MEGA_WALLS_KDR", MEGA_WALLS,
-                mw -> mw.get("kills").getAsDouble() / Math.max(mw.get("deaths").getAsDouble(), 1));
+                mw -> JsonUtil.getNullableDouble(mw.get("kills")) / Math.max(JsonUtil.getNullableDouble(mw.get("deaths")), 1));
         new Leaderboard("MEGA_WALLS_MYTHIC_FAVOR", MEGA_WALLS, mw -> mw.get("mythic_favor").getAsInt());
 
         new Leaderboard("MEGA_WALLS_STANDARD_WINS", MEGA_WALLS, mw -> mw.get("wins_standard").getAsInt());
         new Leaderboard("MEGA_WALLS_STANDARD_WITHER_KILLS", MEGA_WALLS,
                 mw -> mw.get("wither_kills_standard").getAsInt());
         new Leaderboard("MEGA_WALLS_STANDARD_WLR", MEGA_WALLS,
-                mw -> mw.get("wins_standard").getAsDouble() / Math.max(mw.get("losses_standard").getAsDouble(), 1));
+                mw -> JsonUtil.getNullableDouble(mw.get("wins_standard")) / Math.max(JsonUtil.getNullableDouble(mw.get("losses_standard")), 1));
         new Leaderboard("MEGA_WALLS_STANDARD_FINAL_KILLS", MEGA_WALLS, mw -> mw.get("final_kills_standard").getAsInt());
-        new Leaderboard("MEGA_WALLS_STANDARD_FKDR", MEGA_WALLS, mw -> mw.get("final_kills_standard").getAsDouble()
-                / Math.max(mw.get("final_deaths_standard").getAsDouble(), 1));
+        new Leaderboard("MEGA_WALLS_STANDARD_FKDR", MEGA_WALLS, 
+                mw -> JsonUtil.getNullableDouble(mw.get("final_kills_standard")) / Math.max(JsonUtil.getNullableDouble(mw.get("final_deaths_standard")), 1));
         new Leaderboard("MEGA_WALLS_STANDARD_KILLS", MEGA_WALLS, mw -> mw.get("kills_standard").getAsInt());
         new Leaderboard("MEGA_WALLS_STANDARD_KDR", MEGA_WALLS,
-                mw -> mw.get("kills_standard").getAsDouble() / Math.max(mw.get("deaths_standard").getAsDouble(), 1));
+                mw -> JsonUtil.getNullableDouble(mw.get("kills_standard")) / Math.max(JsonUtil.getNullableDouble(mw.get("deaths_standard")), 1));
 
         new Leaderboard("MEGA_WALLS_FACEOFF_WINS", MEGA_WALLS, mw -> mw.get("wins_face_off").getAsInt());
         new Leaderboard("MEGA_WALLS_FACEOFF_WITHER_KILLS", MEGA_WALLS,
                 mw -> mw.get("wither_kills_face_off").getAsInt());
         new Leaderboard("MEGA_WALLS_FACEOFF_WLR", MEGA_WALLS,
-                mw -> mw.get("wins_face_off").getAsDouble() / Math.max(mw.get("losses_face_off").getAsDouble(), 1));
+                mw -> JsonUtil.getNullableDouble(mw.get("wins_face_off")) / Math.max(JsonUtil.getNullableDouble(mw.get("losses_face_off")), 1));
         new Leaderboard("MEGA_WALLS_FACEOFF_FINAL_KILLS", MEGA_WALLS, mw -> mw.get("final_kills_face_off").getAsInt());
-        new Leaderboard("MEGA_WALLS_FACEOFF_FKDR", MEGA_WALLS, mw -> mw.get("final_kills_face_off").getAsDouble()
-                / Math.max(mw.get("final_deaths_face_off").getAsDouble(), 1));
+        new Leaderboard("MEGA_WALLS_FACEOFF_FKDR", MEGA_WALLS, 
+                mw -> JsonUtil.getNullableDouble(mw.get("final_kills_face_off")) / Math.max(JsonUtil.getNullableDouble(mw.get("final_deaths_face_off")), 1));
         new Leaderboard("MEGA_WALLS_FACEOFF_KILLS", MEGA_WALLS, mw -> mw.get("kills_face_off").getAsInt());
         new Leaderboard("MEGA_WALLS_FACEOFF_KDR", MEGA_WALLS,
-                mw -> mw.get("kills_face_off").getAsDouble() / Math.max(mw.get("deaths_face_off").getAsDouble(), 1));
+                mw -> JsonUtil.getNullableDouble(mw.get("kills_face_off")) / Math.max(JsonUtil.getNullableDouble(mw.get("deaths_face_off")), 1));
 
         new Leaderboard("MEGA_WALLS_PRESTIGE_FOURS", MEGA_WALLS, mw -> {
             int prestigeFours = 0;
@@ -771,10 +771,10 @@ public class LeaderboardRegistry {
         new Leaderboard("SMASH_HEROES_COINS", SMASH_HEROES, sh -> sh.get("coins").getAsInt());
         new Leaderboard("SMASH_HEROES_WINS", SMASH_HEROES, sh -> sh.get("wins").getAsInt());
         new Leaderboard("SMASH_HEROES_WLR", SMASH_HEROES,
-                sh -> sh.get("wins").getAsDouble() / Math.max(sh.get("losses").getAsDouble(), 1));
+                sh -> JsonUtil.getNullableDouble(sh.get("wins")) / Math.max(JsonUtil.getNullableDouble(sh.get("losses")), 1));
         new Leaderboard("SMASH_HEROES_KILLS", SMASH_HEROES, sh -> sh.get("kills").getAsInt());
         new Leaderboard("SMASH_HEROES_KDR", SMASH_HEROES,
-                sh -> sh.get("kills").getAsDouble() / Math.max(sh.get("deaths").getAsDouble(), 1));
+                sh -> JsonUtil.getNullableDouble(sh.get("kills")) / Math.max(JsonUtil.getNullableDouble(sh.get("deaths")), 1));
         new Leaderboard("SMASH_HEROES_SMASH_LEVEL", SMASH_HEROES, sh -> sh.get("smashLevel").getAsInt());
     }
 
@@ -793,7 +793,8 @@ public class LeaderboardRegistry {
                 + JsonUtil.getNullableInt(uhc.get("kills_brawl")) + JsonUtil.getNullableInt(uhc.get("kills_solo_brawl"))
                 + JsonUtil.getNullableInt(uhc.get("kills_duo_brawl"))
                 + JsonUtil.getNullableInt(uhc.get("kills_vanilla_doubles"))));
-        new Leaderboard("UHC_KDR", UHC, uhc -> LEADERBOARDS.get("UHC_KILLS").derive(uhc).doubleValue() / Math.max(1,
+        new Leaderboard("UHC_KDR", UHC, 
+                uhc -> LEADERBOARDS.get("UHC_KILLS").derive(uhc).doubleValue() / Math.max(1,
                 JsonUtil.getNullableDouble(uhc.get("deaths")) + JsonUtil.getNullableDouble(uhc.get("deaths_solo"))
                         + JsonUtil.getNullableDouble(uhc.get("deaths_no_diamonds"))
                         + JsonUtil.getNullableDouble(uhc.get("deaths_brawl"))
@@ -803,11 +804,11 @@ public class LeaderboardRegistry {
         new Leaderboard("UHC_TEAMS_WINS", UHC, uhc -> uhc.get("wins").getAsInt());
         new Leaderboard("UHC_TEAMS_KILLS", UHC, uhc -> uhc.get("kills").getAsInt());
         new Leaderboard("UHC_TEAMS_KDR", UHC,
-                uhc -> uhc.get("kills").getAsDouble() / Math.max(uhc.get("deaths").getAsDouble(), 1));
+                uhc -> JsonUtil.getNullableDouble(uhc.get("kills")) / Math.max(JsonUtil.getNullableDouble(uhc.get("deaths")), 1));
         new Leaderboard("UHC_SOLO_WINS", UHC, uhc -> uhc.get("wins_solo").getAsInt());
         new Leaderboard("UHC_SOLO_KILLS", UHC, uhc -> uhc.get("kills_solo").getAsInt());
         new Leaderboard("UHC_SOLO_KDR", UHC,
-                uhc -> uhc.get("kills_solo").getAsDouble() / Math.max(uhc.get("deaths_solo").getAsDouble(), 1));
+                uhc -> JsonUtil.getNullableDouble(uhc.get("kills_solo")) / Math.max(JsonUtil.getNullableDouble(uhc.get("deaths_solo")), 1));
 
     }
 
@@ -816,9 +817,9 @@ public class LeaderboardRegistry {
         new Leaderboard("SPEED_UHC_KILLS", SPEED_UHC, suhc -> suhc.get("kills").getAsInt());
         new Leaderboard("SPEED_UHC_WINS", SPEED_UHC, suhc -> suhc.get("wins").getAsInt());
         new Leaderboard("SPEED_UHC_WLR", SPEED_UHC,
-                suhc -> suhc.get("wins").getAsDouble() / Math.max(suhc.get("losses").getAsDouble(), 1));
+                suhc -> JsonUtil.getNullableDouble(suhc.get("wins")) / Math.max(JsonUtil.getNullableDouble(suhc.get("losses")), 1));
         new Leaderboard("SPEED_UHC_KDR", SPEED_UHC,
-                suhc -> suhc.get("kills").getAsDouble() / Math.max(suhc.get("deaths").getAsDouble(), 1));
+                suhc -> JsonUtil.getNullableDouble(suhc.get("kills")) / Math.max(JsonUtil.getNullableDouble(suhc.get("deaths")), 1));
 
     }
 
@@ -827,13 +828,13 @@ public class LeaderboardRegistry {
         new Leaderboard("WARLORDS_KILLS", WARLORDS, wl -> wl.get("kills").getAsInt());
         new Leaderboard("WARLORDS_WINS", WARLORDS, wl -> wl.get("wins").getAsInt());
         new Leaderboard("WARLORDS_WLR", WARLORDS,
-                wl -> wl.get("wins").getAsDouble() / (JsonUtil.getNullableDouble(wl.get("mage_plays"))
+                wl -> JsonUtil.getNullableDouble(wl.get("wins")) / Math.max(1, JsonUtil.getNullableDouble(wl.get("mage_plays"))
                         + JsonUtil.getNullableDouble(wl.get("warrior_plays"))
                         + JsonUtil.getNullableDouble(wl.get("paladin_plays"))
                         + JsonUtil.getNullableDouble(wl.get("shaman_plays"))
                         - JsonUtil.getNullableDouble(wl.get("losses"))));
         new Leaderboard("WARLORDS_KDR", WARLORDS,
-                wl -> wl.get("kills").getAsDouble() / Math.max(wl.get("deaths").getAsDouble(), 1));
+                wl -> JsonUtil.getNullableDouble(wl.get("kills")) / Math.max(JsonUtil.getNullableDouble(wl.get("deaths")), 1));
         new Leaderboard("WARLORDS_CAPTURE_THE_FLAG_WINS", WARLORDS, wl -> wl.get("wins_capturetheflag").getAsInt());
         new Leaderboard("WARLORDS_CAPTURE_THE_FLAG_KILLS", WARLORDS, wl -> wl.get("kills_capturetheflag").getAsInt());
         new Leaderboard("WARLORDS_CAPTURE_THE_FLAG_CAPTURES", WARLORDS, wl -> wl.get("flag_conquer_self").getAsInt());

@@ -130,12 +130,32 @@ public class LeaderboardService {
     public void disconnect() {
         if (jedisPool != null && !jedisPool.isClosed()) {
             try (Jedis jedis = jedisPool.getResource()) {
-                jedis.save(); // Force sync save before shutdown
-                logger.info("Forced final Redis save before shutdown");
+                // Try background save first
+                try {
+                    jedis.bgsave();
+                    logger.info("Initiated background Redis save before shutdown");
+                    
+                    // Wait for bgsave
+                    Thread.sleep(2000);
+                } catch (Exception e) {
+                    // Try normal save
+                    logger.warn("Background save failed, attempting normal save", e);
+                    try {
+                        jedis.save();
+                        logger.info("Completed Redis save before shutdown");
+                    } catch (Exception saveEx) {
+                        logger.error("Failed to complete Redis save", saveEx);
+                    }
+                }
             } catch (Exception e) {
-                logger.error("Failed to force final Redis save", e);
+                logger.error("Error during Redis shutdown", e);
+            } finally {
+                try {
+                    jedisPool.close();
+                } catch (Exception e) {
+                    logger.error("Error closing Redis pool", e);
+                }
             }
-            jedisPool.close();
         }
     }
 

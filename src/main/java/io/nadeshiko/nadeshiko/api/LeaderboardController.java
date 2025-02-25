@@ -57,6 +57,13 @@ public class LeaderboardController {
             return "{\"success\":false,\"cause\":\"Page must greater than zero!\"}";
         }
 
+        // Prevent integer overflow in pagination calculation
+        if (page > 10_000_000) {  // there will never be a need to look at the billionth player in a leaderboard
+            response.status(400);
+            response.type("application/json");
+            return "{\"success\":false,\"cause\":\"Page number too big!\"}";
+        }
+
         response.type("application/json");
         return Nadeshiko.INSTANCE.getLeaderboardService()
             .get(Objects.requireNonNull(Leaderboard.get(request.queryParams("leaderboard"))), page);
