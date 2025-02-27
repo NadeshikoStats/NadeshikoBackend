@@ -238,7 +238,7 @@ public class StatsBuilder {
 
 	/**
 	 * Fetch the Minecraft profile from PlayerDB, grabbing the
-	 * players UUID, properly capitalized name, and textures
+	 * player's UUID, properly capitalized name, and textures
 	 * @param name The name of the player to look up
 	 * @return The response from PlayerDB
 	 */

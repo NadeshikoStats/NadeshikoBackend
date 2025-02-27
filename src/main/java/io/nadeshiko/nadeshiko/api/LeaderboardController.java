@@ -64,8 +64,16 @@ public class LeaderboardController {
             return "{\"success\":false,\"cause\":\"Page number too big!\"}";
         }
 
+        // Track the leaderboard request
+        String leaderboardName = request.queryParams("leaderboard");
+        
+        // Log the request
+        Nadeshiko.logger.info("Serving leaderboard {}", leaderboardName);
+        
+        Nadeshiko.INSTANCE.getStatsService().registerLeaderboardRequest(leaderboardName);
+
         response.type("application/json");
         return Nadeshiko.INSTANCE.getLeaderboardService()
-            .get(Objects.requireNonNull(Leaderboard.get(request.queryParams("leaderboard"))), page);
+            .get(Objects.requireNonNull(Leaderboard.get(leaderboardName)), page);
     };
 }

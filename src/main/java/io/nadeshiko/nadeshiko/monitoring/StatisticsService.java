@@ -46,6 +46,7 @@ public class StatisticsService implements Runnable {
 	private final List<RequestEntry> achievementRequests = Collections.synchronizedList(new ArrayList<>());
 	private final List<RequestEntry> guildRequests = Collections.synchronizedList(new ArrayList<>());
 	private final List<RequestEntry> cardRequests = Collections.synchronizedList(new ArrayList<>());
+	private final List<RequestEntry> leaderboardRequests = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * The scheduler used to send the daily statistics
@@ -62,7 +63,6 @@ public class StatisticsService implements Runnable {
 
 		long midnight = LocalDateTime.now().until(LocalDate.now().
 			plusDays(1).atStartOfDay(), ChronoUnit.MINUTES);
-
 		scheduler.scheduleAtFixedRate(this, midnight, TimeUnit.DAYS.toMinutes(1), TimeUnit.MINUTES);
 	}
 
@@ -86,6 +86,10 @@ public class StatisticsService implements Runnable {
 		this.cardRequests.add(new RequestEntry(name, game.name()));
 	}
 
+	public void registerLeaderboardRequest(String leaderboardName) {
+		this.leaderboardRequests.add(new RequestEntry(leaderboardName, null));
+	}
+
 	/**
 	 * Reset the registry of daily requests
 	 */
@@ -95,6 +99,7 @@ public class StatisticsService implements Runnable {
 		this.achievementRequests.clear();
 		this.guildRequests.clear();
 		this.cardRequests.clear();
+		this.leaderboardRequests.clear();
 	}
 
 	/**
@@ -107,93 +112,74 @@ public class StatisticsService implements Runnable {
 		return instant.atZone(ZoneId.systemDefault()).getHour();
 	}
 
-	/**
-	 * @return A URL using the {@code quickchart.io} API for a graph displaying both requests types by hour
-	 */
-	private String buildRequestsGraph() {
-
+	private String buildHourlyStatsText() {
 		Map<Integer, Integer> hourlyStatsRequests = new HashMap<>();
 		Map<Integer, Integer> hourlyCardRequests = new HashMap<>();
+		Map<Integer, Integer> hourlyGuildRequests = new HashMap<>();
+		Map<Integer, Integer> hourlyQuestRequests = new HashMap<>();
+		Map<Integer, Integer> hourlyAchievementRequests = new HashMap<>();
+		Map<Integer, Integer> hourlyLeaderboardRequests = new HashMap<>();
 
 		this.statsRequests.forEach(request -> {
 			int hour = this.getTimestampHour(request.getTime());
-
-			if (hourlyStatsRequests.containsKey(hour)) {
-				int currentValue = hourlyStatsRequests.get(hour);
-				hourlyStatsRequests.remove(hour);
-				hourlyStatsRequests.put(hour, currentValue + 1);
-			} else {
-				hourlyStatsRequests.put(hour, 1);
-			}
+			hourlyStatsRequests.merge(hour, 1, Integer::sum);
 		});
 
 		this.cardRequests.forEach(request -> {
 			int hour = this.getTimestampHour(request.getTime());
-
-			if (hourlyCardRequests.containsKey(hour)) {
-				int currentValue = hourlyCardRequests.get(hour);
-				hourlyCardRequests.remove(hour);
-				hourlyCardRequests.put(hour, currentValue + 1);
-			} else {
-				hourlyCardRequests.put(hour, 1);
-			}
+			hourlyCardRequests.merge(hour, 1, Integer::sum);
 		});
 
-		return "https://quickchart.io/chart?c={type:'bar'," +
+		this.guildRequests.forEach(request -> {
+			int hour = this.getTimestampHour(request.getTime());
+			hourlyGuildRequests.merge(hour, 1, Integer::sum);
+		});
 
-			// Graph data
-			"data:{" +
+		this.questRequests.forEach(request -> {
+			int hour = this.getTimestampHour(request.getTime());
+			hourlyQuestRequests.merge(hour, 1, Integer::sum);
+		});
 
-				// Graph labels (hours)
-				"labels:['00:00','01:00','02:00','03:00','04:00','05:00','06:00','07:00','08:00','09:00'," +
-				"'10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00'," +
-				"'21:00','22:00','23:00']," +
+		this.achievementRequests.forEach(request -> {
+			int hour = this.getTimestampHour(request.getTime());
+			hourlyAchievementRequests.merge(hour, 1, Integer::sum);
+		});
 
-				// Graph datasets
-				"datasets:[" +
+		this.leaderboardRequests.forEach(request -> {
+			int hour = this.getTimestampHour(request.getTime());
+			hourlyLeaderboardRequests.merge(hour, 1, Integer::sum);
+		});
 
-					// Stats requests
-					"{label:'/stats%20requests',data:[" +
-						hourlyStatsRequests.get(0) + "," + hourlyStatsRequests.get(1) + "," +
-						hourlyStatsRequests.get(2) + "," + hourlyStatsRequests.get(3) + "," +
-						hourlyStatsRequests.get(4) + "," + hourlyStatsRequests.get(5) + "," +
-						hourlyStatsRequests.get(6) + "," + hourlyStatsRequests.get(7) + "," +
-						hourlyStatsRequests.get(8) + "," + hourlyStatsRequests.get(9) + "," +
-						hourlyStatsRequests.get(10) + "," + hourlyStatsRequests.get(11) + "," +
-						hourlyStatsRequests.get(12) + "," + hourlyStatsRequests.get(13) + "," +
-						hourlyStatsRequests.get(14) + "," + hourlyStatsRequests.get(15) + "," +
-						hourlyStatsRequests.get(16) + "," + hourlyStatsRequests.get(17) + "," +
-						hourlyStatsRequests.get(18) + "," + hourlyStatsRequests.get(19) + "," +
-						hourlyStatsRequests.get(20) + "," + hourlyStatsRequests.get(21) + "," +
-						hourlyStatsRequests.get(22) + "," + hourlyStatsRequests.get(23) +
-					"]}," +
+		// Table format
+		StringBuilder table = new StringBuilder();
+		table.append("```\\n");
+		table.append(" hour | tot | sta | car | gui | que | ach | lea \\n");
+		table.append("------|-----|-----|-----|-----|-----|-----|-----\\n");
 
-					// Cards requests
-					"{label:'/card%20requests',data:[" +
-						hourlyCardRequests.get(0) + "," + hourlyCardRequests.get(1) + "," +
-						hourlyCardRequests.get(2) + "," + hourlyCardRequests.get(3) + "," +
-						hourlyCardRequests.get(4) + "," + hourlyCardRequests.get(5) + "," +
-						hourlyCardRequests.get(6) + "," + hourlyCardRequests.get(7) + "," +
-						hourlyCardRequests.get(8) + "," + hourlyCardRequests.get(9) + "," +
-						hourlyCardRequests.get(10) + "," + hourlyCardRequests.get(11) + "," +
-						hourlyCardRequests.get(12) + "," + hourlyCardRequests.get(13) + "," +
-						hourlyCardRequests.get(14) + "," + hourlyCardRequests.get(15) + "," +
-						hourlyCardRequests.get(16) + "," + hourlyCardRequests.get(17) + "," +
-						hourlyCardRequests.get(18) + "," + hourlyCardRequests.get(19) + "," +
-						hourlyCardRequests.get(20) + "," + hourlyCardRequests.get(21) + "," +
-						hourlyCardRequests.get(22) + "," + hourlyCardRequests.get(23) +
-					"]}" +
-				"]" +
+		for (int hour = 0; hour < 24; hour++) {
+			int stats = hourlyStatsRequests.getOrDefault(hour, 0);
+			int cards = hourlyCardRequests.getOrDefault(hour, 0);
+			int guilds = hourlyGuildRequests.getOrDefault(hour, 0);
+			int quests = hourlyQuestRequests.getOrDefault(hour, 0);
+			int achievements = hourlyAchievementRequests.getOrDefault(hour, 0);
+			int leaderboards = hourlyLeaderboardRequests.getOrDefault(hour, 0);
+			int total = stats + cards + guilds + quests + achievements + leaderboards;
 
-			"}" +
-		"}";
+			// Skip empty
+			if (total == 0) continue;
+
+			String timeStr = String.format("%02d:00", hour);
+			table.append(String.format("%-5s |%4d |%4d |%4d |%4d |%4d |%4d |%4d\\n",
+				timeStr, total, stats, cards, guilds, quests, achievements, leaderboards));
+		}
+		table.append("```");
+		return table.toString();
 	}
 
 	/**
 	 * Build and send the statistics embed, and then flush the request cache
 	 */
 	private synchronized void sendStats() {
-
 		DiscordWebhook.EmbedObject embed = new DiscordWebhook.EmbedObject();
 
 		// Title
@@ -203,7 +189,7 @@ public class StatisticsService implements Runnable {
 
 		// Description
 		int requests = this.statsRequests.size() + this.guildRequests.size() + this.achievementRequests.size() +
-			this.questRequests.size() + this.cardRequests.size();
+			this.questRequests.size() + this.cardRequests.size() + this.leaderboardRequests.size();
 		embed.setDescription("**Requests:**\\n" +
 			"Total requests today: **" + requests + "**\\n" +
 			"\\n" +
@@ -212,22 +198,22 @@ public class StatisticsService implements Runnable {
 			"Total `/achievements` requests today: **" + this.achievementRequests.size() + "**\\n" +
 			"Total `/quests` requests today: **" + this.questRequests.size() + "**\\n" +
 			"Total `/card` requests today: **" + this.cardRequests.size() + "**\\n" +
+			"Total `/leaderboard` requests today: **" + this.leaderboardRequests.size() + "**\\n" +
 			"\\n" +
-			"**Hourly Visualization:**");
+			"**Hourly Distribution:**\\n" +
+			buildHourlyStatsText());
 
 		embed.setColor(new Color(246, 173, 198));
-		embed.setImage(this.buildRequestsGraph());
 		embed.setFooter("Sent from nadeshiko " + Nadeshiko.VERSION, "https://nadeshiko.io/img/logo.png");
-
-		System.out.println(this.buildRequestsGraph());
 
 		try {
 			DiscordWebhook webhook = new DiscordWebhook(this.webhookUrl);
 			webhook.addEmbed(embed);
 			webhook.execute();
+			Nadeshiko.logger.info("Sent statistics to the stats webhook");
 		} catch (IOException exception) {
-			Nadeshiko.logger.error("Failed to log to the stats webhook! Is the URL valid?");
-			this.webhookUrl = null; // Disable the service if we find it to be using an invalid URL
+			Nadeshiko.logger.error("Failed to send statistics to webhook: {}", exception.getMessage());
+			Nadeshiko.logger.debug("Exception details:", exception);
 		}
 
 		this.flush();
@@ -239,8 +225,12 @@ public class StatisticsService implements Runnable {
 	 */
 	@Override
 	public void run() {
+		Nadeshiko.logger.info("Statistics service run() called - checking webhook URL");
 		if (this.webhookUrl != null) {
+			Nadeshiko.logger.info("Webhook URL is set, sending statistics...");
 			this.sendStats();
+		} else {
+			Nadeshiko.logger.warn("Webhook URL is not set, skipping statistics");
 		}
 	}
 

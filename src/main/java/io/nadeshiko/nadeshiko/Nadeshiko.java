@@ -49,7 +49,7 @@ public class Nadeshiko {
 	/**
 	 * nadeshiko version number
 	 */
-	public static String VERSION = "1.1.8-no-skyblock";
+	public static String VERSION = "1.1.9";
 
 	/**
 	 * Setting fallbacks (if missing from config.json)
@@ -195,6 +195,7 @@ public class Nadeshiko {
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/quests", QuestsController.serveQuestsEndpoint);
 		spark.get("/leaderboard", LeaderboardController.serveLeaderboardEndpoint);
+		//spark.get("/rankings", PlayerRankingsController.servePlayerRankingsEndpoint);
 		spark.get("/", (request, response) -> "nadeshiko backend version " + VERSION);
 
 		// Set up the shutdown method on JVM stop

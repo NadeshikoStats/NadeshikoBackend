@@ -301,6 +301,45 @@ public class LeaderboardService {
         }
     }
 
+    /**
+     * Get the rankings of a player for all leaderboards
+     * @param uuid The UUID of the player to get rankings for
+     * @return A JsonObject containing the rankings of the player for each leaderboard where the player has a score
+     */
+    public JsonObject getPlayerRankings(String uuid) {
+        return executeWithRetry(jedis -> {
+            JsonObject rankings = new JsonObject();
+            
+            for (Leaderboard leaderboard : values()) {
+                String lbKey = "lb:" + leaderboard.getName();
+                
+                // Get player's score
+                Double score = jedis.zscore(lbKey, uuid);
+                if (score != null) {
+                    JsonObject leaderboardData = new JsonObject();
+                    
+                    //long totalEntries = jedis.zcard(lbKey);
+                    
+                    Long rank = (leaderboard.getSortDirection() == 1) 
+                        ? jedis.zrank(lbKey, uuid) 
+                        : jedis.zrevrank(lbKey, uuid);
+                    
+                    if (rank != null) {
+                        rank++; // ranks are originally starting with 0
+                        leaderboardData.addProperty("rank", rank);
+                        leaderboardData.addProperty("score", score);
+                        //leaderboardData.addProperty("percentile", 100 - (rank / (double) totalEntries) * 100);
+                        //leaderboardData.addProperty("total_players", totalEntries);
+                        
+                        rankings.add(leaderboard.getName(), leaderboardData);
+                    }
+                }
+            }
+            
+            return rankings;
+        });
+    }
+
     @FunctionalInterface
     private interface RedisOperation<T> {
         T execute(Jedis jedis);
