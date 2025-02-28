@@ -176,9 +176,20 @@ public class LeaderboardService {
                         // Add leaderboard to category set
                         pipeline.sadd(categoryKey, leaderboard.getName());
                         
-                        // Ensure the leaderboard sorted set exists
+                        // Ensure the leaderboard sorted set exists, enforce cap
                         String lbKey = "lb:" + leaderboard.getName();
                         pipeline.exists(lbKey);
+                        
+                        int cap = leaderboard.getCap();
+                        if (cap > 0) {
+                            if (leaderboard.getSortDirection() == -1) {
+                                // Descending order
+                                pipeline.zremrangeByRank(lbKey, 0, -(cap + 1));
+                            } else {
+                                // Ascending order
+                                pipeline.zremrangeByRank(lbKey, cap, -1);
+                            }
+                        }
                     }
                 }
             }
@@ -210,9 +221,22 @@ public class LeaderboardService {
                 JsonObject leaderboardInput = leaderboard.getCategory().getDeriveInput(player);
                 Number scoreNum = leaderboard.derive(leaderboardInput);
                 double score = scoreNum.doubleValue();
+                String lbKey = "lb:" + leaderboard.getName();
                 
                 if (score != 0) {  // Store nonzero scores
-                    pipeline.zadd("lb:" + leaderboard.getName(), score, uuid);
+                    pipeline.zadd(lbKey, score, uuid);
+                    
+                    // Apply cap
+                    int cap = leaderboard.getCap();
+                    if (cap > 0) {
+                        if (leaderboard.getSortDirection() == -1) {
+                            // Descending order
+                            pipeline.zremrangeByRank(lbKey, 0, -(cap + 1));
+                        } else {
+                            // Ascending order
+                            pipeline.zremrangeByRank(lbKey, cap, -1);
+                        }
+                    }
                 }
             }
             
