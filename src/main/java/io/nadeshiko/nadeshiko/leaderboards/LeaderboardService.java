@@ -26,6 +26,8 @@ import redis.clients.jedis.resps.Tuple;
 import java.io.File;
 import java.nio.file.Files;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -304,11 +306,11 @@ public class LeaderboardService {
     /**
      * Get the rankings of a player for all leaderboards
      * @param uuid The UUID of the player to get rankings for
-     * @return A JsonObject containing the rankings of the player for each leaderboard where the player has a score
+     * @return A JsonArray containing the rankings of the player for each leaderboard where the player has a score
      */
-    public JsonObject getPlayerRankings(String uuid) {
+    public JsonArray getPlayerRankings(String uuid) {
         return executeWithRetry(jedis -> {
-            JsonObject rankings = new JsonObject();
+            List<LeaderboardEntry> leaderboardEntries = new ArrayList<>();
             
             for (Leaderboard leaderboard : values()) {
                 String lbKey = "lb:" + leaderboard.getName();
@@ -316,29 +318,35 @@ public class LeaderboardService {
                 // Get player's score
                 Double score = jedis.zscore(lbKey, uuid);
                 if (score != null) {
-                    JsonObject leaderboardData = new JsonObject();
-                    
-                    //long totalEntries = jedis.zcard(lbKey);
-                    
                     Long rank = (leaderboard.getSortDirection() == 1) 
                         ? jedis.zrank(lbKey, uuid) 
                         : jedis.zrevrank(lbKey, uuid);
                     
                     if (rank != null) {
                         rank++; // ranks are originally starting with 0
-                        leaderboardData.addProperty("rank", rank);
-                        leaderboardData.addProperty("score", score);
-                        //leaderboardData.addProperty("percentile", 100 - (rank / (double) totalEntries) * 100);
-                        //leaderboardData.addProperty("total_players", totalEntries);
-                        
-                        rankings.add(leaderboard.getName(), leaderboardData);
+                        leaderboardEntries.add(new LeaderboardEntry(leaderboard.getName(), rank, score));
                     }
                 }
+            }
+            
+            // Sort by rank
+            leaderboardEntries.sort(Comparator.comparing(LeaderboardEntry::rank));
+            
+            // Convert to JSON
+            JsonArray rankings = new JsonArray();
+            for (LeaderboardEntry entry : leaderboardEntries) {
+                JsonObject leaderboardData = new JsonObject();
+                leaderboardData.addProperty("name", entry.name());
+                leaderboardData.addProperty("rank", entry.rank());
+                leaderboardData.addProperty("score", entry.score());
+                rankings.add(leaderboardData);
             }
             
             return rankings;
         });
     }
+
+    private record LeaderboardEntry(String name, long rank, double score) {}
 
     @FunctionalInterface
     private interface RedisOperation<T> {

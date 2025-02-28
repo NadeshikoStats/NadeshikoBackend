@@ -51,17 +51,28 @@ public class Leaderboard {
     @Getter
     private final int sortDirection;
 
+    @Getter
+    private final int cap;
+
     private static final Map<String, Leaderboard> LEADERBOARDS = LeaderboardRegistry.LEADERBOARDS;
+
+    // Max. number of players you can put in a leaderboard
+    private static final int DEFAULT_CAP = 20_000;
 
     public Leaderboard(String name, LeaderboardCategory category, Function<JsonObject, Number> derive) {
         this(name, category, derive, -1); // Default to descending sort
     }
 
     public Leaderboard(String name, LeaderboardCategory category, Function<JsonObject, Number> derive, int sortDirection) {
+        this(name, category, derive, sortDirection, DEFAULT_CAP);
+    }
+
+    public Leaderboard(String name, LeaderboardCategory category, Function<JsonObject, Number> derive, int sortDirection, int cap) {
         this.name = name;
         this.category = category;
         this.derive = derive;
         this.sortDirection = sortDirection;
+        this.cap = cap;
         LEADERBOARDS.put(name, this);
     }
 
