@@ -246,6 +246,57 @@ public class LeaderboardService {
     }
 
     /**
+     * Called when a guild is searched on nadeshiko. Update Redis data for the guild.
+     * @param guild The JsonObject containing the guild's data.
+     */
+    public synchronized void insertGuild(JsonObject guild) {
+        String guildId = guild.get("id").getAsString();
+        String guildName = guild.get("name").getAsString();
+        
+        executeWithRetry(jedis -> {
+            Pipeline pipeline = jedis.pipelined();
+            String guildNameWithTag = guildName;
+
+            // guild metadata
+            if (guild.has("tag")) {
+                guildNameWithTag = guildName + " " + guild.get("tag").getAsString();
+            }
+            pipeline.hset("guild:" + guildId, "time", String.valueOf(System.currentTimeMillis()));
+            pipeline.hset("guild:" + guildId, "tagged_name", guildNameWithTag);
+            pipeline.hset("guild:" + guildId, "name", guildName);
+            
+            // leaderboard scores
+            for (Leaderboard leaderboard : values()) {
+                if (leaderboard.getCategory() == LeaderboardCategory.GUILDS) {
+                    JsonObject leaderboardInput = leaderboard.getCategory().getDeriveInput(guild);
+                    Number scoreNum = leaderboard.derive(leaderboardInput);
+                    double score = scoreNum.doubleValue();
+                    String lbKey = "lb:" + leaderboard.getName();
+                    
+                    if (score != 0) {
+                        pipeline.zadd(lbKey, score, guildId);
+                        
+                        // apply cap
+                        int cap = leaderboard.getCap();
+                        if (cap > 0) {
+                            if (leaderboard.getSortDirection() == -1) {
+                                // Descending
+                                pipeline.zremrangeByRank(lbKey, 0, -(cap + 1));
+                            } else {
+                                // Ascending
+                                pipeline.zremrangeByRank(lbKey, cap, -1);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            pipeline.sync();
+            return null;
+        });
+    }
+
+    /**
      * Get a list of all leaderboards in a category. This is only used for dumping leaderboards
      * @param category The category to get leaderboards for
      * @return A JsonArray of leaderboard names
@@ -289,11 +340,23 @@ public class LeaderboardService {
                 String uuid = result.getElement();
                 double score = result.getScore();
                 
-                // Get player details
-                String badge = jedis.hget("player:" + uuid, "badge");
-                String taggedName = jedis.hget("player:" + uuid, "tagged_name");
-                
+                // Get player or guild details
+                String badge;
+                String taggedName;
+                String name;
+
                 JsonObject entry = new JsonObject();
+
+                if (lbKey.startsWith("lb:GUILD_")) {
+                    badge = jedis.hget("guild:" + uuid, "badge");
+                    taggedName = jedis.hget("guild:" + uuid, "tagged_name");
+                    name = jedis.hget("guild:" + uuid, "name");
+                    entry.addProperty("name", name);
+                } else {
+                    badge = jedis.hget("player:" + uuid, "badge");
+                    taggedName = jedis.hget("player:" + uuid, "tagged_name");
+                }
+                
                 entry.addProperty("uuid", uuid);
                 entry.addProperty("badge", badge);
                 entry.addProperty("tagged_name", taggedName);

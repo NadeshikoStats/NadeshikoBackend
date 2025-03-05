@@ -52,6 +52,7 @@ public class GuildBuilder {
         JsonObject response = new JsonObject();
         response.addProperty("success", true);
         response.addProperty("name", guildData.get("name").getAsString());
+        response.addProperty("id", guildData.get("_id").getAsString());
 
         // Not all guilds have a description
         if (guildData.has("description")) {
@@ -111,8 +112,13 @@ public class GuildBuilder {
                 return error("Timed out", 500);
             }
             response.add("members", members);
+
+            // Insert guild data into leaderboards
+            Nadeshiko.INSTANCE.getLeaderboardService().insertGuild(response);
+
         } catch (Exception e) {
-            return error("Internal threading error", 500);
+            Nadeshiko.logger.error("Encountered error while inserting guild data into leaderboards", e);
+            return error(e.toString(), 500);
         }
 
         return response;

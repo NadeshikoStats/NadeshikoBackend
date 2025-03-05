@@ -50,6 +50,7 @@ import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.MEGA_WALLS
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.SMASH_HEROES;
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.ACHIEVEMENTS;
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.REWARDS;
+import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.GUILDS;
 
 public class LeaderboardRegistry {
     private static final List<String> BLITZ_KITS = Arrays.asList(
@@ -76,8 +77,7 @@ public class LeaderboardRegistry {
     // Leaderboard caps. Default cap is 20,000.
     private static final int UNLIMITED_CAP = -1; // For unlimited leaderboards. A bad idea!
     private static final int MASSIVE_CAP = 100_000; // For network-wide and the main stat for a game
-    private static final int LARGE_CAP = 50_000; // For leaderboards that people care about more than the average
-                                                 // leaderboard
+    private static final int LARGE_CAP = 50_000; // For leaderboards that people care about more than the average leaderboard
     private static final int RATIO_CAP = 10_000; // For K/D R and W/L R
     private static final int KIT_CAP = 5_000; // For systematically generated stats (CvC gun stats, Blitz kit stats,
                                               // etc.)
@@ -117,14 +117,14 @@ public class LeaderboardRegistry {
         registerWoolGamesLeaderboards();
         registerFishingLeaderboards();
         registerBlitzLeaderboards();
+        registerGuildLeaderboards();
 
-        /*
-         * System.out.println("=== All the leaderboards ===");
-         * LEADERBOARDS.keySet().stream()
-         * .sorted()
-         * .forEach(System.out::println);
-         * System.out.println("Total leaderboards: " + LEADERBOARDS.size());
-         */
+
+        // System.out.println("=== All the leaderboards ===");
+        // LEADERBOARDS.keySet().stream()
+        // .sorted()
+        // .forEach(System.out::println);
+        // System.out.println("Total leaderboards: " + LEADERBOARDS.size());
     }
 
     private static void registerBlitzLeaderboards() {
@@ -1064,5 +1064,10 @@ public class LeaderboardRegistry {
                 .getNullableInt(fish.getAsJsonObject("orbs").getAsJsonObject("weight").get("archimedes")));
         new Leaderboard("FISHING_BIGGEST_HADES", FISHING,
                 fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").getAsJsonObject("weight").get("hades")));
+    }
+
+    private static void registerGuildLeaderboards() {
+        // Guild Level
+        addToLookup(new Leaderboard("GUILD_LEVEL", GUILDS, guild -> guild.get("level").getAsInt(), -1, MASSIVE_CAP));
     }
 }
