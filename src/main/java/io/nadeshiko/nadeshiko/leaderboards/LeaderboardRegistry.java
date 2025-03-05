@@ -1068,6 +1068,6 @@ public class LeaderboardRegistry {
 
     private static void registerGuildLeaderboards() {
         // Guild Level
-        addToLookup(new Leaderboard("GUILD_LEVEL", GUILDS, guild -> guild.get("level").getAsInt(), -1, MASSIVE_CAP));
+        addToLookup(new Leaderboard("GUILD_LEVEL", GUILDS, guild -> guild.get("level").getAsDouble(), -1, MASSIVE_CAP));
     }
 }
