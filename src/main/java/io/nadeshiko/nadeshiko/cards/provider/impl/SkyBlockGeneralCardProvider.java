@@ -107,7 +107,8 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		this.drawSkill(g, 1192, 208, "Social", skillsData.getAsJsonObject("social"));
 
 		// Draw dungeons
-		this.drawDungeons(g, profileData.getAsJsonObject("dungeons"));
+		JsonObject dungeonsData = profileData.getAsJsonObject("dungeons");
+		this.drawDungeons(g, dungeonsData);
 
 		// Draw slayers
 		JsonObject slayerObject = profileData.getAsJsonObject("slayer");
@@ -180,12 +181,14 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		float cataProgress = 0;
 		boolean isMaxed = false;
 		
-		JsonObject catacombsData = data.getAsJsonObject("catacombs");
-		if (catacombsData != null && catacombsData.has("level")) {
-			JsonObject catacombsLevel = catacombsData.getAsJsonObject("level");
-			cataLevel = catacombsLevel.get("level").getAsInt();
-			cataProgress = catacombsLevel.get("progress").getAsFloat();
-			isMaxed = cataLevel >= catacombsLevel.get("maxLevel").getAsInt();
+		if (data != null && data.has("catacombs")) {
+			JsonObject catacombsData = data.getAsJsonObject("catacombs");
+			if (catacombsData != null && catacombsData.has("level")) {
+				JsonObject catacombsLevel = catacombsData.getAsJsonObject("level");
+				cataLevel = catacombsLevel.get("level").getAsInt();
+				cataProgress = catacombsLevel.get("progress").getAsFloat();
+				isMaxed = cataLevel >= catacombsLevel.get("maxLevel").getAsInt();
+			}
 		}
 
 		// Draw Catacombs level
@@ -203,7 +206,10 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		this.drawProgress(g, 773, 357, 217, 8, cataProgress, isMaxed ? maxColor : this.getColor());
 
 		// Draw classes
-		JsonObject classesObject = data.getAsJsonObject("classes");
+		JsonObject classesObject = null;
+		if (data != null) {
+			classesObject = data.getAsJsonObject("classes");
+		}
 		JsonObject classesData = classesObject != null && classesObject.has("classes") ? 
 			classesObject.getAsJsonObject("classes") : new JsonObject();
 
