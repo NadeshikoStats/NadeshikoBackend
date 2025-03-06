@@ -96,13 +96,23 @@ public class GuildBuilder {
         for (JsonElement rawPlayer : guildData.getAsJsonArray("members")) {
             service.submit(() -> {
                 JsonObject player = rawPlayer.getAsJsonObject();
-                JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString(), false);
-
-                lock.lock(); // Prevent multiple writes to the members array at once
-                player.addProperty("badge", playerStats.get("badge").getAsString());
-                player.add("profile", playerStats.getAsJsonObject("profile"));
-                members.add(player);
-                lock.unlock();
+                try {
+                    JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString(), false);
+                    
+                    lock.lock(); // Prevent multiple writes to the members array at once
+                    player.addProperty("badge", playerStats.get("badge").getAsString());
+                    player.add("profile", playerStats.getAsJsonObject("profile"));
+                    members.add(player);
+                    lock.unlock();
+                } catch (Exception e) {
+                    // failed player?
+                    lock.lock();
+                    player.addProperty("badge", "NONE");
+                    JsonObject defaultProfile = new JsonObject();
+                    player.add("profile", defaultProfile);
+                    members.add(player);
+                    lock.unlock();
+                }
             });
         }
 
