@@ -37,7 +37,7 @@ public class NumberUtil {
         String[] suffixes = new String[]{ "", "K", "M", "B", "T" };
         double[] powers = { 1.0, 1e3, 1e6, 1e9, 1e12 };
 
-        if (value == 0) {
+        if (value < 1) {
             return "0";
         }
 
