@@ -10,6 +10,7 @@
   "success": true,
   "name": "username",
   "uuid": "00000000-0000-0000-0000-000000000000",
+  "badge": "NONE",
   "skin": "http://textures.minecraft.net/texture/...",
   "slim": true,
   "cape": "http://textures.minecraft.net/texture/...",
@@ -17,7 +18,10 @@
   "guild": {},
   "profile": {},
   "stats": {},
-  "achievements": {}
+  "achievements": {},
+  "rewards": {},
+  "rankings": [],
+}
 ```
 
 ### An API providing real-time customizable stat cards
