@@ -51,11 +51,11 @@ public class GuildBuilder {
 
         JsonObject response = new JsonObject();
         response.addProperty("success", true);
-        response.addProperty("name", guildData.get("name").getAsString());
-        response.addProperty("id", guildData.get("_id").getAsString());
+            response.addProperty("name", guildData.get("name").getAsString());
+            response.addProperty("id", guildData.get("_id").getAsString());
 
         // Not all guilds have a description
-        if (guildData.has("description")) {
+        if (guildData.has("description") && !guildData.get("description").isJsonNull()) {
             response.addProperty("description", guildData.get("description").getAsString());
         } else {
             response.addProperty("description", "");
