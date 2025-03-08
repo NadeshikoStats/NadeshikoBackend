@@ -360,6 +360,7 @@ public class StatsBuilder {
 			}
 
 			object.addProperty("name", guild.get("name").getAsString());
+			object.addProperty("id", guild.get("_id").getAsString());
 
 			// Not all guilds have tags
 			if (guild.has("tag")) {
@@ -385,6 +386,9 @@ public class StatsBuilder {
 			object.addProperty("level", GuildLevel.getExactLevel(guildXP));
 			object.addProperty("members", guild.getAsJsonArray("members").size());
 			object.addProperty("joined", joined);
+
+			// Insert guild data into leaderboards
+			Nadeshiko.INSTANCE.getLeaderboardService().insertGuild(object);
 
 			return object;
 
