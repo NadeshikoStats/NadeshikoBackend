@@ -71,6 +71,24 @@ public class LeaderboardRegistry {
             "golem", "herobrine", "hunter", "moleman", "phoenix", "pigman", "pirate", "renegade", "shaman", "shark",
             "skeleton", "snowman", "spider", "squid", "werewolf", "zombie");
 
+    private static final Map<String, List<String>> DUELS_MODE_MAPPINGS = Map.ofEntries(
+            Map.entry("BRIDGE", List.of("bridge_duel_wins", "bridge_doubles_wins", "bridge_threes_wins", "bridge_four_wins", "bridge_2v2v2v2_wins", "bridge_3v3v3v3_wins", "capture_threes_wins")),
+            Map.entry("SW", List.of("sw_duel_wins", "sw_doubles_wins")),
+            Map.entry("CLASSIC", List.of("classic_duel_wins")),
+            Map.entry("UHC", List.of("uhc_duel_wins", "uhc_doubles_wins")),
+            Map.entry("SUMO", List.of("sumo_duel_wins")),
+            Map.entry("PARKOUR", List.of("parkour_eight_wins", "parkour_two_wins")),
+            Map.entry("BLITZ", List.of("blitz_duel_wins")),
+            Map.entry("BOW", List.of("bow_duel_wins")),
+            Map.entry("MW", List.of("mw_duel_wins", "mw_doubles_wins")),
+            Map.entry("BOWSPLEEF", List.of("bowspleef_duel_wins")),
+            Map.entry("OP", List.of("op_duel_wins", "op_doubles_wins")),
+            Map.entry("COMBO", List.of("combo_duel_wins")),
+            Map.entry("BOXING", List.of("boxing_duel_wins")),
+            Map.entry("NODEBUFF", List.of("potion_duel_wins")),
+            Map.entry("ARENA", List.of("duel_arena_wins"))
+    );
+
     // Make the map public static so Leaderboard can access it
     public static final Map<String, Leaderboard> LEADERBOARDS = new HashMap<>();
 
@@ -317,23 +335,19 @@ public class LeaderboardRegistry {
         new Leaderboard("DUELS_HEALTH_REGENERATED", DUELS, duels -> duels.get("health_regenerated").getAsLong());
         new Leaderboard("DUELS_WINSTREAK", DUELS, duels -> duels.get("current_winstreak").getAsInt());
         new Leaderboard("DUELS_BEST_WINSTREAK", DUELS, duels -> duels.get("best_overall_winstreak").getAsInt());
-        new Leaderboard("DUELS_BRIDGE_WINS", DUELS, duels -> duels.get("bridge_duel_wins").getAsInt());
-        new Leaderboard("DUELS_BRIDGE_GOALS", DUELS, duels -> duels.get("bridge_duel_goals").getAsInt());
-        new Leaderboard("DUELS_SW_WINS", DUELS, duels -> duels.get("sw_duel_wins").getAsInt());
-        new Leaderboard("DUELS_CLASSIC_WINS", DUELS, duels -> duels.get("classic_duel_wins").getAsInt());
-        new Leaderboard("DUELS_UHC_WINS", DUELS, duels -> duels.get("uhc_duel_wins").getAsInt());
-        new Leaderboard("DUELS_SUMO_WINS", DUELS, duels -> duels.get("sumo_duel_wins").getAsInt());
-        new Leaderboard("DUELS_PARKOUR_WINS", DUELS, duels -> duels.get("parkour_eight_wins").getAsInt());
-        new Leaderboard("DUELS_BLITZ_WINS", DUELS, duels -> duels.get("blitz_duel_wins").getAsInt());
-        new Leaderboard("DUELS_BOW_WINS", DUELS, duels -> duels.get("bow_duel_wins").getAsInt());
-        new Leaderboard("DUELS_MW_WINS", DUELS, duels -> duels.get("mw_duel_wins").getAsInt());
-        new Leaderboard("DUELS_BOWSPLEEF_WINS", DUELS, duels -> duels.get("bowspleef_duel_wins").getAsInt());
-        new Leaderboard("DUELS_OP_WINS", DUELS, duels -> duels.get("op_duel_wins").getAsInt());
-        new Leaderboard("DUELS_COMBO_WINS", DUELS, duels -> duels.get("combo_duel_wins").getAsInt());
-        new Leaderboard("DUELS_BOXING_WINS", DUELS, duels -> duels.get("boxing_duel_wins").getAsInt());
-        new Leaderboard("DUELS_NODEBUFF_WINS", DUELS, duels -> duels.get("potion_duel_wins").getAsInt());
-        new Leaderboard("DUELS_ARENA_WINS", DUELS, duels -> duels.get("duel_arena_wins").getAsInt());
+        
         new Leaderboard("DUELS_TOKENS", DUELS, duels -> duels.get("coins").getAsInt());
+
+        DUELS_MODE_MAPPINGS.forEach((mode, statKeys) -> 
+            new Leaderboard("DUELS_" + mode + "_WINS", DUELS, duels -> 
+                statKeys.stream()
+                       .mapToInt(key -> JsonUtil.getNullableInt(duels.get(key)))
+                       .sum()
+            )
+        );
+
+        new Leaderboard("DUELS_BRIDGE_GOALS", DUELS, 
+            duels -> duels.get("bridge_duel_goals").getAsInt());
     }
 
     private static void registerSkyWarsLeaderboards() {
@@ -667,16 +681,15 @@ public class LeaderboardRegistry {
     }
 
     private static void registerCopsAndCrimsLeaderboards() {
-        new Leaderboard("COPS_AND_CRIMS_SCORE", COPS_AND_CRIMS, cc -> cc.get("score").getAsInt(), -1, MASSIVE_CAP);
         new Leaderboard("COPS_AND_CRIMS_COINS", COPS_AND_CRIMS, cc -> cc.get("coins").getAsInt());
 
         addToLookup(
                 new Leaderboard("COPS_AND_CRIMS_DEFUSAL_WINS", COPS_AND_CRIMS, cc -> cc.get("game_wins").getAsInt()));
         addToLookup(new Leaderboard("COPS_AND_CRIMS_DEFUSAL_KILLS", COPS_AND_CRIMS, cc -> cc.get("kills").getAsInt()));
-        new Leaderboard("COPS_AND_CRIMS_DEFUSAL_BOMBS_PLANTED", COPS_AND_CRIMS,
-                cc -> cc.get("bombs_planted").getAsInt());
-        new Leaderboard("COPS_AND_CRIMS_DEFUSAL_BOMBS_DEFUSED", COPS_AND_CRIMS,
-                cc -> cc.get("bombs_defused").getAsInt());
+        addToLookup(new Leaderboard("COPS_AND_CRIMS_DEFUSAL_BOMBS_PLANTED", COPS_AND_CRIMS,
+                cc -> cc.get("bombs_planted").getAsInt()));
+        addToLookup(new Leaderboard("COPS_AND_CRIMS_DEFUSAL_BOMBS_DEFUSED", COPS_AND_CRIMS,
+                cc -> cc.get("bombs_defused").getAsInt()));
         new Leaderboard("COPS_AND_CRIMS_DEFUSAL_ROUND_WINS", COPS_AND_CRIMS, cc -> cc.get("round_wins").getAsInt());
         new Leaderboard("COPS_AND_CRIMS_DEFUSAL_KDR", COPS_AND_CRIMS,
                 cc -> JsonUtil.getNullableDouble(cc.get("kills"))
@@ -706,10 +719,10 @@ public class LeaderboardRegistry {
         addToLookup(new Leaderboard("COPS_AND_CRIMS_GUN_GAME_ASSISTS", COPS_AND_CRIMS,
                 cc -> cc.get("assists_gungame").getAsInt()));
 
-        new Leaderboard("COPS_AND_CRIMS_WINS", COPS_AND_CRIMS,
+        addToLookup(new Leaderboard("COPS_AND_CRIMS_WINS", COPS_AND_CRIMS,
                 cc -> LEADERBOARDS.get("COPS_AND_CRIMS_DEFUSAL_WINS").derive(cc).intValue()
                         + LEADERBOARDS.get("COPS_AND_CRIMS_TEAM_DEATHMATCH_WINS").derive(cc).intValue()
-                        + LEADERBOARDS.get("COPS_AND_CRIMS_GUN_GAME_WINS").derive(cc).intValue());
+                        + LEADERBOARDS.get("COPS_AND_CRIMS_GUN_GAME_WINS").derive(cc).intValue()));
         addToLookup(new Leaderboard("COPS_AND_CRIMS_KILLS", COPS_AND_CRIMS,
                 cc -> LEADERBOARDS.get("COPS_AND_CRIMS_DEFUSAL_KILLS").derive(cc).intValue()
                         + LEADERBOARDS.get("COPS_AND_CRIMS_TEAM_DEATHMATCH_KILLS").derive(cc).intValue()
@@ -725,6 +738,19 @@ public class LeaderboardRegistry {
                 cc -> LEADERBOARDS.get("COPS_AND_CRIMS_DEFUSAL_ASSISTS").derive(cc).intValue()
                         + LEADERBOARDS.get("COPS_AND_CRIMS_TEAM_DEATHMATCH_ASSISTS").derive(cc).intValue()
                         + LEADERBOARDS.get("COPS_AND_CRIMS_GUN_GAME_ASSISTS").derive(cc).intValue());
+
+        new Leaderboard("COPS_AND_CRIMS_SCORE", COPS_AND_CRIMS, cc -> {
+            if (cc.has("score") && !cc.get("score").isJsonNull()) {
+                return cc.get("score").getAsInt();
+            }
+
+            int copsAndCrimsKills = LEADERBOARDS.get("COPS_AND_CRIMS_KILLS").derive(cc).intValue();
+            int copsAndCrimsBombsPlanted = LEADERBOARDS.get("COPS_AND_CRIMS_DEFUSAL_BOMBS_PLANTED").derive(cc).intValue();
+            int copsAndCrimsBombsDefused = LEADERBOARDS.get("COPS_AND_CRIMS_DEFUSAL_BOMBS_DEFUSED").derive(cc).intValue();
+            int copsAndCrimsWins = LEADERBOARDS.get("COPS_AND_CRIMS_WINS").derive(cc).intValue();
+
+            return ((copsAndCrimsKills / 2) + ((copsAndCrimsBombsPlanted + copsAndCrimsBombsDefused) / 3) + copsAndCrimsWins); // Manual score calculation for people who haven't logged in since 2024
+        }, -1, MASSIVE_CAP);
 
         for (String gun : COPS_AND_CRIMS_GUNS) {
             new Leaderboard("COPS_AND_CRIMS_GUN_" + gun.toUpperCase() + "_KILLS", COPS_AND_CRIMS,
