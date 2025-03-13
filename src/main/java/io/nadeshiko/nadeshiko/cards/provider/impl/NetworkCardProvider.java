@@ -89,7 +89,7 @@ public class NetworkCardProvider extends CardProvider {
 				this.formatDate(profile.get("first_login").getAsLong()), 635, 205);
 
 		// Draw the last login date
-		if (profile.get("last_login").getAsInt() > 0) {
+		if (profile.get("last_login").getAsLong() > 0) {
 			this.drawLabelValuePair(g, "Last Login",
 					this.formatDate(profile.get("last_login").getAsLong()), 1065, 205);
 		}
@@ -134,7 +134,7 @@ public class NetworkCardProvider extends CardProvider {
 				this.formatDate(profile.get("first_login").getAsLong()), 504, 145);
 
 		// Draw the last login date
-		if (profile.get("last_login").getAsInt() > 0) {
+		if (profile.get("last_login").getAsLong() > 0) {
 			this.drawLabelValuePair(g, "Last Login",
 					this.formatDate(profile.get("last_login").getAsLong()), 504, 168);
 		}
