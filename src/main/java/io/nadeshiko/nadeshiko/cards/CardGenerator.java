@@ -67,8 +67,21 @@ public class CardGenerator {
 		}
 
 		// Read the template from the resources
-		String templatePath = "/cards/templates/" + game.name() + 
-			(size == CardGame.CardSize.TINY ? "_TINY" : "") + ".png"; // Tiny cards use the same file name but with _TINY
+		String templatePath = "/cards/templates/" + game.name();
+		if (size == CardGame.CardSize.TINY) {
+			String tinyPath = templatePath + "_TINY.png";
+			try (InputStream tinyStream = CardGenerator.class.getResourceAsStream(tinyPath)) {
+				if (tinyStream == null) {
+					// If tiny template doesn't exist, fall back to FULL size
+					size = CardGame.CardSize.FULL;
+					templatePath += ".png";
+				} else {
+					templatePath = tinyPath;
+				}
+			}
+		} else {
+			templatePath += ".png";
+		}
 		
 		try (InputStream templateStream = CardGenerator.class.getResourceAsStream(templatePath)) {
 			byte[] cardTemplateBytes;
@@ -88,23 +101,8 @@ public class CardGenerator {
 					g2d.translate(40, -80);
 				}
 			} else {
-				// if tiny template doesn't exist
-				if (size == CardGame.CardSize.TINY) {
-					templatePath = "/cards/templates/" + game.name() + ".png";
-					try (InputStream fallbackStream = CardGenerator.class.getResourceAsStream(templatePath)) {
-						if (fallbackStream != null) {
-							cardTemplateBytes = fallbackStream.readAllBytes();
-							card = ImageUtil.createImageFromBytes(cardTemplateBytes);
-							graphics = card.getGraphics();
-						} else {
-							Nadeshiko.INSTANCE.alert("Failed reading card template for %s!", game.name());
-							return null;
-						}
-					}
-				} else {
-					Nadeshiko.INSTANCE.alert("Failed reading card template for %s!", game.name());
-					return null;
-				}
+				Nadeshiko.INSTANCE.alert("Failed reading card template for %s!", game.name());
+				return null;
 			}
 		}
 
