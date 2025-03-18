@@ -93,34 +93,66 @@ public class GuildBuilder {
         ThreadPoolExecutor service = (ThreadPoolExecutor) Executors.newCachedThreadPool();
         Lock lock = new ReentrantLock();
 
+        long startTime = System.currentTimeMillis();
+
+        int totalMembers = guildData.getAsJsonArray("members").size();
+        int[] processedCount = {0}; // Use array to allow modification in lambda
+
         for (JsonElement rawPlayer : guildData.getAsJsonArray("members")) {
             service.submit(() -> {
                 JsonObject player = rawPlayer.getAsJsonObject();
+                String uuid = player.has("uuid") ? player.get("uuid").getAsString() : "unknown";
+                
                 try {
-                    JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(player.get("uuid").getAsString(), false);
+                    JsonObject playerStats = Nadeshiko.INSTANCE.getStatsCache().get(uuid, false);
                     
-                    lock.lock(); // Prevent multiple writes to the members array at once
-                    player.addProperty("badge", playerStats.get("badge").getAsString());
-                    player.add("profile", playerStats.getAsJsonObject("profile"));
-                    members.add(player);
-                    lock.unlock();
+                    if (playerStats != null && playerStats.has("profile")) {
+                        lock.lock();
+                        try {
+                            player.addProperty("badge", playerStats.get("badge").getAsString());
+                            player.add("profile", playerStats.getAsJsonObject("profile"));
+                            members.add(player);
+                        } finally {
+                            lock.unlock();
+                        }
+                    } else {
+                        throw new Exception("Invalid or missing player data");
+                    }
                 } catch (Exception e) {
-                    // failed player?
+                    Nadeshiko.logger.warn("Failed to process member {} for guild '{}': {}", 
+                        uuid, guildData.get("name").getAsString(), e.getMessage());
                     lock.lock();
-                    player.addProperty("badge", "NONE");
-                    JsonObject defaultProfile = new JsonObject();
-                    player.add("profile", defaultProfile);
-                    members.add(player);
-                    lock.unlock();
+                    try {
+                        player.addProperty("badge", "NONE");
+                        JsonObject defaultProfile = new JsonObject();
+                        defaultProfile.add("username", com.google.gson.JsonNull.INSTANCE);
+                        defaultProfile.addProperty("uuid", uuid);
+                        player.add("profile", defaultProfile);
+                        members.add(player);
+                    } finally {
+                        lock.unlock();
+                    }
+                } finally {
+                    synchronized(processedCount) {
+                        processedCount[0]++;
+                        if (processedCount[0] == totalMembers) {
+                            service.shutdown();
+                        }
+                    }
                 }
             });
         }
 
         try {
-            service.shutdown();
             if (!service.awaitTermination(30, TimeUnit.SECONDS)) {
+                Nadeshiko.logger.error("Timeout processing guild '{}' after {}ms with {}/{} members processed", 
+                    guildData.get("name").getAsString(),
+                    System.currentTimeMillis() - startTime,
+                    processedCount[0],
+                    totalMembers);
                 return error("Timed out", 500);
             }
+            
             response.add("members", members);
 
             // Insert guild data into leaderboards

@@ -6,7 +6,7 @@
 
     <groupId>io.nadeshiko</groupId>
     <artifactId>Nadeshiko</artifactId>
-    <version>1.2.13</version>
+    <version>1.2.14</version>
 
     <build>
         <plugins>

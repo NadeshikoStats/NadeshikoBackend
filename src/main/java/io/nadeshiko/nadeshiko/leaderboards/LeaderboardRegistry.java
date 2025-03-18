@@ -857,11 +857,9 @@ public class LeaderboardRegistry {
             new Leaderboard("MEGA_WALLS_" + clsUpper + "_DEFENDER_KILLS", MEGA_WALLS,
                     mw -> mw.get(cls + "_defender_kills").getAsInt(), -1, KIT_CAP);
             new Leaderboard("MEGA_WALLS_" + clsUpper + "_PLAYTIME", MEGA_WALLS,
-                    mw -> mw.get(cls + "time_played").getAsInt(), -1, KIT_CAP);
+                    mw -> mw.get(cls + "_time_played").getAsInt(), -1, KIT_CAP);
             new Leaderboard("MEGA_WALLS_" + clsUpper + "_WITHER_DAMAGE", MEGA_WALLS,
                     mw -> mw.get(cls + "_wither_damage").getAsInt(), -1, KIT_CAP);
-            new Leaderboard("MEGA_WALLS_" + clsUpper + "_DAMAGE_DEALT", MEGA_WALLS,
-                    mw -> mw.get(cls + "_damage_dealt").getAsInt(), -1, KIT_CAP);
         }
     }
 

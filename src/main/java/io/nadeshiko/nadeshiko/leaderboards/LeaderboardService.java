@@ -90,12 +90,12 @@ public class LeaderboardService {
     //Configure Redis persistence settings for data safety
     private void configureRedisPersistence(Jedis jedis) {
         // Configure RDB (snapshot) persistence
-        jedis.configSet("save", "3600 1"); // every hour if one key changed
-        jedis.configSet("save", "900 100"); // every 15 minutes if 100 keys changed
+        //jedis.configSet("save", "3600 1"); // every hour if one key changed
+        //jedis.configSet("save", "900 100"); // every 15 minutes if 100 keys changed
         
         // aof persistence
-        jedis.configSet("appendonly", "yes");
-        jedis.configSet("appendfsync", "no"); // lets the OS handle this
+        //jedis.configSet("appendonly", "yes");
+        //jedis.configSet("appendfsync", "no"); // lets the OS handle this
         
         logger.info("Configured Redis persistence settings");
     }
