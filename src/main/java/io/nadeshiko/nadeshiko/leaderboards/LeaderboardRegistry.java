@@ -436,7 +436,7 @@ public class LeaderboardRegistry {
                 pit -> pit.getAsJsonObject("pit_stats_ptl").get("launched_by_launchers").getAsInt());
         new Leaderboard("PIT_HIGHEST_KILLSTREAK", PIT,
                 pit -> pit.getAsJsonObject("pit_stats_ptl").get("max_streak").getAsInt());
-        new Leaderboard("PIT_BOUNTY", PIT, pit -> {
+        /*new Leaderboard("PIT_BOUNTY", PIT, pit -> {
             int totalBounty = 0;
             JsonArray bounties = pit.getAsJsonObject("profile").getAsJsonArray("bounties");
             for (JsonElement element : bounties) {
@@ -444,7 +444,7 @@ public class LeaderboardRegistry {
                 totalBounty += bounty.get("amount").getAsInt();
             }
             return totalBounty;
-        });
+        });*/
         new Leaderboard("PIT_ITEMS_ENCHANTED", PIT,
                 pit -> JsonUtil.getNullableInt(pit.getAsJsonObject("pit_stats_ptl").get("enchanted_tier1")) +
                         JsonUtil.getNullableInt(pit.getAsJsonObject("pit_stats_ptl").get("enchanted_tier2")) +

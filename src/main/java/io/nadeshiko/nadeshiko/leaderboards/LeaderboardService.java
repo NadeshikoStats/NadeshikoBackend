@@ -423,7 +423,7 @@ public class LeaderboardService {
             JsonArray rankings = new JsonArray();
             for (LeaderboardEntry entry : leaderboardEntries) {
                 JsonObject leaderboardData = new JsonObject();
-                leaderboardData.addProperty("name", entry.name());
+                leaderboardData.addProperty("id", entry.name());
                 leaderboardData.addProperty("rank", entry.rank());
                 leaderboardData.addProperty("score", entry.score());
                 rankings.add(leaderboardData);

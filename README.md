@@ -20,7 +20,7 @@
   "stats": {},
   "achievements": {},
   "rewards": {},
-  "rankings": [],
+  "rankings": []
 }
 ```
 
