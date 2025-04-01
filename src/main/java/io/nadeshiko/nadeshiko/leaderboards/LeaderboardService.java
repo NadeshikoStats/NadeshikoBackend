@@ -325,22 +325,60 @@ public class LeaderboardService {
             int start = (page - 1) * 100;
             int end = start + 99;
             
+            // +1 entry for tie detection
+            int actualStart = Math.max(0, start - 1);
+            boolean fetchedExtra = (actualStart < start);
+            
             // Get sorted set entries with scores
             List<Tuple> results;
             if (leaderboard.getSortDirection() == 1) {
                 // lowest first
-                results = jedis.zrangeWithScores(lbKey, start, end);
+                results = jedis.zrangeWithScores(lbKey, actualStart, end);
             } else {
                 // highest first
-                results = jedis.zrevrangeWithScores(lbKey, start, end);
+                results = jedis.zrevrangeWithScores(lbKey, actualStart, end);
             }
             
-            int rank = start + 1;
-            for (Tuple result : results) {
+            double previousScore = Double.NaN;
+            int trueRank = actualStart + 1;
+            int displayRank = trueRank;
+            
+            int startIndex = fetchedExtra ? 1 : 0;
+            
+            if (fetchedExtra && results.size() > 1) {
+                double extraScore = results.get(0).getScore();
+                double firstPageScore = results.get(1).getScore();
+                
+                // find the real rank by scanning upward
+                if (Math.abs(extraScore - firstPageScore) < Double.MIN_VALUE) {
+                    // need to find where it begins
+                    int tieStartRank = findTieStartRank(jedis, lbKey, extraScore, actualStart, leaderboard.getSortDirection());
+                    displayRank = tieStartRank;
+                    trueRank = start + 1;
+                    previousScore = extraScore;
+                } else {
+                    // no tie
+                    previousScore = extraScore;
+                    displayRank = trueRank = start + 1;
+                }
+            }
+            
+            // process results for the current page
+            for (int i = startIndex; i < results.size(); i++) {
+                Tuple result = results.get(i);
                 String uuid = result.getElement();
                 double score = result.getScore();
                 
-                // Get player or guild details
+                // use the same display rank (tie)
+                boolean isTie = false;
+                if (i > startIndex && Math.abs(score - previousScore) < Double.MIN_VALUE) {
+                    // same score
+                    isTie = true;
+                } else if (i > startIndex) {
+                    // new score, update displayed rank
+                    displayRank = trueRank;
+                }
+                
                 String badge;
                 String taggedName;
                 String name;
@@ -360,18 +398,67 @@ public class LeaderboardService {
                 entry.addProperty("uuid", uuid);
                 entry.addProperty("badge", badge);
                 entry.addProperty("tagged_name", taggedName);
-                entry.addProperty("ranking", rank);
-                entry.addProperty("percentile", 100 - (rank / (double) totalEntries) * 100);
+                entry.addProperty("ranking", displayRank);
+                entry.addProperty("percentile", 100 - (displayRank / (double) totalEntries) * 100);
                 entry.addProperty("value", String.valueOf(score));
+                entry.addProperty("tie", isTie);
                 array.add(entry);
                 
-                rank++;
+                previousScore = score;
+                trueRank++;
             }
             
             object.addProperty("count", totalEntries);
             object.add("data", array);
             return object;
         });
+    }
+    
+    /**
+     * Find the starting rank for a tie by searching upward in the leaderboard
+     * @param jedis Redis connection
+     * @param lbKey Leaderboard key
+     * @param targetScore The score to find ties for
+     * @param position Current position in the leaderboard
+     * @param sortDirection Direction of sorting (1 for ascending, -1 for descending)
+     * @return The true starting rank for the tied entries
+     */
+    private int findTieStartRank(Jedis jedis, String lbKey, double targetScore, int position, int sortDirection) {
+        // binary search approach to find the first entry with a different score
+        int low = 0;
+        int high = position;
+        int tieStart = position;
+        
+        while (low <= high) {
+            int mid = (low + high) / 2;
+            List<Tuple> entries;
+            
+            if (sortDirection == 1) {
+                // ascending order
+                entries = jedis.zrangeWithScores(lbKey, mid, mid);
+            } else {
+                // descending order
+                entries = jedis.zrevrangeWithScores(lbKey, mid, mid);
+            }
+            
+            if (entries.isEmpty()) {
+                break;
+            }
+            
+            double midScore = entries.get(0).getScore();
+            
+            if (Math.abs(midScore - targetScore) < Double.MIN_VALUE) {
+                // found tie; search lower
+                tieStart = mid;
+                high = mid - 1;
+            } else {
+                // different score; search higher
+                low = mid + 1;
+            }
+        }
+        
+        // rank starts at 1, not 0
+        return tieStart + 1;
     }
 
     private void dumpLeaderboards() {
@@ -405,13 +492,13 @@ public class LeaderboardService {
                 // Get player's score
                 Double score = jedis.zscore(lbKey, uuid);
                 if (score != null) {
-                    Long rank = (leaderboard.getSortDirection() == 1) 
+                    Long position = (leaderboard.getSortDirection() == 1) 
                         ? jedis.zrank(lbKey, uuid) 
                         : jedis.zrevrank(lbKey, uuid);
                     
-                    if (rank != null) {
-                        rank++; // ranks are originally starting with 0
-                        leaderboardEntries.add(new LeaderboardEntry(leaderboard.getName(), rank, score));
+                    if (position != null) {
+                        int tieAdjustedRank = findTrueRankForScore(jedis, lbKey, score, position, leaderboard.getSortDirection());
+                        leaderboardEntries.add(new LeaderboardEntry(leaderboard.getName(), tieAdjustedRank, score));
                     }
                 }
             }
@@ -431,6 +518,20 @@ public class LeaderboardService {
             
             return rankings;
         });
+    }
+    
+    /**
+     * Find the true rank for a player by checking for ties above them
+     * @param jedis Redis connection
+     * @param lbKey Leaderboard key
+     * @param targetScore The player's score
+     * @param position The player's position in the sorted set
+     * @param sortDirection Direction of sorting (1 for ascending, -1 for descending)
+     * @return The true rank accounting for ties
+     */
+    private int findTrueRankForScore(Jedis jedis, String lbKey, double targetScore, long position, int sortDirection) {
+        // check if there are any ties. in case of ties, return the highest rank (lowest number)
+        return findTieStartRank(jedis, lbKey, targetScore, (int)position, sortDirection);
     }
 
     private record LeaderboardEntry(String name, long rank, double score) {}

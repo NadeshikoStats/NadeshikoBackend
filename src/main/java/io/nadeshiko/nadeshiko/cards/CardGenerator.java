@@ -17,6 +17,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
+import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
 import io.nadeshiko.nadeshiko.cards.provider.impl.SkyBlockGeneralCardProvider;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
 import io.nadeshiko.nadeshiko.util.ImageUtil;
@@ -116,23 +117,27 @@ public class CardGenerator {
 			return statsResponse.toString().getBytes();
 		}
 
-		// If this is a SkyBlock card, fetch SkyBlock data early to check ironman status
-		JsonObject skyblockProfileData = null;
+		// Get the player's SkyBlock profile
+		JsonObject skyblockProfile = null;
 		if (game == CardGame.SKYBLOCK_GENERAL) {
-			try {
-				JsonObject skyblockProfiles = JsonParser.parseString(HTTPUtil.get("https://sky.shiiyu.moe/api/v2/profile/" +
-					name).response()).getAsJsonObject().getAsJsonObject("profiles");
+			HTTPUtil.Response profileResponse = HTTPUtil.get("https://playerdb.co/api/player/minecraft/" + name);
+			JsonObject minecraftProfile = JsonParser.parseString(profileResponse.response()).getAsJsonObject();
+			
+			if (minecraftProfile == null || !minecraftProfile.has("data") || 
+			minecraftProfile.get("code").getAsString().equals("minecraft.invalid_username")) {
+				throw new RuntimeException("Could not find player " + name);
+			}
+			
+			String uuid = minecraftProfile.getAsJsonObject("data").getAsJsonObject("player").get("raw_id").getAsString();
+			JsonObject skyblockData = Nadeshiko.INSTANCE.getSkyBlockCache().get(uuid, null);
+			
+			if (!skyblockData.get("success").getAsBoolean()) {
+				throw new RuntimeException("Failed to fetch SkyBlock data: " + skyblockData.get("cause").getAsString());
+			}
 
-				// Find active profile
-				for (Map.Entry<String, JsonElement> entry : skyblockProfiles.entrySet()) {
-					JsonObject entryObject = entry.getValue().getAsJsonObject();
-					if (entryObject.has("current") && entryObject.get("current").getAsBoolean()) {
-						skyblockProfileData = entryObject.getAsJsonObject("data");
-						break;
-					}
-				}
-			} catch (Exception e) {
-				Nadeshiko.INSTANCE.alert("Failed fetching SkyBlock data for %s!", name);
+			skyblockProfile = skyblockData.getAsJsonObject("skyblock_profile");
+			if (skyblockProfile == null) {
+				throw new RuntimeException("No SkyBlock profile found");
 			}
 		}
 
@@ -173,11 +178,11 @@ public class CardGenerator {
 		String gameMode = null;
 		int gameModeIconWidth = 0;
 		String gameModeIconPath = null;
-		if (skyblockProfileData != null && 
-			skyblockProfileData.has("profile") && 
-			skyblockProfileData.getAsJsonObject("profile").has("game_mode")) {
+		if (game == CardGame.SKYBLOCK_GENERAL && skyblockProfile != null && 
+			skyblockProfile.has("profile") && 
+			skyblockProfile.getAsJsonObject("profile").has("game_mode")) {
 			
-			gameMode = skyblockProfileData.getAsJsonObject("profile").get("game_mode").getAsString();
+			gameMode = skyblockProfile.getAsJsonObject("profile").get("game_mode").getAsString();
 			switch (gameMode) {
 				case "ironman":
 					gameModeIconWidth = 40;
@@ -260,11 +265,11 @@ public class CardGenerator {
 			((Graphics2D) graphics).setTransform(originalTransform);
 		}
 
+		CardProvider provider = game.getProvider();
 		if (game == CardGame.SKYBLOCK_GENERAL) {
-			// Pass already fetched SkyBlock data
-			((SkyBlockGeneralCardProvider) game.getProvider()).generate(card, data, statsResponse, skyblockProfileData);
+			((SkyBlockGeneralCardProvider) provider).generate(card, data, statsResponse, skyblockProfile);
 		} else {
-			game.getProvider().generate(card, data, statsResponse);
+			provider.generate(card, data, statsResponse);
 		}
 
 		return ImageUtil.getBytesFromImage(card);

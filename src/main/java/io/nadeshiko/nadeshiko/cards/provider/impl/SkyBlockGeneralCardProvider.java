@@ -50,26 +50,35 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 
 		if (profileData == null) {
 			try {
-				JsonObject skyblockProfiles = JsonParser.parseString(HTTPUtil.get("https://sky.shiiyu.moe/api/v2/profile/" +
-					stats.get("name").getAsString()).response()).getAsJsonObject().getAsJsonObject("profiles");
-
-				// Iterate over profiles to find the active one
-				for (Map.Entry<String, JsonElement> entry : skyblockProfiles.entrySet()) {
-					JsonObject entryObject = entry.getValue().getAsJsonObject();
-
-					if (entryObject.has("current") && entryObject.get("current").getAsBoolean()) {
-						profileData = entryObject.getAsJsonObject("data");
-						break;
-					}
+				// First get UUID from PlayerDB
+				HTTPUtil.Response profileResponse = HTTPUtil.get("https://playerdb.co/api/player/minecraft/" + stats.get("name").getAsString());
+				JsonObject minecraftProfile = JsonParser.parseString(profileResponse.response()).getAsJsonObject();
+				
+				if (minecraftProfile == null || !minecraftProfile.has("data") || 
+					minecraftProfile.get("code").getAsString().equals("minecraft.invalid_username")) {
+					Nadeshiko.logger.error("Could not find player {}", stats.get("name").getAsString());
+					return;
+				}
+				
+				String uuid = minecraftProfile.getAsJsonObject("data").getAsJsonObject("player").get("id").getAsString();
+				JsonObject skyblockData = Nadeshiko.INSTANCE.getSkyBlockCache().get(uuid, null);
+				
+				if (!skyblockData.get("success").getAsBoolean()) {
+					Nadeshiko.logger.error("Failed to fetch SkyBlock data for {}: {}", 
+						stats.get("name").getAsString(), 
+						skyblockData.get("cause").getAsString());
+					return;
 				}
 
-				// Ensure that the active profile was found
+				profileData = skyblockData.getAsJsonObject("skyblock_profile");
+
+				// Ensure that the profile was found
 				if (profileData == null) {
-					Nadeshiko.logger.error("Somehow {} has no active SkyBlock profile?", stats);
+					Nadeshiko.logger.error("No SkyBlock profile found for {}", stats.get("name").getAsString());
 					return;
 				}
 			} catch (Exception e) {
-				Nadeshiko.logger.error("Encountered error when fetching SkyBlock stats for {}", stats, e);
+				Nadeshiko.logger.error("Encountered error when fetching SkyBlock stats for {}", stats.get("name").getAsString(), e);
 				return;
 			}
 		}
@@ -79,7 +88,7 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 
 		// Draw the SkyBlock level
 		int level = profileData.getAsJsonObject("skyblock_level").get("level").getAsInt();
-		int maxLevel = profileData.getAsJsonObject("skyblock_level").get("maxLevel").getAsInt();
+		int maxLevel = 100_000_000; //profileData.getAsJsonObject("skyblock_level").get("max_level").getAsInt();
 		String prefixColor = this.getPrefixColor(level);
 		String levelText = String.format("Level §8[%s" + level + "§8]", prefixColor);
 		g.setColor(level == maxLevel ? maxColor : Color.WHITE);
@@ -124,10 +133,8 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 
 		// Draw bottom stuff
 		int mp = 0;
-		JsonObject profileDataJson = profileData.getAsJsonObject();
-
-		if (profileDataJson.has("accessories")) {
-			JsonObject accessoriesJson = profileDataJson.getAsJsonObject("accessories");
+		if (profileData.has("accessories")) {
+			JsonObject accessoriesJson = profileData.getAsJsonObject("accessories");
 			if (accessoriesJson.has("magical_power")) {
 				JsonObject magicalPowerJson = accessoriesJson.getAsJsonObject("magical_power");
 				if (magicalPowerJson.has("total")) {
@@ -136,10 +143,15 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 			}
 		}
 
-		double networth = profileData.getAsJsonObject("networth").get("networth").getAsDouble();
-		double purse = profileData.getAsJsonObject("networth").get("purse").getAsDouble();
-		double bank = profileData.getAsJsonObject("networth").get("bank").getAsDouble();
-		String text = "MP  " + String.format("%,d", mp) + "           Networth " + NumberUtil.formatNumber(networth) +
+		// Get skill average
+		double skillAverage = 0;
+		if (profileData.has("skills") && profileData.getAsJsonObject("skills").has("average")) {
+			skillAverage = profileData.getAsJsonObject("skills").get("average").getAsDouble();
+		}
+
+		double purse = profileData.get("purse").getAsDouble();
+		double bank = profileData.get("bank").getAsDouble();
+		String text = "MP  " + String.format("%,d", mp) + "           Skill Average  " + String.format("%.2f", skillAverage) +
 			"           Purse  " + NumberUtil.formatNumber(purse) + "           Bank  " + NumberUtil.formatNumber(bank);
 		g.setColor(new Color(181, 181, 181));
 		g.setFont(tinyLight);
@@ -154,8 +166,8 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 
 		if (data != null) {
 			level = data.has("level") ? data.get("level").getAsInt() : 0;
-			if (data.has("maxLevel")) {
-				isMaxed = level >= data.get("maxLevel").getAsInt();
+			if (data.has("max_level")) {
+				isMaxed = level >= data.get("max_level").getAsInt();
 			}
 			progress = isMaxed ? 1 : (data.has("progress") ? data.get("progress").getAsFloat() : 0);
 		}
@@ -187,7 +199,7 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 				JsonObject catacombsLevel = catacombsData.getAsJsonObject("level");
 				cataLevel = catacombsLevel.get("level").getAsInt();
 				cataProgress = catacombsLevel.get("progress").getAsFloat();
-				isMaxed = cataLevel >= catacombsLevel.get("maxLevel").getAsInt();
+				isMaxed = cataLevel >= catacombsLevel.get("max_level").getAsInt();
 			}
 		}
 
@@ -220,10 +232,10 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		this.drawClass(g, 830, 420, "Mage", classesData.getAsJsonObject("mage"));
 
 		// Draw class average
-		float classAvg = classesObject != null && classesObject.has("average_level") ? 
-			classesObject.get("average_level").getAsFloat() : 0;
-		boolean max = classesObject != null && classesObject.has("maxed") && 
-			classesObject.get("maxed").getAsBoolean();
+		float classAvg = classesData != null && classesData.has("average_level") ? 
+		classesData.get("average_level").getAsFloat() : 0;
+		boolean max = classesData != null && classesData.has("maxed") && 
+		classesData.get("maxed").getAsBoolean();
 		
 		g.setColor(max ? maxColor : new Color(181, 181, 181));
 		g.setFont(tinyLight);
@@ -241,7 +253,7 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 			JsonObject levelData = data.getAsJsonObject("level");
 			if (levelData != null) {
 				level = levelData.get("level").getAsInt();
-				isMaxed = level >= levelData.get("maxLevel").getAsInt();
+				isMaxed = level >= levelData.get("max_level").getAsInt();
 			}
 		}
 
@@ -264,8 +276,8 @@ public class SkyBlockGeneralCardProvider extends CardProvider {
 		if (data != null && data.has("level")) {
 			JsonObject levelData = data.getAsJsonObject("level");
 			if (levelData != null) {
-				level = levelData.get("currentLevel").getAsInt();
-				isMaxed = level >= levelData.get("maxLevel").getAsInt();
+				level = levelData.get("current_level").getAsInt();
+				isMaxed = level >= levelData.get("max_level").getAsInt();
 				progress = isMaxed ? 1 : levelData.get("progress").getAsFloat();
 			}
 		}

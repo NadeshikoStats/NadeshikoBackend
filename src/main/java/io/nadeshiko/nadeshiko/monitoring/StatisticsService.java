@@ -47,6 +47,7 @@ public class StatisticsService implements Runnable {
 	private final List<RequestEntry> guildRequests = Collections.synchronizedList(new ArrayList<>());
 	private final List<RequestEntry> cardRequests = Collections.synchronizedList(new ArrayList<>());
 	private final List<RequestEntry> leaderboardRequests = Collections.synchronizedList(new ArrayList<>());
+	private final List<RequestEntry> skyBlockRequests = Collections.synchronizedList(new ArrayList<>());
 
 	/**
 	 * The scheduler used to send the daily statistics
@@ -90,6 +91,10 @@ public class StatisticsService implements Runnable {
 		this.leaderboardRequests.add(new RequestEntry(leaderboardName, null));
 	}
 
+	public void registerSkyBlockRequest(String name) {
+		this.skyBlockRequests.add(new RequestEntry(name, null));
+	}
+
 	/**
 	 * Reset the registry of daily requests
 	 */
@@ -100,6 +105,7 @@ public class StatisticsService implements Runnable {
 		this.guildRequests.clear();
 		this.cardRequests.clear();
 		this.leaderboardRequests.clear();
+		this.skyBlockRequests.clear();
 	}
 
 	/**
@@ -119,6 +125,7 @@ public class StatisticsService implements Runnable {
 		Map<Integer, Integer> hourlyQuestRequests = new HashMap<>();
 		Map<Integer, Integer> hourlyAchievementRequests = new HashMap<>();
 		Map<Integer, Integer> hourlyLeaderboardRequests = new HashMap<>();
+		Map<Integer, Integer> hourlySkyBlockRequests = new HashMap<>();
 
 		this.statsRequests.forEach(request -> {
 			int hour = this.getTimestampHour(request.getTime());
@@ -150,11 +157,16 @@ public class StatisticsService implements Runnable {
 			hourlyLeaderboardRequests.merge(hour, 1, Integer::sum);
 		});
 
+		this.skyBlockRequests.forEach(request -> {
+			int hour = this.getTimestampHour(request.getTime());
+			hourlySkyBlockRequests.merge(hour, 1, Integer::sum);
+		});
+
 		// Table format
 		StringBuilder table = new StringBuilder();
 		table.append("```\\n");
-		table.append(" hour | tot | sta | car | gui | que | ach | lea \\n");
-		table.append("------|-----|-----|-----|-----|-----|-----|-----\\n");
+		table.append(" hour | tot | sta | car | gui | que | ach | lea | sky \\n");
+		table.append("------|-----|-----|-----|-----|-----|-----|-----|-----\\n");
 
 		for (int hour = 0; hour < 24; hour++) {
 			int stats = hourlyStatsRequests.getOrDefault(hour, 0);
@@ -163,14 +175,15 @@ public class StatisticsService implements Runnable {
 			int quests = hourlyQuestRequests.getOrDefault(hour, 0);
 			int achievements = hourlyAchievementRequests.getOrDefault(hour, 0);
 			int leaderboards = hourlyLeaderboardRequests.getOrDefault(hour, 0);
-			int total = stats + cards + guilds + quests + achievements + leaderboards;
+			int skyBlock = hourlySkyBlockRequests.getOrDefault(hour, 0);
+			int total = stats + cards + guilds + quests + achievements + leaderboards + skyBlock;
 
 			// Skip empty
 			if (total == 0) continue;
 
 			String timeStr = String.format("%02d:00", hour);
-			table.append(String.format("%-5s |%4d |%4d |%4d |%4d |%4d |%4d |%4d\\n",
-				timeStr, total, stats, cards, guilds, quests, achievements, leaderboards));
+			table.append(String.format("%-5s |%4d |%4d |%4d |%4d |%4d |%4d |%4d |%4d |%4d\\n",
+				timeStr, total, stats, cards, guilds, quests, achievements, leaderboards, skyBlock));
 		}
 		table.append("```");
 		return table.toString();
@@ -189,16 +202,17 @@ public class StatisticsService implements Runnable {
 
 		// Description
 		int requests = this.statsRequests.size() + this.guildRequests.size() + this.achievementRequests.size() +
-			this.questRequests.size() + this.cardRequests.size() + this.leaderboardRequests.size();
+			this.questRequests.size() + this.cardRequests.size() + this.leaderboardRequests.size() + this.skyBlockRequests.size();
 		embed.setDescription("**Requests:**\\n" +
 			"Total requests today: **" + requests + "**\\n" +
 			"\\n" +
-			"Total `/stats` requests today: **" + this.statsRequests.size() + "**\\n" +
-			"Total `/guild` requests today: **" + this.guildRequests.size() + "**\\n" +
-			"Total `/achievements` requests today: **" + this.achievementRequests.size() + "**\\n" +
-			"Total `/quests` requests today: **" + this.questRequests.size() + "**\\n" +
-			"Total `/card` requests today: **" + this.cardRequests.size() + "**\\n" +
-			"Total `/leaderboard` requests today: **" + this.leaderboardRequests.size() + "**\\n" +
+			"`/stats` requests: **" + this.statsRequests.size() + "**\\n" +
+			"`/guild` requests: **" + this.guildRequests.size() + "**\\n" +
+			"`/achievements` requests: **" + this.achievementRequests.size() + "**\\n" +
+			"`/quests` requests: **" + this.questRequests.size() + "**\\n" +
+			"`/card` requests: **" + this.cardRequests.size() + "**\\n" +
+			"`/leaderboard` requests: **" + this.leaderboardRequests.size() + "**\\n" +
+			"`/skyblock` requests: **" + this.skyBlockRequests.size() + "**\\n" +
 			"\\n" +
 			"**Hourly Distribution:**\\n" +
 			buildHourlyStatsText());

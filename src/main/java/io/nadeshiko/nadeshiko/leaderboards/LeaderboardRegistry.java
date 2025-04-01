@@ -394,6 +394,8 @@ public class LeaderboardRegistry {
                         / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_team_insane")), 1));
         new Leaderboard("SKYWARS_COINS", SKYWARS, sw -> sw.get("coins").getAsInt());
         new Leaderboard("SKYWARS_TOKENS", SKYWARS, sw -> sw.get("cosmetic_tokens").getAsInt());
+        new Leaderboard("SKYWARS_OPALS", SKYWARS, sw -> sw.get("opals").getAsInt());
+        new Leaderboard("SKYWARS_SOULS", SKYWARS, sw -> sw.get("souls").getAsInt());
         new Leaderboard("SKYWARS_LAB_WINS", SKYWARS, sw -> sw.get("wins_lab").getAsInt());
         new Leaderboard("SKYWARS_LAB_WLR", SKYWARS,
                 sw -> JsonUtil.getNullableDouble(sw.get("wins_lab"))

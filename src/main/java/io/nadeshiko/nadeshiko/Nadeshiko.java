@@ -23,6 +23,7 @@ import io.nadeshiko.nadeshiko.monitoring.StatisticsService;
 import io.nadeshiko.nadeshiko.stats.GuildCache;
 import io.nadeshiko.nadeshiko.stats.StatsCache;
 import io.nadeshiko.nadeshiko.util.HTTPUtil;
+import io.nadeshiko.nadeshiko.skyblock.SkyBlockCache;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +50,7 @@ public class Nadeshiko {
 	/**
 	 * nadeshiko version number
 	 */
-	public static String VERSION = "1.2.15";
+	public static String VERSION = "1.3.0";
 
 	/**
 	 * Setting fallbacks (if missing from config.json)
@@ -85,6 +86,12 @@ public class Nadeshiko {
 	 */
 	@Getter
 	private final GuildCache guildCache = new GuildCache();
+
+	/**
+	 * The {@link SkyBlockCache} instance of this backend instance
+	 */
+	@Getter
+	private final SkyBlockCache skyBlockCache = new SkyBlockCache();
 
 	/**
 	 * The {@link StatisticsService} of this backend instance
@@ -194,6 +201,7 @@ public class Nadeshiko {
 		spark.get("/guild", GuildController.serveGuildEndpoint);
 		spark.get("/stats", StatsController.serveStatsEndpoint);
 		spark.get("/quests", QuestsController.serveQuestsEndpoint);
+		spark.get("/skyblock", SkyBlockController.serveSkyBlockEndpoint);
 		spark.get("/leaderboard", LeaderboardController.serveLeaderboardEndpoint);
 		spark.get("/", (request, response) -> "nadeshiko backend version " + VERSION);
 
