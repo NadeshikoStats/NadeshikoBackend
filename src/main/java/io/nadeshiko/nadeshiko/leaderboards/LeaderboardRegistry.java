@@ -392,6 +392,29 @@ public class LeaderboardRegistry {
         new Leaderboard("SKYWARS_TEAM_INSANE_KDR", SKYWARS,
                 sw -> JsonUtil.getNullableDouble(sw.get("kills_team_insane"))
                         / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_team_insane")), 1));
+
+        new Leaderboard("SKYWARS_MEGA_WINS", SKYWARS, sw -> sw.get("wins_mega").getAsInt());
+        new Leaderboard("SKYWARS_MEGA_KILLS", SKYWARS, sw -> sw.get("kills_mega").getAsInt());
+        new Leaderboard("SKYWARS_MEGA_KDR", SKYWARS,
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_mega"))
+                        / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_mega")), 1));
+        new Leaderboard("SKYWARS_MEGA_WLR", SKYWARS,
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_mega"))
+                        / Math.max(JsonUtil.getNullableDouble(sw.get("losses_mega")), 1));
+        
+        new Leaderboard("SKYWARS_MEGA_DOUBLES_WINS", SKYWARS, sw -> sw.get("wins_mega_doubles").getAsInt());
+        new Leaderboard("SKYWARS_MEGA_DOUBLES_WLR", SKYWARS,
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_mega_doubles"))
+                        / Math.max(JsonUtil.getNullableDouble(sw.get("losses_mega_doubles")), 1));
+        new Leaderboard("SKYWARS_MEGA_DOUBLES_KILLS", SKYWARS, sw -> sw.get("kills_mega_doubles").getAsInt());
+        new Leaderboard("SKYWARS_MEGA_DOUBLES_KDR", SKYWARS,
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_mega_doubles"))
+                        / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_mega_doubles")), 1));
+                        
+        new Leaderboard("SKYWARS_MINI_WINS", SKYWARS, sw -> sw.get("wins_mini").getAsInt());
+        new Leaderboard("SKYWARS_MINI_KILLS", SKYWARS, sw -> sw.get("kills_mini").getAsInt());
+
+
         new Leaderboard("SKYWARS_COINS", SKYWARS, sw -> sw.get("coins").getAsInt());
         new Leaderboard("SKYWARS_TOKENS", SKYWARS, sw -> sw.get("cosmetic_tokens").getAsInt());
         new Leaderboard("SKYWARS_OPALS", SKYWARS, sw -> sw.get("opals").getAsInt());
