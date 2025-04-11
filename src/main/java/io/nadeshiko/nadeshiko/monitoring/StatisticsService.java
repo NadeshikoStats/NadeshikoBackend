@@ -182,7 +182,7 @@ public class StatisticsService implements Runnable {
 			if (total == 0) continue;
 
 			String timeStr = String.format("%02d:00", hour);
-			table.append(String.format("%-5s |%4d |%4d |%4d |%4d |%4d |%4d |%4d |%4d |%4d\\n",
+			table.append(String.format("%-5s |%4d |%4d |%4d |%4d |%4d |%4d |%4d |%4d\\n",
 				timeStr, total, stats, cards, guilds, quests, achievements, leaderboards, skyBlock));
 		}
 		table.append("```");
