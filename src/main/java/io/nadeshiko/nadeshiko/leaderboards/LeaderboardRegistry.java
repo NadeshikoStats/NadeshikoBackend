@@ -89,6 +89,138 @@ public class LeaderboardRegistry {
             Map.entry("ARENA", List.of("duel_arena_wins"))
     );
 
+    private static final Map<String, Map<String, String>> SKYWARS_KITS = Map.ofEntries(
+        Map.entry("NORMAL", Map.ofEntries(
+                Map.entry("kit_advanced_solo_armorer", "Armorer"),
+                Map.entry("kit_basic_solo_armorsmith", "Armorsmith"),
+                Map.entry("kit_basic_solo_baseball-player", "Baseball Player"),
+                Map.entry("kit_advanced_solo_cannoneer", "Cannoneer"),
+                Map.entry("kit_basic_solo_default", "Default"),
+                Map.entry("kit_basic_solo_ecologist", "Ecologist"),
+                Map.entry("kit_advanced_solo_enchanter", "Enchanter"),
+                Map.entry("kit_enderchest_solo_enderchest", "Enderchest"),
+                Map.entry("kit_advanced_solo_enderman", "Enderman"),
+                Map.entry("kit_advanced_solo_farmer", "Farmer"),
+                Map.entry("kit_basic_solo_fallen-angel", "Fallen Angel"),
+                Map.entry("kit_basic_solo_fisherman", "Fisherman"),
+                Map.entry("kit_advanced_solo_hunter", "Hunter"),
+                Map.entry("kit_advanced_solo_knight", "Knight"),
+                Map.entry("kit_basic_solo_pharaoh", "Pharaoh"),
+                Map.entry("kit_advanced_solo_pyro", "Pyro"),
+                Map.entry("kit_basic_solo_rookie", "Rookie"),
+                Map.entry("kit_basic_solo_snowman", "Snowman"),
+                Map.entry("kit_basic_solo_speleologist", "Speleologist"),
+                Map.entry("kit_basic_solo_troll", "Troll"),
+                Map.entry("kit_basic_solo_batguy", "Batguy"),
+                Map.entry("kit_basic_solo_disco", "Disco"),
+                Map.entry("kit_basic_solo_energix", "Energix"),
+                Map.entry("kit_basic_solo_frog", "Frog"),
+                Map.entry("kit_basic_solo_grenade", "Grenade"),
+                Map.entry("kit_advanced_solo_guardian", "Guardian"),
+                Map.entry("kit_basic_solo_healer", "Healer"),
+                Map.entry("kit_basic_solo_scout", "Scout"),
+                Map.entry("kit_basic_solo_princess", "Princess"),
+                Map.entry("kit_advanced_solo_engineer", "Engineer"),
+                Map.entry("kit_advanced_solo_salmon", "Salmon"),
+                Map.entry("kit_advanced_solo_pig-rider", "Pig Rider"),
+                Map.entry("kit_advanced_solo_slime", "Slime"),
+                Map.entry("kit_advanced_solo_jester", "Jester"),
+                Map.entry("kit_advanced_solo_zookeeper", "Zookeeper"),
+                Map.entry("kit_advanced_solo_sloth", "Sloth"),
+                Map.entry("kit_advanced_solo_magician", "Magician"),
+                Map.entry("kit_basic_solo_cactus", "Cactus"),
+                Map.entry("kit_basic_solo_archeologist", "Archeologist"),
+                Map.entry("kit_basic_solo_warlock", "Warlock")
+        )),
+
+        Map.entry("INSANE", Map.ofEntries(
+                Map.entry("kit_defending_team_armorer", "Armorer"),
+                Map.entry("kit_supporting_team_armorsmith", "Armorsmith"),
+                Map.entry("kit_defending_team_baseball-player", "Baseball Player"),
+                Map.entry("kit_mining_team_cannoneer", "Cannoneer"),
+                Map.entry("kit_attacking_team_default", "Default"),
+                Map.entry("kit_supporting_team_ecologist", "Ecologist"),
+                Map.entry("kit_supporting_team_enchanter", "Enchanter"),
+                Map.entry("kit_attacking_team_enderman", "Enderman"),
+                Map.entry("kit_attacking_team_fallen-angel", "Fallen Angel"),
+                Map.entry("kit_defending_team_guardian", "Guardian"),
+                Map.entry("kit_supporting_team_healer", "Healer"),
+                Map.entry("kit_attacking_team_hunter", "Hunter"),
+                Map.entry("kit_attacking_team_knight", "Knight"),
+                Map.entry("kit_supporting_team_pharaoh", "Pharaoh"),
+                Map.entry("kit_supporting_team_rookie", "Pro"),
+                Map.entry("kit_attacking_team_scout", "Scout"),
+                Map.entry("kit_attacking_team_snowman", "Snowman"),
+                Map.entry("kit_mining_team_speleologist", "Speleologist"),
+                Map.entry("kit_defending_team_batguy", "Batguy"),
+                Map.entry("kit_defending_team_disco", "Disco"),
+                Map.entry("kit_attacking_team_energix", "Energix"),
+                Map.entry("kit_defending_team_cactus", "Cactus"),
+                Map.entry("kit_attacking_team_archeologist", "Archeologist"),
+                Map.entry("kit_supporting_team_warlock", "Warlock"),
+                Map.entry("kit_defending_team_frog", "Frog"),
+                Map.entry("kit_attacking_team_grenade", "Grenade"),
+                Map.entry("kit_attacking_team_engineer", "Engineer"),
+                Map.entry("kit_attacking_team_pig-rider", "Pig Rider"),
+                Map.entry("kit_attacking_team_salmon", "Salmon"),
+                Map.entry("kit_attacking_team_slime", "Slime"),
+                Map.entry("kit_attacking_team_jester", "Jester"),
+                Map.entry("kit_supporting_team_zookeeper", "Zookeeper"),
+                Map.entry("kit_attacking_team_sloth", "Sloth"),
+                Map.entry("kit_attacking_team_magician", "Magician"),
+                Map.entry("kit_enderchest_team_enderchest", "Enderchest"),
+                Map.entry("kit_defending_team_farmer", "Farmer"),
+                Map.entry("kit_attacking_team_fisherman", "Fisherman"),
+                Map.entry("kit_supporting_team_princess", "Princess"),
+                Map.entry("kit_supporting_team_pyro", "Pyro"),
+                Map.entry("kit_supporting_team_troll", "Troll"),
+                Map.entry("kit_defending_team_golem", "Golem")
+        )),
+
+        Map.entry("MEGA", Map.ofEntries(
+                Map.entry("kit_mega_mega_armorer", "Armorer"),
+                Map.entry("kit_mega_mega_armorsmith", "Armorsmith"),
+                Map.entry("kit_mega_mega_baseball-player", "Baseball Player"),
+                Map.entry("kit_mega_mega_cannoneer", "Cannoneer"),
+                Map.entry("kit_mega_mega_default", "Default"),
+                Map.entry("kit_mega_mega_healer", "Healer"),
+                Map.entry("kit_mega_mega_hunter", "Hunter"),
+                Map.entry("kit_mega_mega_knight", "Knight"),
+                Map.entry("kit_mega_mega_paladin", "Paladin"),
+                Map.entry("kit_mega_mega_scout", "Scout"),
+                Map.entry("kit_mega_mega_skeletor", "Skeletor"),
+                Map.entry("kit_mega_mega_witch", "Witch"),
+                Map.entry("kit_mega_mega_hellhound", "Hellhound"),
+                Map.entry("kit_mega_mega_fisherman", "Fisherman"),
+                Map.entry("kit_mega_mega_pyromaniac", "Pyro"),
+                Map.entry("kit_mega_mega_enderman", "Enderman")
+        )),
+
+        Map.entry("MINI", Map.ofEntries(
+                Map.entry("kit_mini_solo_scout", "Scout"),
+                Map.entry("kit_mini_solo_magician", "Magician"),
+                Map.entry("kit_mini_solo_armorer", "Armorer"),
+                Map.entry("kit_mini_solo_champion", "Champion"),
+                Map.entry("kit_mini_solo_bowman", "Bowman"),
+                Map.entry("kit_mini_solo_athlete", "Athlete"),
+                Map.entry("kit_mini_solo_blacksmith", "Blacksmith"),
+                Map.entry("kit_mini_solo_healer", "Healer"),
+                Map.entry("kit_mini_solo_pyromancer", "Pyromancer"),
+                Map.entry("kit_mini_solo_hound", "Hound"),
+                Map.entry("kit_mini_solo_paladin", "Paladin")
+        )),
+
+        Map.entry("MYTHICAL", Map.ofEntries(
+                Map.entry("kit_mythical_end-lord", "End Lord"),
+                Map.entry("kit_mythical_monster-trainer", "Monster Trainer"),
+                Map.entry("kit_mythical_nether-lord", "Nether Lord"),
+                Map.entry("kit_mythical_fishmonger", "Fishmonger"),
+                Map.entry("kit_mythical_thundermeister", "Thundermeister"),
+                Map.entry("kit_mythical_chronobreaker", "Chronobreaker"),
+                Map.entry("kit_mythical_cryomancer", "Cryomancer")
+        ))
+    );
+
     // Make the map public static so Leaderboard can access it
     public static final Map<String, Leaderboard> LEADERBOARDS = new HashMap<>();
 
@@ -138,11 +270,11 @@ public class LeaderboardRegistry {
         registerGuildLeaderboards();
 
 
-        // System.out.println("=== All the leaderboards ===");
-        // LEADERBOARDS.keySet().stream()
-        // .sorted()
-        // .forEach(System.out::println);
-        // System.out.println("Total leaderboards: " + LEADERBOARDS.size());
+        System.out.println("=== All the leaderboards ===");
+        LEADERBOARDS.keySet().stream()
+        .sorted()
+        .forEach(System.out::println);
+        System.out.println("Total leaderboards: " + LEADERBOARDS.size());
     }
 
     private static void registerBlitzLeaderboards() {
@@ -428,6 +560,45 @@ public class LeaderboardRegistry {
                 sw -> JsonUtil.getNullableDouble(sw.get("kills_lab"))
                         / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_lab")), 1));
         new Leaderboard("SKYWARS_LUCKY_BLOCK_WINS", SKYWARS, sw -> sw.get("lab_win_lucky_blocks_lab").getAsInt());
+
+        // over 75,000 XP
+        new Leaderboard("SKYWARS_KIT_PRESTIGE_SEVENS", SKYWARS, sw -> {
+            int prestigeSevens = 0;
+            for (Map.Entry<String, Map<String, String>> modeEntry : SKYWARS_KITS.entrySet()) {
+                Map<String, String> kits = modeEntry.getValue();
+                for (String kitKey : kits.keySet()) {
+                    if (JsonUtil.getNullableInt(sw.get("xp_" + kitKey)) > 75_000) {
+                        prestigeSevens++;
+                    }
+                }
+            }
+            return prestigeSevens;
+        }, -1);
+
+        for (Map.Entry<String, Map<String, String>> modeEntry : SKYWARS_KITS.entrySet()) {
+                String mode = modeEntry.getKey();
+                Map<String, String> kits = modeEntry.getValue();
+                
+                for (Map.Entry<String, String> kitEntry : kits.entrySet()) {
+                String kitKey = kitEntry.getKey();
+                String kitName = kitEntry.getValue();
+                
+                new Leaderboard("SKYWARS_" + mode + "_KIT_" + kitName.toUpperCase().replace(" ", "_") + "_WINS", 
+                        SKYWARS, 
+                        sw -> JsonUtil.getNullableInt(sw.get("wins_" + kitKey)),
+                        -1, KIT_CAP);
+                        
+                new Leaderboard("SKYWARS_" + mode + "_KIT_" + kitName.toUpperCase().replace(" ", "_") + "_KILLS", 
+                        SKYWARS, 
+                        sw -> JsonUtil.getNullableInt(sw.get("kills_" + kitKey)),
+                        -1, KIT_CAP);
+                        
+                new Leaderboard("SKYWARS_" + mode + "_KIT_" + kitName.toUpperCase().replace(" ", "_") + "_XP", 
+                        SKYWARS, 
+                        sw -> JsonUtil.getNullableInt(sw.get("xp_" + kitKey)),
+                        -1, KIT_CAP);
+                }
+        }
     }
 
     private static void registerPitLeaderboards() {
