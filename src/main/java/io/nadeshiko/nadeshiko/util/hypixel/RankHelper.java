@@ -224,7 +224,8 @@ public class RankHelper {
 	public enum Rank {
 		ADMIN("§c[ADMIN]", "§c"),
 		GAME_MASTER("§2[GM]", "§2"),
-		YOUTUBER("§c[§fYOUTUBE§c]", "§c");
+		YOUTUBER("§c[§fYOUTUBE§c]", "§c"),
+		STAFF("§c[§6ዞ§c]", "§c");
 
 		final String formattedTag;
 		final String nameColor;
