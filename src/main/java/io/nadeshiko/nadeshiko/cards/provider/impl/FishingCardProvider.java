@@ -256,8 +256,8 @@ public class FishingCardProvider extends CardProvider {
         g.setFont(this.mediumBold);
 
         drawModeStats(g, "Water", fsStats.waterFish, fsStats.waterTreasure, fsStats.waterJunk, fsStats.waterTotal, 627+223-11, 330);
-		drawModeStats(g, "Ice", fsStats.iceFish, fsStats.iceTreasure, fsStats.iceJunk, fsStats.iceTotal, 914+223-11, 330);
-		drawModeStats(g, "Lava", fsStats.lavaFish, fsStats.lavaTreasure, fsStats.lavaJunk, fsStats.lavaTotal, 1201+223-11, 330);
+		drawModeStats(g, "Lava", fsStats.lavaFish, fsStats.lavaTreasure, fsStats.lavaJunk, fsStats.lavaTotal, 914+223-11, 330);
+		drawModeStats(g, "Ice", fsStats.iceFish, fsStats.iceTreasure, fsStats.iceJunk, fsStats.iceTotal, 1201+223-11, 330);
 	}
 
 	private void generateTiny(BufferedImage image, JsonObject stats) {
