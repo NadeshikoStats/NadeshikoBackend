@@ -23,6 +23,7 @@ public enum CardGame {
 	BEDWARS(BedwarsCardProvider.class),
 	BUILD_BATTLE(BuildBattleCardProvider.class),
 	DUELS(DuelsCardProvider.class),
+	FISHING(FishingCardProvider.class),
 	NETWORK(NetworkCardProvider.class),
 	SKYBLOCK_GENERAL(SkyBlockGeneralCardProvider.class),
 	SKYBLOCK_DUNGEONS(SkyblockDungeonsCardProvider.class),

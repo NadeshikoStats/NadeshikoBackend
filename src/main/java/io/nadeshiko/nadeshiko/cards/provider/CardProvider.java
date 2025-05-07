@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.awt.Font;
 
 @Getter
 public abstract class CardProvider {
@@ -36,6 +37,7 @@ public abstract class CardProvider {
 	protected final Font smallBold = new Font("Inter Medium", Font.BOLD, 18);
 	protected final Font mediumLight = new Font("Inter Medium", Font.PLAIN, 20);
 	protected final Font mediumBold = new Font("Inter Medium", Font.BOLD, 20);
+	protected final Font hugeBold = new Font("Inter Medium", Font.BOLD, 38);
 
 	public CardProvider(CardGame game) {
 		try (InputStream stream = CardProvider.class.getResourceAsStream("/cards/templates/colors.json")) {
@@ -77,6 +79,41 @@ public abstract class CardProvider {
 		g.fillRoundRect(x, y, (int) (progress * maxWidth), height, height, height);
 
 		g.setColor(originalColor);
+	}
+
+	protected void drawTabularString(Graphics2D g, String str, int x, int y) {
+		g.drawString(convertToTabularDigits(str), x, y);
+	}
+	
+	protected String convertToTabularDigits(String str) {
+		StringBuilder tabularStr = new StringBuilder();
+		for (char c : str.toCharArray()) {
+			if (c >= '0' && c <= '9') {
+				// Convert to tabular digits (U+e071 to U+e07a)
+				tabularStr.append((char) (0xe071 + (c - '0')));
+			} else {
+				tabularStr.append(c);
+			}
+		}
+		return tabularStr.toString();
+	}
+	
+	protected void drawRightAlignedString(Graphics2D g, String str, int x, int y, boolean tabular) {
+		String renderStr = tabular ? convertToTabularDigits(str) : str;
+		FontMetrics metrics = g.getFontMetrics();
+		int stringWidth = metrics.stringWidth(renderStr);
+		int newX = x - stringWidth;
+		
+		g.drawString(renderStr, newX, y);
+	}
+	
+	protected void drawCenterAlignedString(Graphics2D g, String str, int x, int y, boolean tabular) {
+		String renderStr = tabular ? convertToTabularDigits(str) : str;
+		FontMetrics metrics = g.getFontMetrics();
+		int stringWidth = metrics.stringWidth(renderStr);
+		int newX = x - stringWidth / 2;
+		
+		g.drawString(renderStr, newX, y);
 	}
 
 	public abstract void generate(BufferedImage image, JsonObject data, JsonObject stats);

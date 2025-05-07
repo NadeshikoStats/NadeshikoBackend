@@ -559,8 +559,29 @@ public class LeaderboardRegistry {
         new Leaderboard("SKYWARS_LAB_KDR", SKYWARS,
                 sw -> JsonUtil.getNullableDouble(sw.get("kills_lab"))
                         / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_lab")), 1));
-        new Leaderboard("SKYWARS_LUCKY_BLOCK_WINS", SKYWARS, sw -> sw.get("lab_win_lucky_blocks_lab").getAsInt());
+        
+        new Leaderboard("SKYWARS_LAB_SOLO_WINS", SKYWARS, sw -> sw.get("wins_lab_solo").getAsInt());
+        new Leaderboard("SKYWARS_LAB_SOLO_WLR", SKYWARS,
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_lab_solo"))
+                        / Math.max(JsonUtil.getNullableDouble(sw.get("losses_lab_solo")), 1));
+        new Leaderboard("SKYWARS_LAB_SOLO_KILLS", SKYWARS, sw -> sw.get("kills_lab_solo").getAsInt());
+        new Leaderboard("SKYWARS_LAB_SOLO_KDR", SKYWARS,
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_lab_solo"))
+                        / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_lab_solo")), 1));
 
+        new Leaderboard("SKYWARS_LAB_TEAM_WINS", SKYWARS, sw -> sw.get("wins_lab_team").getAsInt());
+        new Leaderboard("SKYWARS_LAB_TEAM_WLR", SKYWARS,
+                sw -> JsonUtil.getNullableDouble(sw.get("wins_lab_team"))
+                        / Math.max(JsonUtil.getNullableDouble(sw.get("losses_lab_team")), 1));
+        new Leaderboard("SKYWARS_LAB_TEAM_KILLS", SKYWARS, sw -> sw.get("kills_lab_team").getAsInt());
+        new Leaderboard("SKYWARS_LAB_TEAM_KDR", SKYWARS,
+                sw -> JsonUtil.getNullableDouble(sw.get("kills_lab_team"))
+                        / Math.max(JsonUtil.getNullableDouble(sw.get("deaths_lab_team")), 1));
+        
+        new Leaderboard("SKYWARS_LUCKY_BLOCK_WINS", SKYWARS, sw -> sw.get("lab_win_lucky_blocks_lab").getAsInt());
+        new Leaderboard("SKYWARS_LUCKY_BLOCK_SOLO_WINS", SKYWARS, sw -> sw.get("lab_win_lucky_blocks_lab_solo").getAsInt());
+        new Leaderboard("SKYWARS_LUCKY_BLOCK_TEAM_WINS", SKYWARS, sw -> sw.get("lab_win_lucky_blocks_lab_team").getAsInt());
+        
         // over 75,000 XP
         new Leaderboard("SKYWARS_KIT_PRESTIGE_SEVENS", SKYWARS, sw -> {
             int prestigeSevens = 0;

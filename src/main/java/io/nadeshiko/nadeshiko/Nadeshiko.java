@@ -50,7 +50,7 @@ public class Nadeshiko {
 	/**
 	 * nadeshiko version number
 	 */
-	public static String VERSION = "1.3.4";
+	public static String VERSION = "1.4.0";
 
 	/**
 	 * Setting fallbacks (if missing from config.json)
