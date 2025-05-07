@@ -200,7 +200,7 @@ public class FishingCardProvider extends CardProvider {
 		overallFish = iceFish + waterFish + lavaFish;
 		overallTreasure = iceTreasure + waterTreasure + lavaTreasure;
 		overallJunk = iceJunk + waterJunk + lavaJunk;
-		overallTotal = overallFish + overallTreasure + overallJunk;
+		overallTotal = overallFish + overallTreasure + overallJunk + specialFish + mythicalFish;
 
 		return new FishingStats(specialFish, mythicalFish, iceFish, iceTreasure, iceJunk, iceTotal,
 			waterFish, waterTreasure, waterJunk, waterTotal, lavaFish, lavaTreasure, lavaJunk, lavaTotal,
