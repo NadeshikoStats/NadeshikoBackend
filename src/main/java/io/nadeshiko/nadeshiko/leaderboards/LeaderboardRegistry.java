@@ -50,6 +50,7 @@ import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.MEGA_WALLS
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.SMASH_HEROES;
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.ACHIEVEMENTS;
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.REWARDS;
+import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.HOUSING;
 import static io.nadeshiko.nadeshiko.leaderboards.LeaderboardCategory.GUILDS;
 
 public class LeaderboardRegistry {
@@ -268,13 +269,13 @@ public class LeaderboardRegistry {
         registerFishingLeaderboards();
         registerBlitzLeaderboards();
         registerGuildLeaderboards();
+        registerHousingLeaderboards();
 
-
-        System.out.println("=== All the leaderboards ===");
-        LEADERBOARDS.keySet().stream()
-        .sorted()
-        .forEach(System.out::println);
-        System.out.println("Total leaderboards: " + LEADERBOARDS.size());
+        // System.out.println("=== All the leaderboards ===");
+        // LEADERBOARDS.keySet().stream()
+        // .sorted()
+        // .forEach(System.out::println);
+        // System.out.println("Total leaderboards: " + LEADERBOARDS.size());
     }
 
     private static void registerBlitzLeaderboards() {
@@ -1310,5 +1311,9 @@ public class LeaderboardRegistry {
     private static void registerGuildLeaderboards() {
         // Guild Level
         addToLookup(new Leaderboard("GUILD_LEVEL", GUILDS, guild -> guild.get("level").getAsDouble(), -1, MASSIVE_CAP));
+    }
+
+    private static void registerHousingLeaderboards() {
+        new Leaderboard("HOUSING_COOKIE_PACKS_GIVEN", HOUSING, housing -> housing.get("cookie_packs_given").getAsInt());
     }
 }

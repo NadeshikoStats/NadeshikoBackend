@@ -54,6 +54,7 @@ public enum LeaderboardCategory {
     FISHING(data -> getStats(data).getAsJsonObject("MainLobby").getAsJsonObject("fishing")),
     ACHIEVEMENTS(data -> data.getAsJsonObject("achievements")),
     REWARDS(data -> data.getAsJsonObject("rewards")),
+    HOUSING(data -> data.getAsJsonObject("housing")),
     GUILDS(data -> data); // it's already the root object
 
 

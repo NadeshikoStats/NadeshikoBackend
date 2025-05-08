@@ -20,6 +20,7 @@
   "stats": {},
   "achievements": {},
   "rewards": {},
+  "housing": {},
   "rankings": []
 }
 ```

@@ -215,6 +215,23 @@ public class StatsBuilder {
 			}
 
 			response.add("rewards", rewards);
+
+			// add housing data
+			JsonObject housing = new JsonObject();
+			if (hypixelStats.has("housingMeta")) {
+				int cookiePacksGiven = 0;
+				// get all keys [arrays] starting with "given_cookies_", add length of each array to cookie_packs_given
+				for (Map.Entry<String, JsonElement> entry : hypixelStats.get("housingMeta").getAsJsonObject().entrySet()) {
+					if (entry.getKey().startsWith("given_cookies_")) {
+						cookiePacksGiven += entry.getValue().getAsJsonArray().size();
+					}
+				}
+				housing.addProperty("cookie_packs_given", cookiePacksGiven);
+			} else {
+				housing.addProperty("cookie_packs_given", 0);
+			}
+
+			response.add("housing", housing);
 		}
 
 		return response;
