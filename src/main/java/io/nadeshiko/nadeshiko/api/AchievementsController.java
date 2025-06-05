@@ -61,7 +61,7 @@ public class AchievementsController {
 		}
 
 		// Update the global cache if needed
-	    if (System.currentTimeMillis() - lastCacheTime > 1000 * 60 * 60) {
+	    if (System.currentTimeMillis() - lastCacheTime > 1000 * 60 * 15) {
 		    globalAchievements = JsonParser.parseString(HTTPUtil.
 			    get("https://api.hypixel.net/v2/resources/achievements").response()).getAsJsonObject();
 		    Nadeshiko.logger.info("Fetched and updated global achievements data from Hypixel!");

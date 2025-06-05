@@ -139,7 +139,7 @@ public class LeaderboardRegistry {
                 Map.entry("kit_supporting_team_armorsmith", "Armorsmith"),
                 Map.entry("kit_defending_team_baseball-player", "Baseball Player"),
                 Map.entry("kit_mining_team_cannoneer", "Cannoneer"),
-                Map.entry("kit_attacking_team_default", "Default"),
+                Map.entry("kit_mining_team_default", "Default"),
                 Map.entry("kit_supporting_team_ecologist", "Ecologist"),
                 Map.entry("kit_supporting_team_enchanter", "Enchanter"),
                 Map.entry("kit_attacking_team_enderman", "Enderman"),
@@ -271,11 +271,11 @@ public class LeaderboardRegistry {
         registerGuildLeaderboards();
         registerHousingLeaderboards();
 
-        // System.out.println("=== All the leaderboards ===");
-        // LEADERBOARDS.keySet().stream()
-        // .sorted()
-        // .forEach(System.out::println);
-        // System.out.println("Total leaderboards: " + LEADERBOARDS.size());
+        System.out.println("=== All the leaderboards ===");
+        LEADERBOARDS.keySet().stream()
+        .sorted()
+        .forEach(System.out::println);
+        System.out.println("Total leaderboards: " + LEADERBOARDS.size());
     }
 
     private static void registerBlitzLeaderboards() {
@@ -1151,7 +1151,7 @@ public class LeaderboardRegistry {
         new Leaderboard("WARLORDS_WINS", WARLORDS, wl -> wl.get("wins").getAsInt(), -1, MASSIVE_CAP);
         new Leaderboard("WARLORDS_WLR", WARLORDS,
                 wl -> JsonUtil.getNullableDouble(wl.get("wins")) / Math.max(1,
-                        JsonUtil.getNullableDouble(wl.get("mage_plays"))
+                                  JsonUtil.getNullableDouble(wl.get("mage_plays"))
                                 + JsonUtil.getNullableDouble(wl.get("warrior_plays"))
                                 + JsonUtil.getNullableDouble(wl.get("paladin_plays"))
                                 + JsonUtil.getNullableDouble(wl.get("shaman_plays"))
