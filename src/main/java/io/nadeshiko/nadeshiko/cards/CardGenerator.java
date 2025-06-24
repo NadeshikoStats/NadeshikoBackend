@@ -51,7 +51,16 @@ public class CardGenerator {
 	public byte[] generateCard(CardGame game, JsonObject data) throws Exception {
 
 		String name = data.get("name").getAsString();
-		String badge = Nadeshiko.INSTANCE.getStatsCache().get(name, true).get("badge").getAsString();
+		JsonObject statsResponse = Nadeshiko.INSTANCE.getStatsCache().get(name, true);
+
+		// Cards for invalid usernames
+		if (!statsResponse.get("success").getAsBoolean()) {
+			if (statsResponse.has("cause") && statsResponse.get("cause").getAsString().contains("No player by the name")) {
+				return this.generatePlayerNotFoundCard(name);
+			}
+		}
+
+		String badge = statsResponse.get("badge").getAsString();
 		boolean hasBadge = !badge.isEmpty() && !badge.equals("NONE");
 
 		BufferedImage card;
@@ -121,8 +130,6 @@ public class CardGenerator {
 			}
 		}
 
-		// Fetch the player's stats
-		JsonObject statsResponse = Nadeshiko.INSTANCE.getStatsCache().get(name, true);
 		JsonObject profileObject = statsResponse.has("profile") && !statsResponse.get("profile").isJsonNull()
 				? statsResponse.getAsJsonObject("profile")
 				: null;
@@ -245,6 +252,56 @@ public class CardGenerator {
 			provider.generate(card, data, statsResponse);
 		}
 
+		return ImageUtil.getBytesFromImage(card);
+	}
+
+	private byte[] generatePlayerNotFoundCard(String name) throws Exception {
+		// The text to be drawn
+		String line1 = "⚠ No player by the name of \"" + name + "\" was found.";
+		String line2Part1 = "Change this card's username or use a UUID → ";
+		String line2Part2 = "nadeshiko.io";
+		String line2 = line2Part1 + line2Part2;
+
+		BufferedImage DUMMY_IMG = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = DUMMY_IMG.createGraphics();
+		g2d.setFont(new Font("Inter Medium", Font.PLAIN, 14));
+		FontMetrics fm = g2d.getFontMetrics();
+		int width = Math.max(fm.stringWidth(line1), fm.stringWidth(line2)) + 40; // padding
+		g2d.dispose();
+
+		int height = 80;
+
+		BufferedImage card = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = card.createGraphics();
+		g.setColor(new Color(0, 0, 0));
+		g.fillRect(0, 0, width, height);
+
+		g.setFont(new Font("Inter Medium", Font.PLAIN, 14));
+
+		// anti aliasing
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+
+		// center text
+		FontMetrics metrics = g.getFontMetrics();
+		g.setColor(new Color(255, 0, 0));
+		g.drawString(line1, (width - metrics.stringWidth(line1)) / 2, (height - metrics.getHeight()) / 2 + metrics.getAscent() - 8);
+		
+
+		// all this is needed because nadeshiko.io needs to be rendered in white
+		int line2Y = (height - metrics.getHeight()) / 2 + metrics.getAscent() + 12;
+		int line2Part1Width = metrics.stringWidth(line2Part1);
+		int totalWidthLine2 = metrics.stringWidth(line2);
+		int line2StartX = (width - totalWidthLine2) / 2;
+		g.drawString(line2Part1, line2StartX, line2Y);
+
+		g.setColor(new Color(255, 255, 255));
+		g.drawString(line2Part2, line2StartX + line2Part1Width, line2Y);
+
+		g.dispose();
 		return ImageUtil.getBytesFromImage(card);
 	}
 
