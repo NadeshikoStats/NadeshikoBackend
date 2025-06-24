@@ -23,6 +23,8 @@ import lombok.NonNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Locale;
 import java.util.function.Function;
 
 public class BuildBattleCardProvider extends CardProvider {
@@ -35,7 +37,7 @@ public class BuildBattleCardProvider extends CardProvider {
 	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
 		// Get the size from the data object
 		CardGame.CardSize size = CardGame.CardSize.FULL; // Default to FULL
-				
+
 		if (data.has("size")) {
 			try {
 				String sizeStr = data.get("size").getAsString().toUpperCase();
@@ -50,11 +52,143 @@ public class BuildBattleCardProvider extends CardProvider {
 			case TINY:
 				generateTiny(image, stats);
 				break;
+			case FORUMS:
+				generateForums(image, stats);
+				break;
 			case FULL:
 			default:
 				generateFull(image, stats);
 				break;
 		}
+	}
+
+	private void generateForums(BufferedImage image, JsonObject stats) {
+		Graphics2D g = (Graphics2D) image.getGraphics();
+		JsonObject buildBattle = stats.has("stats") && !stats.get("stats").isJsonNull()
+				? stats.getAsJsonObject("stats").has("BuildBattle")
+						&& !stats.getAsJsonObject("stats").get("BuildBattle").isJsonNull()
+								? stats.getAsJsonObject("stats").getAsJsonObject("BuildBattle")
+								: new JsonObject()
+				: new JsonObject();
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		int wins = buildBattle.get("wins").getAsInt();
+		int gamesPlayed = buildBattle.get("games_played").getAsInt();
+		int losses = gamesPlayed - wins;
+		int score = buildBattle.get("score").getAsInt();
+		int votes = buildBattle.has("total_votes") ? buildBattle.get("total_votes").getAsInt() : 0;
+		int coins = buildBattle.get("coins").getAsInt();
+		int highestScore = stats.getAsJsonObject("achievements").get("buildbattle_build_battle_points").getAsInt();
+
+		// Draw title
+		g.setColor(Color.WHITE);
+		MinecraftRenderer.drawMinecraftString(g, Title.get(score).format(score), 730,
+				CardGame.CardSize.ForumsConstants.TITLE_POSITION_Y, 30);
+
+		// Set up the stat font
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Inter Bold", Font.BOLD, 34));
+
+		// Draw W/L ratio
+		String wlr = losses > 0 ? (Math.round((wins / (double) losses) * 100) / 100d) + "" : "0";
+		this.drawCenterAlignedString(g, wlr, 550, 132, false);
+		this.drawProgress(g,
+				479,
+				143, CardGame.CardSize.ForumsConstants.PROGRESS_WIDTH,
+				CardGame.CardSize.ForumsConstants.PROGRESS_HEIGHT,
+				gamesPlayed > 0 ? wins / (double) gamesPlayed : 0);
+
+		drawStat(g, DrawStatOptions.builder().label("Wins").value(String.format("%,d", wins))
+				.x(548).y(212)
+				.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).centered(true)
+				.fontSize(20).build());
+
+		// bottom box stats
+		drawStat(g,
+				DrawStatOptions.builder().label("Score").value(String.format("%,d", score))
+						.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X)
+						.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_Y)
+						.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		drawStat(g,
+				DrawStatOptions.builder().label("Votes").value(String.format("%,d", votes))
+						.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_X)
+						.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_Y)
+						.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		drawStat(g,
+				DrawStatOptions.builder().label("Highest Score").value(String.format("%,d", highestScore))
+						.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_X
+								+ (CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_X
+										- CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X))
+						.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_Y)
+						.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		drawStat(g,
+				DrawStatOptions.builder().label("Tokens").value(String.format("%,d", coins))
+						.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_X
+								+ (CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_X
+										- CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X) * 2)
+						.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_Y)
+						.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+		// Draw top modes
+		final int FIRST_ROW_Y = 120;
+		final int SECOND_ROW_Y = 227;
+
+		final int FIRST_COLUMN_X = 683;
+		final int SECOND_COLUMN_X = 953;
+		final int THIRD_COLUMN_X = 1223;
+		final int SPEED_COLUMN_X = 1088;
+
+		this.drawStat(g, DrawStatOptions.builder()
+				.label("Wins")
+				.value(String.format("%,d",
+						buildBattle.has("wins_" + Mode.SOLO.getApiName())
+								? buildBattle.get("wins_" + Mode.SOLO.getApiName()).getAsInt()
+								: 0))
+				.x(FIRST_COLUMN_X)
+				.y(FIRST_ROW_Y)
+				.build());
+
+		this.drawStat(g, DrawStatOptions.builder()
+				.label("Wins")
+				.value(String.format("%,d",
+						buildBattle.has("wins_" + Mode.TEAM.getApiName())
+								? buildBattle.get("wins_" + Mode.TEAM.getApiName()).getAsInt()
+								: 0))
+				.x(SECOND_COLUMN_X)
+				.y(FIRST_ROW_Y)
+				.build());
+
+		this.drawStat(g, DrawStatOptions.builder()
+				.label("Wins")
+				.value(String.format("%,d",
+						buildBattle.has("wins_" + Mode.PRO.getApiName())
+								? buildBattle.get("wins_" + Mode.PRO.getApiName()).getAsInt()
+								: 0))
+				.x(THIRD_COLUMN_X)
+				.y(FIRST_ROW_Y)
+				.build());
+
+		this.drawStat(g, DrawStatOptions.builder()
+				.label("Wins")
+				.value(String.format("%,d",
+						buildBattle.has("wins_" + Mode.GTB.getApiName())
+								? buildBattle.get("wins_" + Mode.GTB.getApiName()).getAsInt()
+								: 0))
+				.x(FIRST_COLUMN_X)
+				.y(SECOND_ROW_Y)
+				.build());
+
+		this.drawStat(g, DrawStatOptions.builder()
+				.label("Wins")
+				.value(String.format("%,d",
+						buildBattle.has("wins_" + Mode.SPEED_BUILDERS.getApiName())
+								? buildBattle.get("wins_" + Mode.SPEED_BUILDERS.getApiName()).getAsInt()
+								: 0))
+				.x(SPEED_COLUMN_X)
+				.y(SECOND_ROW_Y)
+				.build());
 	}
 
 	private void generateFull(BufferedImage image, JsonObject stats) {
@@ -86,7 +220,7 @@ public class BuildBattleCardProvider extends CardProvider {
 
 		// Draw stats
 		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
+		g.setFont(plain18);
 
 		int scoreWidth = g.getFontMetrics().stringWidth("Score");
 		int winsWidth = g.getFontMetrics().stringWidth("Wins");
@@ -101,7 +235,7 @@ public class BuildBattleCardProvider extends CardProvider {
 		g.drawString("Highest Score", 1175, 170);
 
 		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
+		g.setFont(bold18);
 
 		g.drawString(String.format("%,d", score), 950 + scoreWidth + 10, 140);
 		g.drawString(String.format("%,d", wins), 950 + winsWidth + 10, 170);
@@ -146,7 +280,7 @@ public class BuildBattleCardProvider extends CardProvider {
 
 		// Draw stats
 		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
+		g.setFont(plain18);
 
 		int scoreWidth = g.getFontMetrics().stringWidth("Score");
 		int winsWidth = g.getFontMetrics().stringWidth("Wins");
@@ -161,7 +295,7 @@ public class BuildBattleCardProvider extends CardProvider {
 		g.drawString("Highest Score", 1025, 133);
 
 		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
+		g.setFont(bold18);
 
 		g.drawString(String.format("%,d", score), 800 + scoreWidth + 10, 100);
 		g.drawString(String.format("%,d", wins), 800 + winsWidth + 10, 133);
@@ -174,22 +308,21 @@ public class BuildBattleCardProvider extends CardProvider {
 
 		int wins = 0;
 
-		if (stats.has( "wins_" + mode.getApiName())) {
+		if (stats.has("wins_" + mode.getApiName())) {
 			wins = stats.get("wins_" + mode.getApiName()).getAsInt();
 		}
-
 
 		// Set up the stat font
 		g.setFont(new Font("Inter Bold", Font.BOLD, 24));
 
 		// Draw wins
-		int winsWidth = g.getFontMetrics(smallLight).stringWidth("Wins  ");
+		int winsWidth = g.getFontMetrics(plain18).stringWidth("Wins  ");
 
 		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
+		g.setFont(plain18);
 		g.drawString("Wins", baseX, baseY);
 		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
+		g.setFont(bold18);
 		g.drawString(String.format("%,d", wins), baseX + winsWidth, baseY);
 	}
 
@@ -237,7 +370,9 @@ public class BuildBattleCardProvider extends CardProvider {
 		}
 
 		/**
-		 * Get the title a given score belongs to by iterating over titles until the requirement is not met
+		 * Get the title a given score belongs to by iterating over titles until the
+		 * requirement is not met
+		 * 
 		 * @param score The total score to analyze
 		 * @return The title that the given score belongs to
 		 */

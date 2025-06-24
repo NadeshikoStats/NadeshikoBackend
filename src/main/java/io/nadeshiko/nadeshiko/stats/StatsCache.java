@@ -85,6 +85,14 @@ public class StatsCache extends Cache<String, StatsCache.CacheEntry> {
 	}
 
 	/**
+	 * Invalidates a player's entry from the cache.
+	 * @param name The name to invalidate
+	 */
+	public void invalidate(@NonNull String name) {
+		this.cache.remove(name.toLowerCase());
+	}
+
+	/**
 	 * An entry within the cache, mapped to in {@link StatsCache#cache} using player names as keys. Stores the time
 	 * the entry was generated at, along with the data itself.
 	 */

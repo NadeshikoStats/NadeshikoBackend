@@ -52,26 +52,28 @@ public class SkyBlockCache extends Cache<String, SkyBlockCache.CacheEntry> {
 	 * the cached response is over five minutes old, generate a new response, update the cache, and return
 	 * that instead.
 	 *
-	 * @param name The name of the player to look up
+	 * @param uuid The UUID of the player to look up
 	 * @param profile The optional profile ID to use. If none is provided, the player's current profile is used.
 	 * @return The response for the given player
 	 */
-	public JsonObject get(@NonNull String name, String profile) {
+	public JsonObject get(@NonNull String uuid, String profile) {
 
 		// Take this opportunity to remove all outdated cache entries to save memory
 		this.cache.entrySet().removeIf(entry -> entry.getValue().isExpired());
 
+		String cacheKey = uuid.toLowerCase() + "/" + profile;
+
 		// If the player/profile combo is already in the cache, and the cache isn't outdated, use that instead
-		if (this.cache.containsKey(name.toLowerCase() + "/" + profile)) { // names are case-insensitive
-			return this.cache.get(name.toLowerCase() + "/" + profile).data;
+		if (this.cache.containsKey(cacheKey)) {
+			return this.cache.get(cacheKey).data;
 		}
 
 		// The player either isn't in the cache, or the cache is outdated. Build a new response
-		final JsonObject data = this.builder.build(name, profile);
+		final JsonObject data = this.builder.build(uuid, profile);
 
 		// Only cache the response if it was successful
 		if (data.get("success").getAsBoolean()) {
-			this.cache.put(data.get("name").getAsString().toLowerCase() + "/" + profile, new CacheEntry(data));
+			this.cache.put(cacheKey, new CacheEntry(data));
 		}
 
 		return data;

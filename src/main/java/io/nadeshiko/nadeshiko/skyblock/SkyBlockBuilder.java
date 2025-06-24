@@ -44,13 +44,19 @@ public class SkyBlockBuilder {
 		response.addProperty("success", true);
 
 		try {
-			// Get the player's profile data using StatsBuilder
-			JsonObject statsResponse = Nadeshiko.INSTANCE.getStatsCache().get(uuid, true);
-			if (!statsResponse.get("success").getAsBoolean()) {
-				return error(statsResponse.get("cause").getAsString());
+			// Get the player's name from UUID
+			HTTPUtil.Response playerDbResponse = HTTPUtil.get("https://playerdb.co/api/player/minecraft/" + uuid);
+			if (playerDbResponse.status() != 200) {
+				return error("Failed to fetch from PlayerDB");
 			}
-			response.add("profile", statsResponse.getAsJsonObject("profile"));
-			response.addProperty("name", statsResponse.get("name").getAsString());
+			JsonObject minecraftProfile = JsonParser.parseString(playerDbResponse.response()).getAsJsonObject();
+
+			if (minecraftProfile == null || !minecraftProfile.has("data") ||
+				minecraftProfile.get("code").getAsString().equals("minecraft.invalid_username")) {
+				return error("Could not find player with UUID " + uuid);
+			}
+			String name = minecraftProfile.getAsJsonObject("data").getAsJsonObject("player").get("username").getAsString();
+			response.addProperty("name", name);
 
 			// Format UUID for Hypixel API (remove dashes)
 			String formattedUuid = uuid.replace("-", "");

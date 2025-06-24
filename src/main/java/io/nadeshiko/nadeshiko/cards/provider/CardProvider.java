@@ -17,7 +17,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.nadeshiko.nadeshiko.Nadeshiko;
 import io.nadeshiko.nadeshiko.cards.CardGame;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NonNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -31,13 +33,29 @@ public abstract class CardProvider {
 
 	private Color color = Color.WHITE;
 
-	protected final Font tinyLight = new Font("Inter Medium", Font.PLAIN, 16);
-	protected final Font tinyBold = new Font("Inter Medium", Font.BOLD, 16);
-	protected final Font smallLight = new Font("Inter Medium", Font.PLAIN, 18);
-	protected final Font smallBold = new Font("Inter Medium", Font.BOLD, 18);
-	protected final Font mediumLight = new Font("Inter Medium", Font.PLAIN, 20);
-	protected final Font mediumBold = new Font("Inter Medium", Font.BOLD, 20);
-	protected final Font hugeBold = new Font("Inter Medium", Font.BOLD, 38);
+	protected final Font plain15 = new Font("Inter Medium", Font.PLAIN, 15);
+	protected final Font bold15 = new Font("Inter Medium", Font.BOLD, 15);
+	protected final Font plain16 = new Font("Inter Medium", Font.PLAIN, 16);
+	protected final Font bold16 = new Font("Inter Medium", Font.BOLD, 16);
+	protected final Font plain18 = new Font("Inter Medium", Font.PLAIN, 18);
+	protected final Font bold18 = new Font("Inter Medium", Font.BOLD, 18);
+	protected final Font plain20 = new Font("Inter Medium", Font.PLAIN, 20);
+	protected final Font bold20 = new Font("Inter Medium", Font.BOLD, 20);
+	protected final Font bold38 = new Font("Inter Medium", Font.BOLD, 38);
+
+	@Builder
+	public static class DrawStatOptions {
+		@NonNull String label;
+		@NonNull String value;
+		int x;
+		int y;
+		@Builder.Default int padding = 10;
+		@Builder.Default Color valueColor = Color.WHITE;
+		Font valueFont;
+		Font labelFont;
+		float fontSize;
+		@Builder.Default boolean centered = false;
+	}
 
 	public CardProvider(CardGame game) {
 		try (InputStream stream = CardProvider.class.getResourceAsStream("/cards/templates/colors.json")) {
@@ -114,6 +132,41 @@ public abstract class CardProvider {
 		int newX = x - stringWidth / 2;
 		
 		g.drawString(renderStr, newX, y);
+	}
+
+	protected void drawStat(Graphics2D g, DrawStatOptions options) {
+		Font fontForValue = options.valueFont != null ? options.valueFont : bold16;
+		Font fontForLabel = options.labelFont != null ? options.labelFont : plain16;
+
+		if (options.fontSize > 0) {
+			fontForValue = fontForValue.deriveFont(options.fontSize);
+			fontForLabel = fontForLabel.deriveFont(options.fontSize);
+		}
+
+		int startX = options.x;
+
+		if (options.centered) {
+			g.setFont(fontForLabel);
+			int labelWidth = g.getFontMetrics().stringWidth(options.label);
+
+			g.setFont(fontForValue);
+			int valueWidth = g.getFontMetrics().stringWidth(options.value);
+
+			int totalWidth = labelWidth + options.padding + valueWidth;
+			startX = options.x - totalWidth / 2;
+		}
+
+		// Draw label
+		g.setColor(new Color(138, 138, 138));
+		g.setFont(fontForLabel);
+		g.drawString(options.label, startX, options.y);
+
+		int labelWidth = g.getFontMetrics().stringWidth(options.label);
+
+		// Draw value
+		g.setColor(options.valueColor);
+		g.setFont(fontForValue);
+		g.drawString(options.value, startX + labelWidth + options.padding, options.y);
 	}
 
 	public abstract void generate(BufferedImage image, JsonObject data, JsonObject stats);

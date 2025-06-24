@@ -16,6 +16,7 @@ package io.nadeshiko.nadeshiko.cards.provider.impl;
 import com.google.gson.JsonObject;
 import io.nadeshiko.nadeshiko.cards.CardGame;
 import io.nadeshiko.nadeshiko.cards.provider.CardProvider;
+import io.nadeshiko.nadeshiko.util.JsonUtil;
 import io.nadeshiko.nadeshiko.util.MinecraftRenderer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -30,15 +31,18 @@ import java.util.function.Function;
 public class BedwarsCardProvider extends CardProvider {
 
 	private record BedwarsStats(
-		int finalKills,
-		int finalDeaths,
-		int wins,
-		int losses,
-		int winstreak,
-		double fkdr,
-		double wlr,
-		boolean hasWinstreak
-	) {}
+			int finalKills,
+			int finalDeaths,
+			int wins,
+			int losses,
+			int winstreak,
+			double fkdr,
+			double wlr,
+			boolean hasWinstreak,
+			int bedsBroken,
+			int slumberTickets,
+			int challengesCompleted) {
+	}
 
 	public BedwarsCardProvider() {
 		super(CardGame.BEDWARS);
@@ -52,14 +56,15 @@ public class BedwarsCardProvider extends CardProvider {
 
 	/**
 	 * Generate a card with the given data and stats
+	 * 
 	 * @param image The image to draw on
-	 * @param data The data object containing parameters like size
+	 * @param data  The data object containing parameters like size
 	 * @param stats The stats object containing player stats
 	 */
 	public void generate(BufferedImage image, JsonObject data, JsonObject stats) {
 		// Get the size from the data object
 		CardGame.CardSize size = CardGame.CardSize.FULL; // Default to FULL
-				
+
 		if (data.has("size")) {
 			try {
 				String sizeStr = data.get("size").getAsString().toUpperCase();
@@ -71,59 +76,46 @@ public class BedwarsCardProvider extends CardProvider {
 
 		// pick a size
 		switch (size) {
-			case TINY:
-				generateTiny(image, stats);
-				break;
-			case FULL:
-			default:
-				generateFull(image, stats);
-				break;
+			case TINY -> generateTiny(image, stats);
+			case FORUMS -> generateForums(image, stats);
+			case FULL -> generateFull(image, stats);
+			default -> generateFull(image, stats);
 		}
 	}
 
 	private BedwarsStats extractStats(JsonObject bedwars) {
-		// Default values in case stats are missing
-		int finalKills = 0;
-		int finalDeaths = 1; // Avoid division by zero
-		int wins = 0;
-		int losses = 1; // Avoid division by zero
-		int winstreak = 0;
-		boolean hasWinstreak = false;
-
 		// Safely extract stats if they exist
-		if (bedwars != null) {
-			if (bedwars.has("final_kills_bedwars") && !bedwars.get("final_kills_bedwars").isJsonNull()) {
-				finalKills = bedwars.get("final_kills_bedwars").getAsInt();
-			}
-			if (bedwars.has("final_deaths_bedwars") && !bedwars.get("final_deaths_bedwars").isJsonNull()) {
-				finalDeaths = Math.max(1, bedwars.get("final_deaths_bedwars").getAsInt()); // Fixes divzero problem
-			}
-			if (bedwars.has("wins_bedwars") && !bedwars.get("wins_bedwars").isJsonNull()) {
-				wins = bedwars.get("wins_bedwars").getAsInt();
-			}
-			if (bedwars.has("losses_bedwars") && !bedwars.get("losses_bedwars").isJsonNull()) {
-				losses = Math.max(1, bedwars.get("losses_bedwars").getAsInt());
-			}
-			if (bedwars.has("winstreak") && !bedwars.get("winstreak").isJsonNull()) {
-				hasWinstreak = true;
-				winstreak = bedwars.get("winstreak").getAsInt();
-			}
+		int finalKills = JsonUtil.getInt(bedwars, "final_kills_bedwars", 0);
+		int finalDeaths = Math.max(1, JsonUtil.getInt(bedwars, "final_deaths_bedwars", 1));
+		int wins = JsonUtil.getInt(bedwars, "wins_bedwars", 0);
+		int losses = Math.max(1, JsonUtil.getInt(bedwars, "losses_bedwars", 1));
+		int winstreak = JsonUtil.getInt(bedwars, "winstreak", 0);
+		int bedsBroken = JsonUtil.getInt(bedwars, "beds_broken_bedwars", 0);
+		int challengesCompleted = JsonUtil.getInt(bedwars, "total_challenges_completed", 0);
+		boolean hasWinstreak = bedwars != null && bedwars.has("winstreak") && !bedwars.get("winstreak").isJsonNull();
+
+		// located in slumber -> tickets
+		int slumberTickets = 0;
+		if (bedwars != null && bedwars.has("slumber") && !bedwars.get("slumber").isJsonNull()) {
+			slumberTickets = JsonUtil.getInt(bedwars.getAsJsonObject("slumber"), "tickets", 0);
 		}
 
 		double fkdr = Math.round((finalKills / (double) finalDeaths) * 100) / 100d;
 		double wlr = Math.round((wins / (double) losses) * 100) / 100d;
 
-		return new BedwarsStats(finalKills, finalDeaths, wins, losses, winstreak, fkdr, wlr, hasWinstreak);
+		return new BedwarsStats(finalKills, finalDeaths, wins, losses, winstreak, fkdr, wlr, hasWinstreak, bedsBroken,
+				slumberTickets, challengesCompleted);
 	}
 
 	private void generateFull(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		// Safely get Bedwars stats, defaulting to empty object if not found
-		JsonObject bedwars = stats.has("stats") && !stats.get("stats").isJsonNull() 
-			? stats.getAsJsonObject("stats").has("Bedwars") && !stats.getAsJsonObject("stats").get("Bedwars").isJsonNull()
-				? stats.getAsJsonObject("stats").getAsJsonObject("Bedwars")
-				: new JsonObject()
-			: new JsonObject();
+		JsonObject bedwars = stats.has("stats") && !stats.get("stats").isJsonNull()
+				? stats.getAsJsonObject("stats").has("Bedwars")
+						&& !stats.getAsJsonObject("stats").get("Bedwars").isJsonNull()
+								? stats.getAsJsonObject("stats").getAsJsonObject("Bedwars")
+								: new JsonObject()
+				: new JsonObject();
 		BedwarsStats bwStats = extractStats(bedwars);
 
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
@@ -137,37 +129,28 @@ public class BedwarsCardProvider extends CardProvider {
 		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
 
 		// Draw final K/D ratio
-		g.drawString(String.valueOf(bwStats.fkdr), 750 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.fkdr)) / 2), 158);
+		g.drawString(String.valueOf(bwStats.fkdr),
+				750 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.fkdr)) / 2), 158);
 		this.drawProgress(g, 664, 173, 177, bwStats.finalKills / (double) (bwStats.finalKills + bwStats.finalDeaths));
 
 		// Draw W/L ratio
-		g.drawString(String.valueOf(bwStats.wlr), 1007 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.wlr)) / 2), 158);
+		g.drawString(String.valueOf(bwStats.wlr),
+				1007 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.wlr)) / 2), 158);
 		this.drawProgress(g, 921, 173, 177, bwStats.wins / (double) (bwStats.wins + bwStats.losses));
 
 		// Draw wins and winstreak
-		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
-
-		int winsWidth = g.getFontMetrics().stringWidth("Wins");
-		int finalsWidth = g.getFontMetrics().stringWidth("Final Kills");
-		int winstreakWidth = g.getFontMetrics().stringWidth("Winstreak");
-
-		g.drawString("Wins", 1175, 140);
-		g.drawString("Final Kills", 1175, 170);
-		g.drawString("Winstreak", 1175, 208);
-
-		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
-		g.drawString(String.format("%,d", bwStats.wins), 1175 + winsWidth + 10, 140);
-		g.drawString(String.format("%,d", bwStats.finalKills), 1175 + finalsWidth + 10, 170);
+		drawStat(g, DrawStatOptions.builder().label("Wins").value(String.format("%,d", bwStats.wins)).x(1175).y(140)
+				.build());
+		drawStat(g, DrawStatOptions.builder().label("Final Kills").value(String.format("%,d", bwStats.finalKills))
+				.x(1175).y(170).build());
 
 		// Winstreaks might be disabled on the API
 		if (bwStats.hasWinstreak) {
-			g.drawString(String.format("%,d", bwStats.winstreak), 1175 + winstreakWidth + 10, 208);
+			drawStat(g, DrawStatOptions.builder().label("Winstreak").value(String.format("%,d", bwStats.winstreak))
+					.x(1175).y(208).build());
 		} else {
-			g.setColor(new Color(138, 138, 138));
-			g.setFont(smallLight);
-			g.drawString("Unknown", 1175 + winstreakWidth + 5, 208);
+			drawStat(g, DrawStatOptions.builder().label("Winstreak").value("Unknown").x(1175).y(208).padding(5)
+					.valueColor(new Color(138, 138, 138)).valueFont(plain18).build());
 		}
 
 		// Draw top modes
@@ -179,11 +162,12 @@ public class BedwarsCardProvider extends CardProvider {
 	private void generateTiny(BufferedImage image, JsonObject stats) {
 		Graphics2D g = (Graphics2D) image.getGraphics();
 		// Safely get Bedwars stats, defaulting to empty object if not found
-		JsonObject bedwars = stats.has("stats") && !stats.get("stats").isJsonNull() 
-			? stats.getAsJsonObject("stats").has("Bedwars") && !stats.getAsJsonObject("stats").get("Bedwars").isJsonNull()
-				? stats.getAsJsonObject("stats").getAsJsonObject("Bedwars")
-				: new JsonObject()
-			: new JsonObject();
+		JsonObject bedwars = stats.has("stats") && !stats.get("stats").isJsonNull()
+				? stats.getAsJsonObject("stats").has("Bedwars")
+						&& !stats.getAsJsonObject("stats").get("Bedwars").isJsonNull()
+								? stats.getAsJsonObject("stats").getAsJsonObject("Bedwars")
+								: new JsonObject()
+				: new JsonObject();
 		BedwarsStats bwStats = extractStats(bedwars);
 
 		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
@@ -197,38 +181,117 @@ public class BedwarsCardProvider extends CardProvider {
 		g.setFont(new Font("Inter Bold", Font.BOLD, 38));
 
 		// Draw final K/D ratio
-		g.drawString(String.valueOf(bwStats.fkdr), 615 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.fkdr)) / 2), 118);
+		g.drawString(String.valueOf(bwStats.fkdr),
+				615 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.fkdr)) / 2), 118);
 		this.drawProgress(g, 534, 133, 177, bwStats.finalKills / (double) (bwStats.finalKills + bwStats.finalDeaths));
 
 		// Draw W/L ratio
-		g.drawString(String.valueOf(bwStats.wlr), 860 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.wlr)) / 2), 118);
+		g.drawString(String.valueOf(bwStats.wlr),
+				860 - (g.getFontMetrics().stringWidth(String.valueOf(bwStats.wlr)) / 2), 118);
 		this.drawProgress(g, 776, 133, 177, bwStats.wins / (double) (bwStats.wins + bwStats.losses));
 
 		// Draw wins and winstreak
-		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
-
-		int winsWidth = g.getFontMetrics().stringWidth("Wins");
-		int finalsWidth = g.getFontMetrics().stringWidth("Final Kills");
-		int winstreakWidth = g.getFontMetrics().stringWidth("Winstreak");
-
-		g.drawString("Wins", 1015, 100);
-		g.drawString("Final Kills", 1015, 125);
-		g.drawString("Winstreak", 1015, 165);
-
-		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
-		g.drawString(String.format("%,d", bwStats.wins), 1015 + winsWidth + 10, 100);
-		g.drawString(String.format("%,d", bwStats.finalKills), 1015 + finalsWidth + 10, 125);
+		drawStat(g, DrawStatOptions.builder().label("Wins").value(String.format("%,d", bwStats.wins)).x(1015).y(100)
+				.build());
+		drawStat(g, DrawStatOptions.builder().label("Final Kills").value(String.format("%,d", bwStats.finalKills))
+				.x(1015).y(125).build());
 
 		// Winstreaks might be disabled on the API
 		if (bwStats.hasWinstreak) {
-			g.drawString(String.format("%,d", bwStats.winstreak), 1015 + winstreakWidth + 10, 165);
+			drawStat(g, DrawStatOptions.builder().label("Winstreak").value(String.format("%,d", bwStats.winstreak))
+					.x(1015).y(165).build());
 		} else {
-			g.setColor(new Color(138, 138, 138));
-			g.setFont(smallLight);
-			g.drawString("Unknown", 1015 + winstreakWidth + 5, 165);
+			drawStat(g, DrawStatOptions.builder().label("Winstreak").value("Unknown").x(1015).y(165).padding(5)
+					.valueColor(new Color(138, 138, 138)).valueFont(plain18).build());
 		}
+	}
+
+	private void generateForums(BufferedImage image, JsonObject stats) {
+
+		Graphics2D g = (Graphics2D) image.getGraphics();
+
+		JsonObject bedwars = stats.has("stats") && !stats.get("stats").isJsonNull()
+				? stats.getAsJsonObject("stats").has("Bedwars")
+						&& !stats.getAsJsonObject("stats").get("Bedwars").isJsonNull()
+								? stats.getAsJsonObject("stats").getAsJsonObject("Bedwars")
+								: new JsonObject()
+				: new JsonObject();
+		BedwarsStats bwStats = extractStats(bedwars);
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		this.drawStar(g, bedwars, 700, CardGame.CardSize.ForumsConstants.TITLE_POSITION_Y, 30);
+
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Inter Bold", Font.BOLD, 34));
+
+		g.drawString(String.valueOf(bwStats.fkdr),
+				CardGame.CardSize.ForumsConstants.FIRST_RATIO_POSITION_X
+						- (g.getFontMetrics().stringWidth(String.valueOf(bwStats.fkdr)) / 2),
+				CardGame.CardSize.ForumsConstants.RATIO_POSITION_Y);
+		this.drawProgress(g, CardGame.CardSize.ForumsConstants.FIRST_PROGRESS_POSITION_X,
+				CardGame.CardSize.ForumsConstants.PROGRESS_POSITION_Y, CardGame.CardSize.ForumsConstants.PROGRESS_WIDTH,
+				CardGame.CardSize.ForumsConstants.PROGRESS_HEIGHT,
+				bwStats.finalKills / (double) (bwStats.finalKills + bwStats.finalDeaths));
+
+		g.drawString(String.valueOf(bwStats.wlr),
+				CardGame.CardSize.ForumsConstants.SECOND_RATIO_POSITION_X
+						- (g.getFontMetrics().stringWidth(String.valueOf(bwStats.wlr)) / 2),
+				CardGame.CardSize.ForumsConstants.RATIO_POSITION_Y);
+		this.drawProgress(g, CardGame.CardSize.ForumsConstants.SECOND_PROGRESS_POSITION_X,
+				CardGame.CardSize.ForumsConstants.PROGRESS_POSITION_Y, CardGame.CardSize.ForumsConstants.PROGRESS_WIDTH,
+				CardGame.CardSize.ForumsConstants.PROGRESS_HEIGHT,
+				bwStats.wins / (double) (bwStats.wins + bwStats.losses));
+
+		drawStat(g, DrawStatOptions.builder().label("Final Kills").value(String.format("%,d", bwStats.finalKills))
+				.x(CardGame.CardSize.ForumsConstants.MAJOR_STAT_1_X).y(CardGame.CardSize.ForumsConstants.MAJOR_STAT_Y)
+				.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).centered(true)
+				.fontSize(20)
+				.build());
+		drawStat(g, DrawStatOptions.builder().label("Wins").value(String.format("%,d", bwStats.wins))
+				.x(CardGame.CardSize.ForumsConstants.MAJOR_STAT_2_X).y(CardGame.CardSize.ForumsConstants.MAJOR_STAT_Y)
+				.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).centered(true)
+				.fontSize(20).build());
+
+		// Winstreaks might be disabled on the API
+		if (bwStats.hasWinstreak) {
+			drawStat(g,
+					DrawStatOptions.builder().label("Winstreak").value(String.format("%,d", bwStats.winstreak))
+							.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X)
+							.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_Y)
+							.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		} else {
+			drawStat(g,
+					DrawStatOptions.builder().label("Winstreak").value("Unknown")
+							.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X)
+							.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_Y)
+							.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET)
+							.valueColor(new Color(138, 138, 138)).build());
+		}
+
+		// other bottom box stats
+		drawStat(g,
+				DrawStatOptions.builder().label("Beds Broken").value(String.format("%,d", bwStats.bedsBroken))
+						.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_X)
+						.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_Y)
+						.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		drawStat(g,
+				DrawStatOptions.builder().label("Slumber Tickets").value(String.format("%,d", bwStats.slumberTickets))
+						.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X)
+						.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_Y)
+						.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		drawStat(g,
+				DrawStatOptions.builder().label("Challenges").value(String.format("%,d", bwStats.challengesCompleted))
+						.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_X)
+						.y(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_2_Y)
+						.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+		// Draw top modes
+		ArrayList<Mode> topModes = this.getTopModes(bedwars);
+		this.drawSideBox(g, topModes.get(0), bedwars, 0);
+		this.drawSideBox(g, topModes.get(1), bedwars, 1);
+
 	}
 
 	private void drawStar(Graphics2D g, JsonObject bedwarsStats, int x, int y, int size) {
@@ -246,25 +309,76 @@ public class BedwarsCardProvider extends CardProvider {
 		MinecraftRenderer.drawMinecraftString(g, prestige.format(star), x, y, size);
 	}
 
+	private void drawSideBox(Graphics2D g, @NonNull Mode mode, @NonNull JsonObject bedwarsStats, int boxNumber) {
+		int finalKills = JsonUtil.getInt(bedwarsStats, mode.getApiName() + "_final_kills_bedwars", 0);
+		int finalDeaths = Math.max(1, JsonUtil.getInt(bedwarsStats, mode.getApiName() + "_final_deaths_bedwars", 1));
+		int wins = JsonUtil.getInt(bedwarsStats, mode.getApiName() + "_wins_bedwars", 0);
+		int losses = Math.max(1, JsonUtil.getInt(bedwarsStats, mode.getApiName() + "_losses_bedwars", 1));
+
+	
+		g.setColor(Color.WHITE);
+		g.setFont(new Font("Inter Medium", Font.BOLD, 20));
+
+		int nameWidth = g.getFontMetrics().stringWidth(mode.getDisplayName().toUpperCase());
+		g.drawString(mode.getDisplayName().toUpperCase(Locale.ROOT), CardGame.CardSize.ForumsConstants.SIDE_BOX_TITLE_X,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_TITLE_Y
+						+ boxNumber * CardGame.CardSize.ForumsConstants.SIDE_BOX_SECOND_BOX_DIFFERENCE_Y);
+
+		g.setColor(this.getColor());
+		g.fillRect(CardGame.CardSize.ForumsConstants.SIDE_BOX_TITLE_X + nameWidth + 15,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_TITLE_Y
+						+ boxNumber * CardGame.CardSize.ForumsConstants.SIDE_BOX_SECOND_BOX_DIFFERENCE_Y - 10,
+				450 - nameWidth - 15, 2);
+		g.setColor(Color.WHITE);
+
+		g.setFont(new Font("Inter Bold", Font.BOLD, 24));
+
+		String fkdr = (Math.round((finalKills / (double) finalDeaths) * 100) / 100d) + "";
+		this.drawCenterAlignedString(g, fkdr, CardGame.CardSize.ForumsConstants.SIDE_BOX_LABEL_1_X,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_LABEL_Y
+						+ boxNumber * CardGame.CardSize.ForumsConstants.SIDE_BOX_SECOND_BOX_DIFFERENCE_Y,
+				false);
+		this.drawProgress(g, CardGame.CardSize.ForumsConstants.SIDE_BOX_PROGRESS_1_X,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_PROGRESS_Y
+						+ boxNumber * CardGame.CardSize.ForumsConstants.SIDE_BOX_SECOND_BOX_DIFFERENCE_Y,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_PROGRESS_WIDTH,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_PROGRESS_HEIGHT,
+				finalKills / (double) (finalKills + finalDeaths));
+
+		String wlr = (Math.round((wins / (double) losses) * 100) / 100d) + "";
+		this.drawCenterAlignedString(g, wlr, CardGame.CardSize.ForumsConstants.SIDE_BOX_LABEL_2_X,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_LABEL_Y
+						+ boxNumber * CardGame.CardSize.ForumsConstants.SIDE_BOX_SECOND_BOX_DIFFERENCE_Y,
+				false);
+		this.drawProgress(g, CardGame.CardSize.ForumsConstants.SIDE_BOX_PROGRESS_2_X,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_PROGRESS_Y
+						+ boxNumber * CardGame.CardSize.ForumsConstants.SIDE_BOX_SECOND_BOX_DIFFERENCE_Y,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_PROGRESS_WIDTH,
+				CardGame.CardSize.ForumsConstants.SIDE_BOX_PROGRESS_HEIGHT, wins / (double) (wins + losses));
+
+		this.drawStat(g,
+				DrawStatOptions.builder().label("Final Kills").value(String.format("%,d", finalKills))
+						.x(CardGame.CardSize.ForumsConstants.SIDE_BOX_STAT_SLOT_X)
+						.y(CardGame.CardSize.ForumsConstants.SIDE_BOX_STAT_SLOT_1_Y
+								+ boxNumber * CardGame.CardSize.ForumsConstants.SIDE_BOX_SECOND_BOX_DIFFERENCE_Y)
+						.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET)
+						.build());
+		this.drawStat(g, DrawStatOptions.builder()
+				.label("Wins")
+				.value(String.format("%,d", wins))
+				.x(CardGame.CardSize.ForumsConstants.SIDE_BOX_STAT_SLOT_X)
+				.y(CardGame.CardSize.ForumsConstants.SIDE_BOX_STAT_SLOT_2_Y
+						+ boxNumber * CardGame.CardSize.ForumsConstants.SIDE_BOX_SECOND_BOX_DIFFERENCE_Y)
+				.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET)
+				.build());
+	}
+
 	private void drawMode(Graphics2D g, @NonNull Mode mode, @NonNull JsonObject bedwarsStats, int baseX) {
 
-		int finalKills = 0, finalDeaths = 1, wins = 0, losses = 1;
-
-		if (bedwarsStats.has(mode.getApiName() + "_final_kills_bedwars")) {
-			finalKills = bedwarsStats.get(mode.getApiName() + "_final_kills_bedwars").getAsInt();
-		}
-
-		if (bedwarsStats.has(mode.getApiName() + "_final_deaths_bedwars")) {
-			finalDeaths = bedwarsStats.get(mode.getApiName() + "_final_deaths_bedwars").getAsInt();
-		}
-
-		if (bedwarsStats.has(mode.getApiName() + "_wins_bedwars")) {
-			wins = bedwarsStats.get(mode.getApiName() + "_wins_bedwars").getAsInt();
-		}
-
-		if (bedwarsStats.has(mode.getApiName() + "_losses_bedwars")) {
-			losses = bedwarsStats.get(mode.getApiName() + "_losses_bedwars").getAsInt();
-		}
+		int finalKills = JsonUtil.getInt(bedwarsStats, mode.getApiName() + "_final_kills_bedwars", 0);
+		int finalDeaths = Math.max(1, JsonUtil.getInt(bedwarsStats, mode.getApiName() + "_final_deaths_bedwars", 1));
+		int wins = JsonUtil.getInt(bedwarsStats, mode.getApiName() + "_wins_bedwars", 0);
+		int losses = Math.max(1, JsonUtil.getInt(bedwarsStats, mode.getApiName() + "_losses_bedwars", 1));
 
 		// Set up the name font
 		g.setColor(Color.WHITE);
@@ -293,30 +407,22 @@ public class BedwarsCardProvider extends CardProvider {
 		this.drawProgress(g, baseX + 189, 354, 146, wins / (double) (wins + losses));
 
 		// Draw final kills
-		int finalKillsWidth = g.getFontMetrics(smallLight).stringWidth("Final Kills  ");
-		int finalKillsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", finalKills));
-		int finalKillsTotalWidth = finalKillsWidth + finalKillsCountWidth;
-		int finalKillsLeftX = baseX + 80 - (finalKillsTotalWidth / 2);
-
-		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
-		g.drawString("Final Kills", finalKillsLeftX, 425);
-		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
-		g.drawString(String.format("%,d", finalKills), finalKillsLeftX + finalKillsWidth, 425);
+		drawStat(g, DrawStatOptions.builder()
+				.label("Final Kills")
+				.value(String.format("%,d", finalKills))
+				.x(baseX + 80)
+				.y(425)
+				.centered(true)
+				.build());
 
 		// Draw wins
-		int winsWidth = g.getFontMetrics(smallLight).stringWidth("Wins  ");
-		int winsCountWidth = g.getFontMetrics(smallBold).stringWidth(String.format("%,d", wins));
-		int winsTotalWidth = winsWidth + winsCountWidth;
-		int winsLeftX = baseX + 263 - (winsTotalWidth / 2);
-
-		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
-		g.drawString("Wins", winsLeftX, 425);
-		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
-		g.drawString(String.format("%,d", wins), winsLeftX + winsWidth, 425);
+		drawStat(g, DrawStatOptions.builder()
+				.label("Wins")
+				.value(String.format("%,d", wins))
+				.x(baseX + 263)
+				.y(425)
+				.centered(true)
+				.build());
 	}
 
 	private ArrayList<Mode> getTopModes(JsonObject bedwarsStats) {
@@ -350,20 +456,23 @@ public class BedwarsCardProvider extends CardProvider {
 	}
 
 	public static double getBedWarsLevel(double exp) {
-		int level = 100 * ((int)(exp / 487000));
+		int level = 100 * ((int) (exp / 487000));
 		exp = exp % 487000;
-		if(exp < 500) return level + exp / 500;
+		if (exp < 500)
+			return level + exp / 500;
 		level++;
-		if(exp < 1500) return level + (exp - 500) / 1000;
+		if (exp < 1500)
+			return level + (exp - 500) / 1000;
 		level++;
-		if(exp < 3500) return level + (exp - 1500) / 2000;
+		if (exp < 3500)
+			return level + (exp - 1500) / 2000;
 		level++;
-		if(exp < 7000) return level + (exp - 3500) / 3500;
+		if (exp < 7000)
+			return level + (exp - 3500) / 3500;
 		level++;
 		exp -= 7000;
 		return level + exp / 5000;
 	}
-
 
 	@Getter
 	@AllArgsConstructor
@@ -396,93 +505,93 @@ public class BedwarsCardProvider extends CardProvider {
 
 		// 1000 - 1900
 		RAINBOW(1000, star -> String.format("§c[§6%s§e%s§a%s§b%s§d✫§5]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		IRON_PRIME(1100, star -> String.format("§7[§f%s%s%s%s§7✪]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		GOLD_PRIME(1200, star -> String.format("§7[§e%s%s%s%s§6✪§7]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		DIAMOND_PRIME(1300, star -> String.format("§7[§b%s%s%s%s§5✪§7]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		EMERALD_PRIME(1400, star -> String.format("§7[§a%s%s%s%s§2✪§7]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		SAPPHIRE_PRIME(1500, star -> String.format("§7[§5%s%s%s%s§9✪§7]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		RUBY_PRIME(1600, star -> String.format("§7[§c%s%s%s%s§4✪§7]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		CRYSTAL_PRIME(1700, star -> String.format("§7[§d%s%s%s%s§5✪§7]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		OPAL_PRIME(1800, star -> String.format("§7[§9%s%s%s%s§1✪§7]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		AMETHYST_PRIME(1900, star -> String.format("§7[§5%s%s%s%s§8✪§7]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 
 		// 2000 - 2900
 		MIRROR(2000, star -> String.format("§8[§7%s§f%s%s§7%s✪§8]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		LIGHT(2100, star -> String.format("§f[%s§e%s%s§6%s⚝]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		DAWN(2200, star -> String.format("§6[%s§f%s%s§b%s§5⚝]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		DUSK(2300, star -> String.format("§5[%s§d%s%s§6%s§f⚝]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		AIR(2400, star -> String.format("§b[%s§f%s%s§7%s⚝§8]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		WIND(2500, star -> String.format("§f[%s§a%s%s§2%s⚝]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		NEBULA(2600, star -> String.format("§4[%s§c%s%s§d%s⚝§5]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		THUNDER(2700, star -> String.format("§e[%s§f%s%s§8%s⚝]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		EARTH(2800, star -> String.format("§a[%s§2%s%s§6%s⚝§e]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		WATER(2900, star -> String.format("§b[%s§5%s%s§9%s⚝§1]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 
 		// 3000 - 3900
 		FIRE(3000, star -> String.format("§f[%s§6%s%s§c%s⚝§4]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		SUNRISE(3100, star -> String.format("§9[%s§5%s%s§6%s✥§e]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		ECLIPSE(3200, star -> String.format("§c[§4%s§7%s%s§4%s§c✥]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		GAMMA(3300, star -> String.format("§9[%s%s§d%s§c%s✥§4]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		MAJESTIC(3400, star -> String.format("§2[§a%s§d%s%s§5%s✥§2]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		ANDESINE(3500, star -> String.format("§c[%s§4%s%s§2%s§a✥]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		MARINE(3600, star -> String.format("§a[%s%s§b%s§9%s✥§1]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		ELEMENT(3700, star -> String.format("§4[%s§c%s%s§b%s§3✥]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		GALAXY(3800, star -> String.format("§1[%s§b%s§5%s%s§d✥§1]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		ATOMIC(3900, star -> String.format("§c[%s§a%s%s§3%s§9✥]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 
 		// 4000 - 5000
 		SUNSET(4000, star -> String.format("§5[%s§c%s%s§6%s✥§e]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		TIME(4100, star -> String.format("§e[%s§6%s§c%s§d%s✥§5]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		WINTER(4200, star -> String.format("§1[§9%s§3%s§b%s§f%s§7✥]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		OBSIDIAN(4300, star -> String.format("§0[§5%s§8%s%s§5%s✥§0]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		SPRING(4400, star -> String.format("§2[%s§a%s§e%s§6%s§5✥§d]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		ICE(4500, star -> String.format("§f[%s§b%s%s§3%s✥]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		SUMMER(4600, star -> String.format("§3[§b%s§e%s%s§6%s§d✥§5]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		SPINEL(4700, star -> String.format("§f[§4%s§c%s%s§9%s§1✥§9]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		AUTUMN(4800, star -> String.format("§5[%s§c%s§6%s§f%s§b✥§5]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		MYSTIC(4900, star -> String.format("§2[§a%s§f%s%s§a%s✥§2]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3))),
 		ETERNAL(5000, star -> String.format("§c[%s§5%s§9%s%s§1✥§0]",
-			star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3)));
+				star.charAt(0), star.charAt(1), star.charAt(2), star.charAt(3)));
 
 		private final int requirement;
 		private final Function<String, String> format;
@@ -492,7 +601,9 @@ public class BedwarsCardProvider extends CardProvider {
 		}
 
 		/**
-		 * Get the prestige a given star belongs to by iterating over prestiges until the requirement is not met
+		 * Get the prestige a given star belongs to by iterating over prestiges until
+		 * the requirement is not met
+		 * 
 		 * @param star The star count to analyze
 		 * @return The prestige that the given star count belongs to
 		 */

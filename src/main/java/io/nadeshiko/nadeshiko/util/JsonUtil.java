@@ -20,6 +20,13 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class JsonUtil {
 
+    public int getInt(JsonObject object, String key, int defaultValue) {
+        if (object != null && object.has(key) && !object.get(key).isJsonNull()) {
+            return object.get(key).getAsInt();
+        }
+        return defaultValue;
+    }
+
     public int getNullableInt(JsonElement object) {
         return object != null ? object.getAsInt() : 0;
     }

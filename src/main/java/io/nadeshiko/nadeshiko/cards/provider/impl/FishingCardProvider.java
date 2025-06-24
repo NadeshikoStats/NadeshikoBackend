@@ -88,6 +88,9 @@ public class FishingCardProvider extends CardProvider {
 			case TINY:
 				generateTiny(image, stats);
 				break;
+			case FORUMS:
+				generateForums(image, stats);
+				break;
 			case FULL:
 			default:
 				generateFull(image, stats);
@@ -224,12 +227,12 @@ public class FishingCardProvider extends CardProvider {
 
 		// Set up the stat font
 		g.setColor(Color.WHITE);
-		g.setFont(this.hugeBold);
+		g.setFont(this.bold38);
 
         this.drawCenterAlignedString(g, String.format("%,d", fsStats.overallTotal), 814, 168, false);
 
         g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
+		g.setFont(plain18);
 
 		int fishWidth = g.getFontMetrics().stringWidth("Fish");
 		int treasureWidth = g.getFontMetrics().stringWidth("Treasure");
@@ -244,7 +247,7 @@ public class FishingCardProvider extends CardProvider {
 		g.drawString("Mythical Fish", 846+402-19, 170);
 
 		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
+		g.setFont(bold18);
 
         g.drawString(String.format("%,d", fsStats.overallFish), 627+402+fishWidth+10-19, 140);
         g.drawString(String.format("%,d", fsStats.overallTreasure), 627+402+treasureWidth+10-19, 170);
@@ -253,7 +256,7 @@ public class FishingCardProvider extends CardProvider {
         g.drawString(String.format("%,d", fsStats.specialFish), 846+402+specialFishWidth+10-19, 140);
         g.drawString(String.format("%,d", fsStats.mythicalFish), 846+402+mythicalFishWidth+10-19, 170);
 
-        g.setFont(this.mediumBold);
+        g.setFont(this.bold20);
 
         drawModeStats(g, "Water", fsStats.waterFish, fsStats.waterTreasure, fsStats.waterJunk, fsStats.waterTotal, 627+223-11, 330);
 		drawModeStats(g, "Lava", fsStats.lavaFish, fsStats.lavaTreasure, fsStats.lavaJunk, fsStats.lavaTotal, 914+223-11, 330);
@@ -277,7 +280,7 @@ public class FishingCardProvider extends CardProvider {
 
 		// Set up the stat font
 		g.setColor(Color.WHITE);
-		g.setFont(this.hugeBold);
+		g.setFont(this.bold38);
 
         int tinyXOffset = -140;
         int tinyYOffset = -32;
@@ -286,7 +289,7 @@ public class FishingCardProvider extends CardProvider {
         this.drawCenterAlignedString(g, String.format("%,d", fsStats.overallTotal), 814+tinyXOffset-36, 168+tinyYOffset, false);
 
         g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
+		g.setFont(plain18);
 
 		int fishWidth = g.getFontMetrics().stringWidth("Fish");
 		int treasureWidth = g.getFontMetrics().stringWidth("Treasure");
@@ -301,7 +304,7 @@ public class FishingCardProvider extends CardProvider {
 		g.drawString("Mythical Fish", 846+402-19+tinyXOffset+tinyXCatchesOffset, 170+tinyYOffset);
 
 		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
+		g.setFont(bold18);
 
         g.drawString(String.format("%,d", fsStats.overallFish), 627+402+fishWidth+10-19+tinyXOffset+tinyXCatchesOffset, 140+tinyYOffset);
         g.drawString(String.format("%,d", fsStats.overallTreasure), 627+402+treasureWidth+10-19+tinyXOffset+tinyXCatchesOffset, 170+tinyYOffset);
@@ -311,16 +314,77 @@ public class FishingCardProvider extends CardProvider {
         g.drawString(String.format("%,d", fsStats.mythicalFish), 846+402+mythicalFishWidth+10-19+tinyXOffset+tinyXCatchesOffset, 170+tinyYOffset);
 	}
 
+	private void generateForums(BufferedImage image, JsonObject stats) {
+		Graphics2D g = (Graphics2D) image.getGraphics();
+		// Safely get Fishing stats, defaulting to empty object if not found
+		JsonObject fishing = stats.has("stats") && !stats.get("stats").isJsonNull() 
+			? stats.getAsJsonObject("stats").has("MainLobby") && !stats.getAsJsonObject("stats").get("MainLobby").isJsonNull()
+				? stats.getAsJsonObject("stats").getAsJsonObject("MainLobby").has("fishing") && !stats.getAsJsonObject("stats").getAsJsonObject("MainLobby").get("fishing").isJsonNull()
+					? stats.getAsJsonObject("stats").getAsJsonObject("MainLobby").getAsJsonObject("fishing")
+					: new JsonObject()
+				: new JsonObject()
+			: new JsonObject();
+		FishingStats fsStats = extractStats(fishing);
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		// Set up the stat font
+		g.setColor(Color.WHITE);
+		g.setFont(this.bold38);
+
+        this.drawCenterAlignedString(g, String.format("%,d", fsStats.overallTotal), 596, 161, false);
+
+		drawStat(g, DrawStatOptions.builder().label("Fish")
+		.value(String.format("%,d", fsStats.overallFish))
+		.x(485)
+		.y(303)
+		.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+		drawStat(g, DrawStatOptions.builder().label("Treasure")
+		.value(String.format("%,d", fsStats.overallTreasure))
+		.x(695)
+		.y(303)
+		.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+		drawStat(g, DrawStatOptions.builder().label("Junk")
+		.value(String.format("%,d", fsStats.overallJunk))
+		.x(905)
+		.y(303)
+		.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+		drawStat(g, DrawStatOptions.builder().label("Mythical")
+		.value(String.format("%,d", fsStats.mythicalFish))
+		.x(1115)
+		.y(303)
+		.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+		drawStat(g, DrawStatOptions.builder().label("Special")
+		.value(String.format("%,d", fsStats.specialFish))
+		.x(1325)
+		.y(303)
+		.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		
+		
+		
+
+        g.setFont(this.bold20);
+
+        drawModeStats(g, "Water", fsStats.waterFish, fsStats.waterTreasure, fsStats.waterJunk, fsStats.waterTotal, 944, 129);
+		drawModeStats(g, "Lava", fsStats.lavaFish, fsStats.lavaTreasure, fsStats.lavaJunk, fsStats.lavaTotal, 944 + 240, 129);
+		drawModeStats(g, "Ice", fsStats.iceFish, fsStats.iceTreasure, fsStats.iceJunk, fsStats.iceTotal, 944 + 480, 129);
+	}
+
 	private void drawModeStats(Graphics2D g, String mode, int fish, int treasure, int junk, int total, int x, int y) {
 		g.setColor(new Color(138, 138, 138));
-		g.setFont(smallLight);
+		g.setFont(plain18);
 
 		// Draw values
 		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
+		g.setFont(bold18);
 		this.drawRightAlignedString(g, String.format("%,d", fish), x + 10, y, true);
-		this.drawRightAlignedString(g, String.format("%,d", treasure), x + 10, y + 34, true);
-		this.drawRightAlignedString(g, String.format("%,d", junk), x + 10, y + 68, true);
+		this.drawRightAlignedString(g, String.format("%,d", junk), x + 10, y + 34, true);
+		this.drawRightAlignedString(g, String.format("%,d", treasure), x + 10, y + 68, true);
 		this.drawRightAlignedString(g, String.format("%,d", total), x + 10, y + 102, true);
 	}
 

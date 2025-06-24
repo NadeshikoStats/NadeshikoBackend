@@ -51,6 +51,9 @@ public class NetworkCardProvider extends CardProvider {
 			case TINY:
 				generateTiny(image, stats);
 				break;
+			case FORUMS:
+				generateForums(image, stats);
+				break;
 			case FULL:
 			default:
 				generateFull(image, stats);
@@ -70,15 +73,15 @@ public class NetworkCardProvider extends CardProvider {
 		int networkLevel = profile.get("network_level").getAsInt();
 		double networkLevelProgress = profile.get("network_level").getAsDouble() % 1;
 		g.setColor(networkLevel > 250 ? new Color(255, 138, 0) : Color.WHITE);
-		g.setFont(mediumLight);
+		g.setFont(plain20);
 		g.drawString("Level", 636, 140);
-		g.setFont(mediumBold);
+		g.setFont(bold20);
 		g.drawString(Integer.toString(networkLevel), 695, 140);
 
 		// Draw the network multiplier
 		int levelWidth = g.getFontMetrics().stringWidth(Integer.toString(networkLevel));
 		g.setColor(Color.GRAY);
-		g.setFont(mediumLight);
+		g.setFont(plain20);
 		g.drawString("(" + profile.get("coin_multiplier") + "x)", 700 + levelWidth, 140);
 
 		// Draw the network level progress bar
@@ -113,17 +116,17 @@ public class NetworkCardProvider extends CardProvider {
 		double networkLevelProgress = profile.get("network_level").getAsDouble() % 1;
 
 		g.setColor(networkLevel > 250 ? new Color(255, 138, 0) : LIGHT_GRAY);
-		g.setFont(smallLight);
+		g.setFont(plain18);
 		g.drawString("Level", 504, 96);
-		
+
 		g.setColor(networkLevel > 250 ? new Color(255, 138, 0) : Color.WHITE);
-		g.setFont(smallBold);
+		g.setFont(bold18);
 		g.drawString(Integer.toString(networkLevel), 560, 96);
 
 		// Draw the network multiplier
 		int levelWidth = g.getFontMetrics().stringWidth(Integer.toString(networkLevel));
 		g.setColor(Color.GRAY);
-		g.setFont(smallLight);
+		g.setFont(plain18);
 		g.drawString("(" + profile.get("coin_multiplier") + "x)", 560 + 5 + levelWidth, 96);
 
 		// Draw the network level progress bar
@@ -140,6 +143,103 @@ public class NetworkCardProvider extends CardProvider {
 		}
 
 		this.drawGeneralTiny(g, profile);
+	}
+
+	private void generateForums(BufferedImage image, JsonObject stats) {
+		Graphics2D g = (Graphics2D) image.getGraphics();
+		JsonObject profile = stats.getAsJsonObject("profile");
+		JsonObject guild = stats.get("guild") instanceof JsonNull ? null : stats.getAsJsonObject("guild");
+
+		g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+
+		// Draw the network level
+		int networkLevel = profile.get("network_level").getAsInt();
+		double networkLevelProgress = profile.get("network_level").getAsDouble() % 1;
+
+		String levelLabel = "Level";
+		String levelValue = String.valueOf(networkLevel);
+		String multiplierValue = "(" + profile.get("coin_multiplier") + "x)";
+		int startX = 484;
+		int y = 89;
+		int padding = 10; 
+		int multiplierPadding = 5;
+
+		g.setFont(plain16);
+		int labelWidth = g.getFontMetrics().stringWidth(levelLabel);
+		g.setFont(bold16);
+		int valueWidth = g.getFontMetrics().stringWidth(levelValue);
+
+		// Draw Label
+		g.setColor(new Color(138, 138, 138));
+		g.setFont(plain16);
+		g.drawString(levelLabel, startX, y);
+
+		// Draw Value
+		g.setColor(networkLevel > 250 ? new Color(255, 138, 0) : Color.WHITE);
+		g.setFont(bold16);
+		g.drawString(levelValue, startX + labelWidth + padding, y);
+
+		g.setColor(Color.GRAY);
+		g.setFont(plain16);
+		g.drawString(multiplierValue, startX + labelWidth + padding + valueWidth + multiplierPadding, y);
+
+		// progress bar
+		this.drawProgress(g, 484,
+				97,
+				758,
+				14,
+				networkLevelProgress
+				);
+
+		drawStat(g, DrawStatOptions.builder().label("First Login")
+				.value(this.formatDate(profile.get("first_login").getAsLong()))
+				.x(484)
+				.y(141)
+				.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+		if (profile.get("last_login").getAsLong() > 0) {
+			drawStat(g, DrawStatOptions.builder().label("Last Login")
+					.value(this.formatDate(profile.get("last_login").getAsLong()))
+					.x(996)
+					.y(141)
+					.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		} else {
+			drawStat(g, DrawStatOptions.builder().label("Last Login")
+					.value("Unknown")
+					.x(996)
+					.y(141)
+					.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET)
+					.valueColor(new Color(138, 138, 138)).build());
+		}
+
+			// Bottom box quad stats
+			drawStat(g, DrawStatOptions.builder().label("Achievement Points")
+					.value(String.format("%,d", profile.get("achievement_points").getAsInt()))
+					.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X)
+					.y(238)
+					.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+			drawStat(g, DrawStatOptions.builder().label("Karma")
+					.value(String.format("%,d", profile.get("karma").getAsLong()))
+					.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X)
+					.y(262)
+					.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+			drawStat(g, DrawStatOptions.builder().label("Quests Completed")
+					.value(String.format("%,d", profile.get("quests_completed").getAsInt()))
+					.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X)
+					.y(286)
+					.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+			drawStat(g, DrawStatOptions.builder().label("Ranks Gifted")
+					.value(String.format("%,d", profile.get("ranks_gifted").getAsInt()))
+					.x(CardGame.CardSize.ForumsConstants.BOTTOM_BOX_QUAD_1_X)
+					.y(310)
+					.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+
+		// Draw the guild info
+		this.drawGuildForums(g, guild);
 	}
 
 	private void drawGeneralFull(Graphics2D g, JsonObject profile) {
@@ -169,17 +269,17 @@ public class NetworkCardProvider extends CardProvider {
 		// Ensure the user is in a guild
 		if (guild == null) {
 			g.setColor(Color.DARK_GRAY);
-			g.setFont(smallLight);
+			g.setFont(plain18);
 			g.drawString("None", 1220, 370);
 			return;
 		}
 
 		// Draw guild name and tag manually since we need to support color codes
 		g.setColor(LIGHT_GRAY);
-		g.setFont(smallLight);
+		g.setFont(plain18);
 		g.drawString("Name", 1065, 325);
 		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
+		g.setFont(bold18);
 		String name = guild.get("name").getAsString();
 		int dotWidth = g.getFontMetrics().stringWidth("...");
 		int width = MinecraftRenderer.customWidth(g, name + " " + guild.get("tag").getAsString());
@@ -203,13 +303,62 @@ public class NetworkCardProvider extends CardProvider {
 				this.formatDate(guild.get("joined").getAsLong()), 1065, 422);
 	}
 
+	private void drawGuildForums(Graphics2D g, JsonObject guild) {
+		// Is in a guild
+		if (guild == null) {
+			g.setColor(new Color(138, 138, 138));
+			g.setFont(bold16);
+			g.drawString("None", 1198, 267);
+			return;
+		}
+
+		g.setColor(new Color(138, 138, 138));
+		g.setFont(plain16);
+		g.drawString("Name", 995, 238);
+
+		g.setColor(new Color(255, 255, 255));
+		g.setFont(bold16);
+		String name = guild.get("name").getAsString();
+		int dotWidth = g.getFontMetrics().stringWidth("...");
+		int width = MinecraftRenderer.customWidth(g, name + " " + guild.get("tag").getAsString());
+		boolean nameTruncated = false;
+		while (width > 300 - dotWidth) {
+			nameTruncated = true;
+			name = name.substring(0, Math.max(0, name.length() - 1));
+			width = MinecraftRenderer.customWidth(g, name + "... " + guild.get("tag").getAsString());
+		}
+		if (nameTruncated) {
+			name += "...";
+		}
+		MinecraftRenderer.drawCustomString(g, name + " " + guild.get("tag").getAsString(),
+				1049, 238);
+
+		// Draw stats
+	
+		this.drawStat(g, DrawStatOptions.builder().label("Level")
+				.value(String.format("%,d", guild.get("level").getAsInt()))
+				.x(995)
+				.y(262)
+				.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		this.drawStat(g, DrawStatOptions.builder().label("Members")
+				.value(String.format("%,d", guild.get("members").getAsInt()))
+				.x(995)
+				.y(286)
+				.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+		this.drawStat(g, DrawStatOptions.builder().label("Joined")
+				.value(this.formatDate(guild.get("joined").getAsLong()))
+				.x(995)
+				.y(310)
+				.padding(CardGame.CardSize.ForumsConstants.STATS_VALUE_OFFSET).build());
+	}
+
 	private void drawLabelValuePair(Graphics2D g, String label, Object value, int x, int y) {
 		g.setColor(LIGHT_GRAY);
-		g.setFont(smallLight);
+		g.setFont(plain18);
 		g.drawString(label, x, y);
 		g.setColor(Color.WHITE);
-		g.setFont(smallBold);
-		g.drawString(value.toString(), x + g.getFontMetrics(smallLight).stringWidth(label) + 10, y);
+		g.setFont(bold18);
+		g.drawString(value.toString(), x + g.getFontMetrics(plain18).stringWidth(label) + 10, y);
 	}
 
 	private String formatDate(long timestamp) {

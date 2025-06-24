@@ -61,27 +61,33 @@ public class CardGenerator {
 		// Get size from the data
 		String sizeStr = data.has("size") ? data.get("size").getAsString().toUpperCase() : "FULL";
 		CardGame.CardSize size;
-		try {
-			size = CardGame.CardSize.valueOf(sizeStr);
-		} catch (IllegalArgumentException e) {
+
+		if (sizeStr.equals("LEGACY_FULL")) {
 			size = CardGame.CardSize.FULL;
+			data.addProperty("size", "FULL"); // This is deprecated, but thousands of people on Hypixel Forums have this param
+		} else {
+			if (sizeStr.equals("FULL")) {
+				sizeStr = "FORUMS";
+			}
+			try {
+				size = CardGame.CardSize.valueOf(sizeStr);
+			} catch (IllegalArgumentException e) {
+				size = CardGame.CardSize.FORUMS;
+			}
+			data.addProperty("size", size.name()); // Normalize
 		}
 
 		// Read the template from the resources
-		String templatePath = "/cards/templates/" + game.name();
-		if (size == CardGame.CardSize.TINY) {
-			String tinyPath = templatePath + "_TINY.png";
-			try (InputStream tinyStream = CardGenerator.class.getResourceAsStream(tinyPath)) {
-				if (tinyStream == null) {
-					// If tiny template doesn't exist, fall back to FULL size
-					size = CardGame.CardSize.FULL;
-					templatePath += ".png";
-				} else {
-					templatePath = tinyPath;
+		String templatePath = "/cards/templates/" + game.name() + size.getTemplateSuffix();
+
+		// Handle fallback for TINY and FORUMS templates
+		if (size == CardGame.CardSize.TINY || size == CardGame.CardSize.FORUMS) {
+			try (InputStream stream = CardGenerator.class.getResourceAsStream(templatePath)) {
+				if (stream == null) {
+					size = CardGame.CardSize.FULL; // Fallback to FULL size
+					templatePath = "/cards/templates/" + game.name() + size.getTemplateSuffix();
 				}
 			}
-		} else {
-			templatePath += ".png";
 		}
 		
 		try (InputStream templateStream = CardGenerator.class.getResourceAsStream(templatePath)) {
@@ -92,14 +98,22 @@ public class CardGenerator {
 				card = ImageUtil.createImageFromBytes(cardTemplateBytes);
 				graphics = card.getGraphics();
 				
-				if (size == CardGame.CardSize.TINY) {
+				if (size.getMainContentScale() != 1.0) {
 					Graphics2D g2d = (Graphics2D) graphics;
 					// Save the original transform
 					originalTransform = g2d.getTransform();
-					// scale to two-thirds, fix antialiasing (which we need because weird scaling)
+					// scaling and translation
+					g2d.scale(size.getMainContentScale(), size.getMainContentScale());
+					g2d.translate(size.getMainContentTranslateX(), size.getMainContentTranslateY());
+				}
+				
+				// anti aliasing
+				if (size.isUseAntialiasing()) {
+					Graphics2D g2d = (Graphics2D) graphics;
 					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-					g2d.scale(0.66, 0.66);
-					g2d.translate(40, -80);
+					g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+					g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+					g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 				}
 			} else {
 				Nadeshiko.INSTANCE.alert("Failed reading card template for %s!", game.name());
@@ -109,12 +123,20 @@ public class CardGenerator {
 
 		// Fetch the player's stats
 		JsonObject statsResponse = Nadeshiko.INSTANCE.getStatsCache().get(name, true);
-		JsonObject profileObject = statsResponse.getAsJsonObject("profile");
-
-		// Ensure the player is valid and fetching stats succeeded
-		if (!statsResponse.has("success") || !statsResponse.get("success").getAsBoolean()) {
-			Nadeshiko.INSTANCE.alert("Failed generating %s card for %s!", game.name(), name);
-			return statsResponse.toString().getBytes();
+		JsonObject profileObject = statsResponse.has("profile") && !statsResponse.get("profile").isJsonNull()
+				? statsResponse.getAsJsonObject("profile")
+				: null;
+		// try to fix null errors
+		if (profileObject == null) {
+			Nadeshiko.logger.warn("Stats cache returned response without profile for {}. Invalidating and re-fetching.", name);
+			Nadeshiko.INSTANCE.getStatsCache().invalidate(name);
+			statsResponse = Nadeshiko.INSTANCE.getStatsCache().get(name, true); // one more attempt (cache has been cleared)
+			if (statsResponse.has("profile") && !statsResponse.get("profile").isJsonNull()) {
+				profileObject = statsResponse.getAsJsonObject("profile");
+			} else {
+				Nadeshiko.logger.error("Still failed to obtain Hypixel profile for {} after invalidating cache. Full response: {}", name, statsResponse);
+				throw new RuntimeException("Failed to obtain Hypixel profile for " + name);
+			}
 		}
 
 		// Get the player's SkyBlock profile
@@ -161,15 +183,19 @@ public class CardGenerator {
 			}
 		}
 
+		String playerRenderUrl = size.getPlayerRenderUrl(name);
+		int playerX = size.getPlayerX();
+		int playerY = size.getPlayerY();
+
 		// Get the player render
-		byte[] playerBytes = HTTPUtil.getRaw("https://visage.surgeplay.com/bust/333/" + name + ".png",
+		byte[] playerBytes = HTTPUtil.getRaw(playerRenderUrl,
 			new HashMap<>() {{
 				put("User-Agent", "nadeshiko.io (+https://nadeshiko.io; contact@nadeshiko.io)");
 			}}).response();
 		BufferedImage playerImage = ImageUtil.createImageFromBytes(playerBytes);
 
 		// Draw the player
-		graphics.drawImage(playerImage, 138, 165, null);
+		graphics.drawImage(playerImage, playerX, playerY, null);
 
 		// Draw the name tag
 		String displayName = profileObject.get("tagged_name").getAsString();
@@ -199,69 +225,16 @@ public class CardGenerator {
 			}
 		}
 
-		int width = MinecraftRenderer.minecraftWidth(graphics, displayName, 40);
-		int textX = 300;
-		int nameplateYOffset = size == CardGame.CardSize.TINY ? 20 : 0; // nameplate closer to the player in tiny cards
+		BufferedImage nameplateImage = this.generateNameplateImage(
+			size, displayName, badge, hasBadge, gameMode, gameModeIconPath, gameModeIconWidth
+		);
 
-		if (hasBadge) {
-			width += 34 + 10;
-			textX -= (34 + 10) / 2;
-		}
-		if (gameModeIconPath != null) {
-			width += gameModeIconWidth + 10;
-			textX -= (gameModeIconWidth + 10) / 2;
-		}
-
-		graphics.setColor(new Color(0, 0, 0, 128));
-		graphics.fillRect(300 - (width / 2) - 10, 83 + nameplateYOffset, width + 20, 50);
-
-		int nameWidth = MinecraftRenderer.minecraftWidth(graphics, displayName, 40);
-		MinecraftRenderer.drawCenterMinecraftString(graphics,
-			displayName, textX, 120 + nameplateYOffset, 40);
-
-		// Add the badge, if applicable
-		if (hasBadge) {
-			// Read the badge from the resources
-			try (InputStream glowStream = CardGenerator.class.
-				getResourceAsStream("/cards/badge/" + badge + ".png")) {
-
-				if (glowStream != null) {
-					byte[] badgeBytes = glowStream.readAllBytes();
-					BufferedImage badgeImage = ImageUtil.createImageFromBytes(badgeBytes);
-
-					// Draw the badge
-					graphics.drawImage(badgeImage, textX + (nameWidth / 2) + 10, 91 + nameplateYOffset, null);
-				} else {
-					Nadeshiko.INSTANCE.alert("Failed reading badge file for %s!", badge);
-					return null;
-				}
-			}
-		}
-
-		// Add the game mode icon if applicable
-		if (gameModeIconPath != null) {
-			try (InputStream iconStream = CardGenerator.class.
-				getResourceAsStream(gameModeIconPath)) {
-
-				if (iconStream != null) {
-					byte[] iconBytes = iconStream.readAllBytes();
-					BufferedImage iconImage = ImageUtil.createImageFromBytes(iconBytes);
-
-					// Draw the game mode icon after the badge if present
-					int iconX = textX + (nameWidth / 2) + 10;
-					if (hasBadge) {
-						iconX += 34 + 10; // Add space after badge
-					}
-					graphics.drawImage(iconImage, iconX, 86 + nameplateYOffset, null);
-				} else {
-					Nadeshiko.INSTANCE.alert("Failed reading game mode icon for %s!", gameMode);
-					return null;
-				}
-			}
-		}
+		int nameplateX = size.getNameplateX();
+		int nameplateY = 83 + size.getNameplateYOffset();
+		graphics.drawImage(nameplateImage, nameplateX - (nameplateImage.getWidth() / 2), nameplateY, null);
 
 		// Reset transform before game-specific stats
-		if (size == CardGame.CardSize.TINY) {
+		if (originalTransform != null) {
 			((Graphics2D) graphics).setTransform(originalTransform);
 		}
 
@@ -273,6 +246,96 @@ public class CardGenerator {
 		}
 
 		return ImageUtil.getBytesFromImage(card);
+	}
+
+	private BufferedImage generateNameplateImage(
+		CardGame.CardSize size, String displayName, String badge, boolean hasBadge,
+		String gameMode, String gameModeIconPath, int gameModeIconWidth) throws Exception {
+
+
+		BufferedImage dummyImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D dummyGraphics = dummyImage.createGraphics();
+
+		int fontSize = size.getNameplateFontSize();
+		int nameWidth = MinecraftRenderer.minecraftWidth(dummyGraphics, displayName, fontSize);
+		int totalWidth = nameWidth;
+
+		if (hasBadge) {
+			totalWidth += 34 + 10;
+		}
+		if (gameModeIconPath != null) {
+			totalWidth += gameModeIconWidth + 10;
+		}
+
+		int plateWidth = totalWidth + 20;
+		int plateHeight = 50;
+
+		BufferedImage nameplate = new BufferedImage(plateWidth, plateHeight, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = nameplate.createGraphics();
+
+		// Apply antialiasing
+		if (size.isUseAntialiasing()) {
+			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+			g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		}
+
+		int textX = plateWidth / 2;
+		if (hasBadge) {
+			textX -= (34 + 10) / 2;
+		}
+		if (gameModeIconPath != null) {
+			textX -= (gameModeIconWidth + 10) / 2;
+		}
+
+		// background
+		g.setColor(new Color(0, 0, 0, 128));
+		g.fillRect(0, 0, plateWidth, plateHeight);
+
+		MinecraftRenderer.drawCenterMinecraftString(g, displayName, textX, 37, fontSize);
+
+		// badge
+		if (hasBadge) {
+			try (InputStream badgeStream = CardGenerator.class.getResourceAsStream("/cards/badge/" + badge + ".png")) {
+				if (badgeStream != null) {
+					byte[] badgeBytes = badgeStream.readAllBytes();
+					BufferedImage badgeImage = ImageUtil.createImageFromBytes(badgeBytes);
+					g.drawImage(badgeImage, textX + (nameWidth / 2) + 10, 8, null);
+				}
+			}
+		}
+
+		// game icon
+		if (gameModeIconPath != null) {
+			try (InputStream iconStream = CardGenerator.class.getResourceAsStream(gameModeIconPath)) {
+				if (iconStream != null) {
+					byte[] iconBytes = iconStream.readAllBytes();
+					BufferedImage iconImage = ImageUtil.createImageFromBytes(iconBytes);
+					int iconX = textX + (nameWidth / 2) + 10;
+					if (hasBadge) {
+						iconX += 34 + 10;
+					}
+					g.drawImage(iconImage, iconX, 3, null);
+				}
+			}
+		}
+
+		g.dispose();
+		dummyGraphics.dispose();
+
+		// scale nameplate
+		double scale = size.getNameplateScale();
+		if (scale != 1.0) {
+			int newWidth = (int) (plateWidth * scale);
+			int newHeight = (int) (plateHeight * scale);
+			Image scaledImage = nameplate.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+			BufferedImage scaledNameplate = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g2d = scaledNameplate.createGraphics();
+			g2d.drawImage(scaledImage, 0, 0, null);
+			g2d.dispose();
+			return scaledNameplate;
+		}
+
+		return nameplate;
 	}
 
 	private void registerFont(String filename) throws Exception {
