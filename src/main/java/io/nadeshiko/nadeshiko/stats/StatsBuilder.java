@@ -294,7 +294,12 @@ public class StatsBuilder {
 
 			// If something went wrong, return the response, since we want to know what happened
 			else {
-				return JsonParser.parseString(response.response()).getAsJsonObject();
+				Nadeshiko.logger.warn(
+					"Received status {} from Mojang while looking up textures for {}",
+					response.status(),
+					uuid
+				);
+				return null;
 			}
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Encountered error while looking up Minecraft textures for {}", uuid, e);
