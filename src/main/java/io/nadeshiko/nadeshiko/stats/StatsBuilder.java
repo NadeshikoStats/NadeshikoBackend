@@ -82,33 +82,47 @@ public class StatsBuilder {
 		response.addProperty("success", true);
 
 		JsonObject textures;
+		String uuid;
+		String username;
 
-		final JsonObject minecraftProfile = this.fetchMinecraftProfile(name);
+		// Try to fetch from Mojang first
+		JsonObject mojangProfile = this.fetchMojangProfile(name);
 
-		// Ensure the request succeeded
-		if (minecraftProfile == null) {
-			return error("Couldn't fetch data from PlayerDB!", 500);
+		if (mojangProfile != null && mojangProfile.has("id") && mojangProfile.has("name")) {
+			uuid = mojangProfile.get("id").getAsString();
+			username = mojangProfile.get("name").getAsString();
+		} else {
+			// Fallback to PlayerDB
+			final JsonObject minecraftProfile = this.fetchPlayerDBProfile(name);
+
+			// Ensure the request succeeded
+			if (minecraftProfile == null) {
+				return error("Couldn't fetch data from PlayerDB!", 500);
+			}
+
+			// If the Mojang profile was null, the player couldn't be found
+			if (minecraftProfile.get("code").getAsString().equals("minecraft.invalid_username")) {
+				return error("No player by the name \"" + name + "\" could be found.", 404);
+			}
+
+			JsonObject playerData = minecraftProfile.getAsJsonObject("data").getAsJsonObject("player");
+			username = playerData.get("username").getAsString();
+			uuid = playerData.get("id").getAsString();
 		}
 
-		// If the Mojang profile was null, the player couldn't be found
-		if (minecraftProfile.get("code").getAsString().equals("minecraft.invalid_username")) {
-			return error("No player by the name \"" + name + "\" could be found.", 404);
-		}
-
-		JsonObject playerData = minecraftProfile.getAsJsonObject("data").getAsJsonObject("player");
-		response.addProperty("name", playerData.get("username").getAsString());
-		response.addProperty("uuid", playerData.get("id").getAsString());
+		response.addProperty("name", username);
+		response.addProperty("uuid", uuid);
 
 		// Add badge
-		if (playerBadges.has(playerData.get("id").getAsString())) {
-			response.addProperty("badge", playerBadges.get(playerData.get("id").getAsString()).getAsString());
+		if (playerBadges.has(uuid)) {
+			response.addProperty("badge", playerBadges.get(uuid).getAsString());
 		} else {
 			response.addProperty("badge", "NONE");
 		}
 
 		if (full) {
 
-			textures = this.fetchTextures(playerData.get("id").getAsString());
+			textures = this.fetchTextures(uuid);
 
 			// Add the skin and model
 			if (textures != null && textures.has("SKIN")) {
@@ -133,7 +147,7 @@ public class StatsBuilder {
 			try {
 				// Try OF first
 				HTTPUtil.RawResponse ofResponse = HTTPUtil.getRaw("http://s.optifine.net/capes/" +
-					response.get("name").getAsString() + ".png");
+					username + ".png");
 
 				// Check if the cape exists
 				if (ofResponse.status() == 200) {
@@ -156,24 +170,24 @@ public class StatsBuilder {
 				}
 			} catch (Exception e) {
 				Nadeshiko.logger.error("Encountered error while looking up cape for {}",
-					response.get("name").getAsString(), e);
+					username, e);
 				Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
-					"Encountered error while looking up cape for %s", response.get("name").getAsString());
+					"Encountered error while looking up cape for %s", username);
 			}
 
 			// Add the Hypixel status
-			final JsonObject hypixelStatus = this.fetchHypixelStatus(response.get("uuid").getAsString());
+			final JsonObject hypixelStatus = this.fetchHypixelStatus(uuid);
 			response.add("status", hypixelStatus);
 
 			// Add the Hypixel guild
-			final JsonObject hypixelGuild = this.fetchHypixelGuild(response.get("uuid").getAsString());
+			final JsonObject hypixelGuild = this.fetchHypixelGuild(uuid);
 			response.add("guild", hypixelGuild);
 		}
 
 		// Add the Hypixel stats and achievements
-		final JsonObject hypixelStats = this.fetchHypixelStats(response.get("uuid").getAsString());
+		final JsonObject hypixelStats = this.fetchHypixelStats(uuid);
 		if (hypixelStats != null) { // Null if the player has no stats (never logged in)
-			response.add("profile", this.buildHypixelProfile(hypixelStats));
+			response.add("profile", this.buildHypixelProfile(hypixelStats, username));
 
 			// Some staff members have their stats disabled
 			if (hypixelStats.has("stats")) {
@@ -254,12 +268,45 @@ public class StatsBuilder {
 	}
 
 	/**
+	 * Fetch the Mojang profile from the {@code api.mojang.com/users/profiles/minecraft/} endpoint, grabbing the
+	 * players UUID and properly capitalized name
+	 * @param name The name of the player to look up
+	 * @return The response from the Mojang API
+	 */
+	private JsonObject fetchMojangProfile(@NonNull String name) {
+		try {
+			HTTPUtil.Response response =
+				HTTPUtil.get("https://api.mojang.com/users/profiles/minecraft/" + name);
+
+			// If the API responded OK
+			if (response.status() == 200) {
+				return JsonParser.parseString(response.response()).getAsJsonObject();
+			}
+
+			// If the profile wasn't found
+			else if (response.status() == 404 || response.status() == 204) {
+				return null;
+			}
+
+			// If something else went wrong, return the response, since we want to know what happened
+			else {
+				return JsonParser.parseString(response.response()).getAsJsonObject();
+			}
+		} catch (Exception e) {
+			Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name, e);
+			Nadeshiko.INSTANCE.getDiscordMonitor().alertException(e,
+				"Encountered error while looking up Minecraft profile for %s", name);
+			return null;
+		}
+	}
+
+	/**
 	 * Fetch the Minecraft profile from PlayerDB, grabbing the
 	 * player's UUID, properly capitalized name, and textures
 	 * @param name The name of the player to look up
 	 * @return The response from PlayerDB
 	 */
-	private JsonObject fetchMinecraftProfile(@NonNull String name) {
+	private JsonObject fetchPlayerDBProfile(@NonNull String name) {
 		try {
 			HTTPUtil.Response response =
 				HTTPUtil.get("https://playerdb.co/api/player/minecraft/" + name);
@@ -447,7 +494,7 @@ public class StatsBuilder {
 		}
 	}
 
-	private JsonObject buildHypixelProfile(@NonNull JsonObject playerObj) {
+	private JsonObject buildHypixelProfile(@NonNull JsonObject playerObj, @NonNull String username) {
 		try {
 			JsonObject profile = new JsonObject();
 
@@ -455,9 +502,9 @@ public class StatsBuilder {
 			String tag = rankHelper.getTag();
 
 			profile.addProperty("tag", tag);
+			profile.addProperty("hypixel_displayname", playerObj.get("displayname").getAsString());
 			profile.addProperty("tagged_name",
-				tag.replace("]", "] ") +
-					playerObj.get("displayname").getAsString());
+				tag.replace("]", "] ") + username);
 
 			// Add the first login
 			// For some reason, it seems as if this field can be missing in extremely rare cases. I've only been able

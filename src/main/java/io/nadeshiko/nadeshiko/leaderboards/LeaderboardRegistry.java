@@ -271,10 +271,10 @@ public class LeaderboardRegistry {
         registerGuildLeaderboards();
         registerHousingLeaderboards();
 
-        System.out.println("=== All the leaderboards ===");
-        LEADERBOARDS.keySet().stream()
-        .sorted()
-        .forEach(System.out::println);
+        // System.out.println("=== All the leaderboards ===");
+        // LEADERBOARDS.keySet().stream()
+        // .sorted()
+        // .forEach(System.out::println);
         System.out.println("Total leaderboards: " + LEADERBOARDS.size());
     }
 
