@@ -89,7 +89,7 @@ public class StatsBuilder {
 		JsonObject mojangProfile = this.fetchMojangProfile(name);
 
 		if (mojangProfile != null && mojangProfile.has("id") && mojangProfile.has("name")) {
-			uuid = mojangProfile.get("id").getAsString();
+			uuid = mojangProfile.get("id").getAsString().replace("-", "");
 			username = mojangProfile.get("name").getAsString();
 		} else {
 			// Fallback to PlayerDB
@@ -107,7 +107,7 @@ public class StatsBuilder {
 
 			JsonObject playerData = minecraftProfile.getAsJsonObject("data").getAsJsonObject("player");
 			username = playerData.get("username").getAsString();
-			uuid = playerData.get("id").getAsString();
+			uuid = playerData.get("raw_id").getAsString().replace("-", "");
 		}
 
 		response.addProperty("name", username);
@@ -278,19 +278,14 @@ public class StatsBuilder {
 			HTTPUtil.Response response =
 				HTTPUtil.get("https://api.mojang.com/users/profiles/minecraft/" + name);
 
-			// If the API responded OK
+			// If the API responded OK, parse the response
 			if (response.status() == 200) {
 				return JsonParser.parseString(response.response()).getAsJsonObject();
 			}
 
-			// If the profile wasn't found
-			else if (response.status() == 404 || response.status() == 204) {
-				return null;
-			}
-
-			// If something else went wrong, return the response, since we want to know what happened
+			// If the profile wasn't found, return null
 			else {
-				return JsonParser.parseString(response.response()).getAsJsonObject();
+				return null;
 			}
 		} catch (Exception e) {
 			Nadeshiko.logger.error("Encountered error while looking up Minecraft profile for {}", name, e);
@@ -421,7 +416,7 @@ public class StatsBuilder {
 			for (JsonElement element : guild.getAsJsonArray("members")) {
 				JsonObject entry = (JsonObject) element;
 
-				if (entry.get("uuid").getAsString().equals(uuid.replace("-", ""))) {
+				if (entry.get("uuid").getAsString().equals(uuid)) {
 					playerEntry = entry;
 					joined = playerEntry.get("joined").getAsLong();
 					break;
