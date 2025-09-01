@@ -82,12 +82,14 @@ public class LeaderboardRegistry {
             Map.entry("BLITZ", List.of("blitz_duel_wins")),
             Map.entry("BOW", List.of("bow_duel_wins")),
             Map.entry("MW", List.of("mw_duel_wins", "mw_doubles_wins")),
-            Map.entry("BOWSPLEEF", List.of("bowspleef_duel_wins")),
+            Map.entry("BOWSPLEEF", List.of("bowspleef_duel_wins", "spleef_duel_wins")),
             Map.entry("OP", List.of("op_duel_wins", "op_doubles_wins")),
             Map.entry("COMBO", List.of("combo_duel_wins")),
             Map.entry("BOXING", List.of("boxing_duel_wins")),
             Map.entry("NODEBUFF", List.of("potion_duel_wins")),
-            Map.entry("ARENA", List.of("duel_arena_wins"))
+            Map.entry("ARENA", List.of("duel_arena_wins")),
+            Map.entry("QUAKE", List.of("quake_duel_wins")),
+            Map.entry("BEDWARS", List.of("bedwars_two_one_duels_rush_wins", "bedwars_two_one_duels_wins"))
     );
 
     private static final Map<String, Map<String, String>> SKYWARS_KITS = Map.ofEntries(
