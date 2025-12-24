@@ -50,7 +50,6 @@ public class BedwarsCardProvider extends CardProvider {
 
 	@Override
 	public void generate(BufferedImage image, JsonObject stats) {
-		System.out.println("how did this even get called?");
 		generateFull(image, stats);
 	}
 

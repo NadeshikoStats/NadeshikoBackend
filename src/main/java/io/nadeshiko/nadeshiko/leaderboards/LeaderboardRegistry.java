@@ -741,6 +741,39 @@ public class LeaderboardRegistry {
                 new Leaderboard("ARCADE_BOUNTY_HUNTERS_WINS", ARCADE, ar -> ar.get("wins_oneinthequiver").getAsInt()));
         new Leaderboard("ARCADE_BOUNTY_HUNTERS_KILLS", ARCADE, ar -> ar.get("kills_oneinthequiver").getAsInt());
         new Leaderboard("ARCADE_CREEPER_ATTACK_MAX_WAVE", ARCADE, ar -> ar.get("max_wave").getAsInt());
+
+        addToLookup(new Leaderboard("ARCADE_DISASTERS_WINS", ARCADE, ar -> {
+            if (ar.has("disasters") && ar.getAsJsonObject("disasters").has("stats")) {
+                return JsonUtil.getNullableInt(ar.getAsJsonObject("disasters").getAsJsonObject("stats").get("wins"));
+            }
+            return 0;
+        }));
+        new Leaderboard("ARCADE_DISASTERS_WLR", ARCADE, ar -> {
+            if (ar.has("disasters") && ar.getAsJsonObject("disasters").has("stats")) {
+                JsonObject stats = ar.getAsJsonObject("disasters").getAsJsonObject("stats");
+                return JsonUtil.getNullableDouble(stats.get("wins")) /
+                        Math.max(JsonUtil.getNullableDouble(stats.get("losses")), 1);
+            }
+            return 0.0;
+        });
+        new Leaderboard("ARCADE_DISASTERS_DISASTERS_SURVIVED", ARCADE, ar -> {
+            int survived = 0;
+            if (ar.has("disasters") && ar.getAsJsonObject("disasters").has("stats")) {
+                JsonObject stats = ar.getAsJsonObject("disasters").getAsJsonObject("stats");
+                if (stats.has("survived") && stats.get("survived").isJsonObject()) {
+                    for (Map.Entry<String, JsonElement> entry : stats.getAsJsonObject("survived").entrySet()) {
+                        survived += entry.getValue().getAsInt();
+                    }
+                }
+            }
+            return survived;
+        });
+        new Leaderboard("ARCADE_DISASTERS_TIME_SURVIVED", ARCADE, ar -> {
+            if (ar.has("disasters") && ar.getAsJsonObject("disasters").has("stats")) {
+                return JsonUtil.getNullableInt(ar.getAsJsonObject("disasters").getAsJsonObject("stats").get("time_survived"));
+            }
+            return 0;
+        });
         addToLookup(new Leaderboard("ARCADE_DRAGON_WARS_WINS", ARCADE, ar -> ar.get("wins_dragonwars2").getAsInt()));
         new Leaderboard("ARCADE_DRAGON_WARS_KILLS", ARCADE, ar -> ar.get("kills_dragonwars2").getAsInt());
         addToLookup(new Leaderboard("ARCADE_ENDER_SPLEEF_WINS", ARCADE, ar -> ar.get("wins_ender").getAsInt()));
@@ -800,6 +833,7 @@ public class LeaderboardRegistry {
         new Leaderboard("ARCADE_WINS", ARCADE,
                 ar -> LEADERBOARDS.get("ARCADE_BLOCKING_DEAD_WINS").derive(ar).intValue() +
                         LEADERBOARDS.get("ARCADE_BOUNTY_HUNTERS_WINS").derive(ar).intValue() +
+                        LEADERBOARDS.get("ARCADE_DISASTERS_WINS").derive(ar).intValue() +
                         LEADERBOARDS.get("ARCADE_DRAGON_WARS_WINS").derive(ar).intValue() +
                         LEADERBOARDS.get("ARCADE_ENDER_SPLEEF_WINS").derive(ar).intValue() +
                         LEADERBOARDS.get("ARCADE_FARM_HUNT_WINS").derive(ar).intValue() +
@@ -1250,10 +1284,17 @@ public class LeaderboardRegistry {
                 fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("treasure"))));
         addToLookup(new Leaderboard("FISHING_WATER_JUNK_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
                 fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("junk"))));
-        new Leaderboard("FISHING_WATER_TOTAL_CAUGHT", FISHING,
+        
+        addToLookup(new Leaderboard("FISHING_WATER_PLANT_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
+                fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("plant"))));
+        addToLookup(new Leaderboard("FISHING_WATER_CREATURE_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
+                fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("water").get("creature"))));
+        addToLookup(new Leaderboard("FISHING_WATER_TOTAL_CAUGHT", FISHING,
                 fish -> LEADERBOARDS.get("FISHING_WATER_FISH_CAUGHT").derive(fish).intValue()
                         + LEADERBOARDS.get("FISHING_WATER_TREASURE_CAUGHT").derive(fish).intValue()
-                        + LEADERBOARDS.get("FISHING_WATER_JUNK_CAUGHT").derive(fish).intValue());
+                        + LEADERBOARDS.get("FISHING_WATER_JUNK_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_WATER_PLANT_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_WATER_CREATURE_CAUGHT").derive(fish).intValue()));
 
         addToLookup(new Leaderboard("FISHING_LAVA_FISH_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
                 fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("fish"))));
@@ -1261,10 +1302,16 @@ public class LeaderboardRegistry {
                 fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("treasure"))));
         addToLookup(new Leaderboard("FISHING_LAVA_JUNK_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
                 fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("junk"))));
-        new Leaderboard("FISHING_LAVA_TOTAL_CAUGHT", FISHING,
+        addToLookup(new Leaderboard("FISHING_LAVA_PLANT_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
+                fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("plant"))));
+        addToLookup(new Leaderboard("FISHING_LAVA_CREATURE_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
+                fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("lava").get("creature"))));
+        addToLookup(new Leaderboard("FISHING_LAVA_TOTAL_CAUGHT", FISHING,
                 fish -> LEADERBOARDS.get("FISHING_LAVA_FISH_CAUGHT").derive(fish).intValue()
                         + LEADERBOARDS.get("FISHING_LAVA_TREASURE_CAUGHT").derive(fish).intValue()
-                        + LEADERBOARDS.get("FISHING_LAVA_JUNK_CAUGHT").derive(fish).intValue());
+                        + LEADERBOARDS.get("FISHING_LAVA_JUNK_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_LAVA_PLANT_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_LAVA_CREATURE_CAUGHT").derive(fish).intValue()));
 
         addToLookup(new Leaderboard("FISHING_ICE_FISH_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
                 fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("fish"))));
@@ -1272,10 +1319,18 @@ public class LeaderboardRegistry {
                 fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("treasure"))));
         addToLookup(new Leaderboard("FISHING_ICE_JUNK_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
                 fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("junk"))));
+
+        addToLookup(new Leaderboard("FISHING_ICE_PLANT_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
+                fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("plant"))));
+        addToLookup(new Leaderboard("FISHING_ICE_CREATURE_CAUGHT", FISHING, fish -> JsonUtil.getNullableInt(
+                fish.getAsJsonObject("stats").getAsJsonObject("permanent").getAsJsonObject("ice").get("creature"))));
+
         new Leaderboard("FISHING_ICE_TOTAL_CAUGHT", FISHING,
                 fish -> LEADERBOARDS.get("FISHING_ICE_FISH_CAUGHT").derive(fish).intValue()
                         + LEADERBOARDS.get("FISHING_ICE_TREASURE_CAUGHT").derive(fish).intValue()
-                        + LEADERBOARDS.get("FISHING_ICE_JUNK_CAUGHT").derive(fish).intValue());
+                        + LEADERBOARDS.get("FISHING_ICE_JUNK_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_ICE_PLANT_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_ICE_CREATURE_CAUGHT").derive(fish).intValue());
 
         addToLookup(new Leaderboard("FISHING_FISH_CAUGHT", FISHING,
                 fish -> LEADERBOARDS.get("FISHING_WATER_FISH_CAUGHT").derive(fish).intValue()
@@ -1289,6 +1344,16 @@ public class LeaderboardRegistry {
                 fish -> LEADERBOARDS.get("FISHING_WATER_JUNK_CAUGHT").derive(fish).intValue()
                         + LEADERBOARDS.get("FISHING_LAVA_JUNK_CAUGHT").derive(fish).intValue()
                         + LEADERBOARDS.get("FISHING_ICE_JUNK_CAUGHT").derive(fish).intValue()));
+        addToLookup(new Leaderboard("FISHING_PLANT_CAUGHT", FISHING,
+                fish -> LEADERBOARDS.get("FISHING_WATER_PLANT_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_LAVA_PLANT_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_ICE_PLANT_CAUGHT").derive(fish).intValue()));
+        addToLookup(new Leaderboard("FISHING_CREATURE_CAUGHT", FISHING,
+                fish -> LEADERBOARDS.get("FISHING_WATER_CREATURE_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_LAVA_CREATURE_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_ICE_CREATURE_CAUGHT").derive(fish).intValue()));
+
+                        
         new Leaderboard("FISHING_MYTHICAL_FISH_CAUGHT", FISHING,
                 fish -> JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("selene"))
                         + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("helios"))
@@ -1296,13 +1361,16 @@ public class LeaderboardRegistry {
                         + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("zeus"))
                         + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("aphrodite"))
                         + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("archimedes"))
-                        + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("hades")));
+                        + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("hades"))
+                        + JsonUtil.getNullableInt(fish.getAsJsonObject("orbs").get("demeter")));
 
         addToLookup(new Leaderboard("FISHING_TOTAL_CAUGHT", FISHING,
                 fish -> LEADERBOARDS.get("FISHING_FISH_CAUGHT").derive(fish).intValue()
                         + LEADERBOARDS.get("FISHING_TREASURE_CAUGHT").derive(fish).intValue()
                         + LEADERBOARDS.get("FISHING_JUNK_CAUGHT").derive(fish).intValue()
-                        + LEADERBOARDS.get("FISHING_MYTHICAL_FISH_CAUGHT").derive(fish).intValue(), -1, MASSIVE_CAP));
+                        + LEADERBOARDS.get("FISHING_MYTHICAL_FISH_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_PLANT_CAUGHT").derive(fish).intValue()
+                        + LEADERBOARDS.get("FISHING_CREATURE_CAUGHT").derive(fish).intValue(), -1, MASSIVE_CAP));
 
         new Leaderboard("FISHING_BIGGEST_DAEDALUS", FISHING, fish -> JsonUtil
                 .getNullableInt(fish.getAsJsonObject("orbs").getAsJsonObject("weight").get("archimedes")));
