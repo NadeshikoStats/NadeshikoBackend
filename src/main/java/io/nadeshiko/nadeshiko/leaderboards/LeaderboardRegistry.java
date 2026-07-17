@@ -585,13 +585,14 @@ public class LeaderboardRegistry {
         new Leaderboard("SKYWARS_LUCKY_BLOCK_SOLO_WINS", SKYWARS, sw -> sw.get("lab_win_lucky_blocks_lab_solo").getAsInt());
         new Leaderboard("SKYWARS_LUCKY_BLOCK_TEAM_WINS", SKYWARS, sw -> sw.get("lab_win_lucky_blocks_lab_team").getAsInt());
         
-        // over 75,000 XP
+        // XP >= 10,000 for MEGA kits, XP >= 25,000 for others
         new Leaderboard("SKYWARS_KIT_PRESTIGE_SEVENS", SKYWARS, sw -> {
             int prestigeSevens = 0;
             for (Map.Entry<String, Map<String, String>> modeEntry : SKYWARS_KITS.entrySet()) {
                 Map<String, String> kits = modeEntry.getValue();
                 for (String kitKey : kits.keySet()) {
-                    if (JsonUtil.getNullableInt(sw.get("xp_" + kitKey)) > 75_000) {
+                    int threshold = kitKey.toUpperCase().contains("_MEGA_") ? 10_000 : 25_000;
+                    if (JsonUtil.getNullableInt(sw.get("xp_" + kitKey)) >= threshold) {
                         prestigeSevens++;
                     }
                 }

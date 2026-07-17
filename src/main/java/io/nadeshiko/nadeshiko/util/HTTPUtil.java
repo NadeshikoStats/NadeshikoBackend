@@ -64,9 +64,14 @@ public class HTTPUtil {
 
 		// Read the status of the response and pick the appropriate stream to read from
 		int status = connection.getResponseCode();
-		Reader streamReader = new InputStreamReader(
-			status > 299 ? connection.getErrorStream() : connection.getInputStream());
+		InputStream inputStream = status > 299 ? connection.getErrorStream() : connection.getInputStream();
 
+		if (inputStream == null) {
+			connection.disconnect();
+			return new Response(status, "");
+		}
+
+		Reader streamReader = new InputStreamReader(inputStream);
 		BufferedReader bufferedReader = new BufferedReader(streamReader);
 
 		// Read the response from the stream
@@ -121,7 +126,7 @@ public class HTTPUtil {
 		// Read the status of the response and pick the appropriate stream to read from
 		int status = connection.getResponseCode();
 		InputStream inputStream = status > 299 ? connection.getErrorStream() : connection.getInputStream();
-		byte[] data = inputStream.readAllBytes();
+		byte[] data = inputStream != null ? inputStream.readAllBytes() : new byte[0];
 
 		// Close the connection
 		connection.disconnect();
